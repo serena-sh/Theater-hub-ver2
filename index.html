@@ -404,7 +404,7 @@ async function deleteProjectFromModal(){
   if(btn){btn.disabled=true;btn.textContent='Deleting...'}
   try{
     if(v2DbConnected){
-      await apiV2('project_delete',{id});
+      await apiV2('delete',{id});
     }else{
       const idx=projects.findIndex(x=>x.id===id);
       if(idx>=0)projects.splice(idx,1);
