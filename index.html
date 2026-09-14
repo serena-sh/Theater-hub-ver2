@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Theater Hub 2.0 · Actual Build v1</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+:root{--bg:#f4f6f8;--panel:#fff;--text:#172033;--muted:#6b7280;--line:#e5e7eb;--nav:#111827;--accent:#2563eb;--accent2:#eff6ff;--green:#0f766e;--amber:#b45309;--red:#b91c1c;--shadow:0 8px 30px rgba(15,23,42,.08)}
+*{box-sizing:border-box} body{margin:0;font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display:none!important}
+.app{min-height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr)}
+.sidebar{background:var(--nav);color:#fff;padding:20px 14px;position:sticky;top:0;height:100vh}
+.brand{padding:4px 10px 24px}.brand b{display:block;font-size:19px}.brand span{color:#94a3b8;font-size:11px}
+.nav{display:grid;gap:6px}.nav button{border:0;text-align:left;padding:11px 12px;border-radius:10px;background:transparent;color:#cbd5e1;font-weight:700}.nav button:hover,.nav button.active{background:#1f2937;color:#fff}.nav small{float:right;color:#64748b}
+.sidebarNote{position:absolute;left:14px;right:14px;bottom:16px;color:#94a3b8;font-size:10px;border-top:1px solid #273244;padding-top:12px}
+.main{min-width:0;padding:18px 22px 28px}.page{display:none}.page.active{display:block}.pageShell{max-width:1540px;margin:0 auto}
+.pageHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}.pageHead h1{font-size:24px;margin:0 0 4px}.sub{color:var(--muted);font-size:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:#fff;color:#334155;border-radius:9px;padding:8px 11px;font-weight:750;font-size:12px}.btn:hover{border-color:#aab4c3}.btn.primary{background:var(--nav);color:#fff;border-color:var(--nav)}.btn.blue{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.danger{color:var(--red)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.kpi{padding:14px}.kpi label{display:block;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.kpi strong{font-size:23px;display:block;margin-top:3px}.kpi span{font-size:10px;color:var(--muted)}
+/* map */
+.mapWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;min-height:calc(100vh - 125px)}
+.mapCard{overflow:hidden;position:relative}.mapTopbar{padding:10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;background:#fff}.search{border:1px solid var(--line);border-radius:9px;padding:8px 9px;background:#fff;min-width:120px}.mapTopbar .search:first-child{flex:1}.mapTools{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line);background:#fff}.mapToolBtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 9px;font-weight:750;font-size:11px;color:#334155}.mapToolBtn.active{background:#111827;color:#fff;border-color:#111827}.distanceBadge{position:absolute;z-index:720;right:14px;bottom:14px;background:rgba(255,255,255,.96);border:1px solid var(--line);box-shadow:var(--shadow);padding:9px 11px;border-radius:9px;font-size:11px;display:none}
+#map{height:calc(100vh - 186px);min-height:600px;background:#dce5ee}.mapHint{position:absolute;z-index:700;left:14px;bottom:14px;background:rgba(17,24,39,.92);color:#fff;padding:9px 11px;border-radius:9px;font-size:11px;display:none}
+.sidePanel{padding:15px;overflow:auto;max-height:calc(100vh - 125px)}.panelEmpty{height:100%;min-height:460px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px}.panelHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:14px}.panelHead h2{font-size:18px;margin:0}.pill{display:inline-block;padding:4px 7px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:9px;font-weight:800;margin-right:4px}.pill.green{background:#ecfdf5;color:#047857}.pill.amber{background:#fff7ed;color:#c2410c}
+.form{display:grid;gap:10px}.field label{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 9px;background:#fff}.field textarea{min-height:72px;resize:vertical}.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}.siteProjects{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.miniProject{padding:9px;border:1px solid var(--line);border-radius:9px;margin-top:7px;background:#fafafa}.miniProject b{font-size:11px}.miniProject div{font-size:10px;color:var(--muted);margin-top:2px}.radiusResults{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.radiusSummary{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.radiusSite{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #eef2f7}.radiusSite:first-of-type{border-top:0}.radiusSite b{font-size:11px}.radiusSite small{display:block;color:var(--muted);margin-top:2px}.distanceTag{white-space:nowrap;font-size:10px;font-weight:850;background:#eff6ff;color:#1d4ed8;padding:4px 6px;border-radius:999px}.locationActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+/* projects */
+.projectWorkspace{display:grid;grid-template-columns:360px minmax(0,1fr);gap:12px;align-items:start}.projectListCard{overflow:hidden;position:sticky;top:18px;max-height:calc(100vh - 36px)}.listTools{padding:10px;border-bottom:1px solid var(--line);display:grid;gap:7px}.listTools .row{display:flex;gap:6px}.listTools input,.listTools select{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 8px;background:#fff;font-size:11px}.clientGroup{border-bottom:1px solid #eef2f7}.clientGroupHead{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;background:#f8fafc;font-weight:850;font-size:11px}.projectRow{padding:11px 12px;border-top:1px solid #f0f2f5;cursor:pointer}.projectRow:hover{background:#f8fafc}.projectRow.active{background:#eff6ff;border-left:3px solid var(--accent);padding-left:9px}.projectRowTop{display:flex;justify-content:space-between;gap:8px}.projectName{font-weight:850;font-size:12px}.projectMeta{color:var(--muted);font-size:10px;margin-top:3px}.stage{font-size:9px;font-weight:800;color:#334155;background:#eef2f7;padding:3px 6px;border-radius:999px;height:max-content;white-space:nowrap}
+.detail{min-width:0;overflow:hidden}.detailHero{padding:18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.detailHero h2{margin:0 0 5px;font-size:21px}.detailHero .meta{color:var(--muted);font-size:11px}.tabs{display:flex;gap:4px;padding:9px 12px;border-bottom:1px solid var(--line);overflow:auto;background:#fbfcfd}.tab{border:0;background:transparent;border-radius:8px;padding:7px 9px;font-size:11px;color:#64748b;font-weight:750;white-space:nowrap}.tab.active{background:#eaf2ff;color:#1d4ed8}.tabBody{padding:16px}.overviewGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.info{border:1px solid var(--line);border-radius:10px;padding:11px}.info label{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase}.info strong{display:block;margin-top:4px;font-size:12px}.wide{grid-column:1/-1}.historyTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.timeline{border-left:2px solid #e2e8f0;margin-left:8px}.historyItem{position:relative;padding:0 0 14px 18px}.historyItem:before{content:"";position:absolute;left:-6px;top:4px;width:9px;height:9px;border-radius:50%;background:#94a3b8;border:2px solid #fff}.historyCard{border:1px solid var(--line);border-radius:10px;padding:10px}.historyDate{font-size:9px;color:var(--muted)}.historyTitle{font-size:11px;font-weight:850;margin:2px 0}.historyText{font-size:11px;color:#475569}.historyActions{display:flex;gap:5px;margin-top:7px}.tiny{border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 7px;font-size:9px}.commercialCurrent{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.rounds{display:grid;gap:7px}.round{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;justify-content:space-between;gap:12px}.round b{font-size:11px}.round small{color:var(--muted)}
+.placeholder{border:1px dashed #cbd5e1;border-radius:11px;padding:28px;text-align:center;color:#64748b;background:#f8fafc}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modalBox{width:min(560px,96vw);background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:16px}.modalHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.modalHead h3{margin:0;font-size:16px}.x{border:0;background:#f1f5f9;border-radius:8px;padding:6px 9px}
+
+/* dashboard */
+.dashboardGrid{display:grid;grid-template-columns:1.4fr .9fr;gap:12px;margin-top:12px}
+.dashboardStack{display:grid;gap:12px}.dashboardCard{padding:16px}.dashboardTitle{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.dashboardTitle b{font-size:13px}.metricRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{padding:15px}.metric .eyebrow{font-size:10px;color:var(--muted);font-weight:850;text-transform:uppercase;letter-spacing:.05em}.metric strong{display:block;font-size:24px;margin:3px 0}.metric small{color:var(--muted)}.progress{height:7px;background:#eef2f7;border-radius:99px;overflow:hidden;margin-top:10px}.progress>i{display:block;height:100%;background:#111827;border-radius:99px}.pipelineRow{display:grid;grid-template-columns:110px 1fr 58px;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #eef2f7}.pipelineRow:first-child{border-top:0}.pipelineBar{height:8px;border-radius:99px;background:#eef2f7;overflow:hidden}.pipelineBar i{display:block;height:100%;background:#2563eb}.activityItem,.attentionItem,.milestoneItem{padding:10px 0;border-top:1px solid #eef2f7}.activityItem:first-child,.attentionItem:first-child,.milestoneItem:first-child{border-top:0}.activityItem b,.attentionItem b,.milestoneItem b{font-size:11px}.activityItem small,.attentionItem small,.milestoneItem small{display:block;color:var(--muted);margin-top:3px}.attentionItem{display:flex;justify-content:space-between;gap:10px}.miniBadge{white-space:nowrap;font-size:9px;font-weight:850;border-radius:999px;padding:4px 7px;background:#fff7ed;color:#9a3412;align-self:flex-start}.dashboardActions{display:flex;gap:7px;flex-wrap:wrap}.dashboardFoot{margin-top:10px;color:var(--muted);font-size:10px}.kpiNote{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 12px;color:#64748b;font-size:10px;margin-top:10px}
+@media(max-width:1180px){.app{grid-template-columns:190px minmax(0,1fr)}.mapWorkspace{grid-template-columns:minmax(0,1fr) 300px}.projectWorkspace{grid-template-columns:315px minmax(0,1fr)}.overviewGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,1fr)}}
+
+.commercialModalBackdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);z-index:2500;display:none;align-items:center;justify-content:center;padding:20px}.commercialModalBackdrop.open{display:flex}.commercialModal{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.25);border:1px solid var(--line)}.commercialModalHead{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.commercialModalHead h3{margin:0;font-size:16px}.commercialModalBody{padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.commercialModalBody .full{grid-column:1/-1}.commercialModalBody label{display:block;font-size:9px;font-weight:850;color:var(--muted);text-transform:uppercase;margin-bottom:5px}.commercialModalBody input,.commercialModalBody select,.commercialModalBody textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 9px;font:inherit}.commercialModalBody textarea{min-height:80px;resize:vertical}.commercialModalFoot{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}.commercialCard{border:1px solid var(--line);border-radius:11px;padding:12px;margin-bottom:8px}.commercialCardTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.commercialTerms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}.commercialTerm{background:#f8fafc;border-radius:8px;padding:8px}.commercialTerm label{display:block;font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase}.commercialTerm b{display:block;margin-top:3px;font-size:10px}
+@media(max-width:820px){.app{grid-template-columns:1fr}.sidebar{position:static;height:auto}.brand{padding-bottom:12px}.nav{grid-template-columns:repeat(6,1fr)}.nav button{text-align:center;padding:9px 5px;font-size:10px}.sidebarNote{display:none}.main{padding:12px}.mapWorkspace,.projectWorkspace{grid-template-columns:1fr}.sidePanel,.projectListCard{position:static;max-height:none}.mapWorkspace{min-height:auto}#map{height:58vh;min-height:420px}.overviewGrid,.commercialCurrent,.dashboardGrid{grid-template-columns:1fr}.metricRow{grid-template-columns:1fr 1fr}.pageHead{flex-direction:column}.projectListCard{max-height:420px;overflow:auto}}
+
+/* v9 Clients CRM */
+.clientsWorkspace{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;align-items:start}.clientMaster{position:sticky;top:18px;overflow:hidden}.clientSearch{padding:10px;border-bottom:1px solid var(--line)}.clientSearch input{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:11px}.clientItem{padding:12px;border-bottom:1px solid #eef2f7;cursor:pointer}.clientItem:hover{background:#f8fafc}.clientItem.active{background:#eff6ff;border-left:3px solid var(--accent);padding-left:9px}.clientItem b{font-size:12px}.clientItem small{display:block;color:var(--muted);margin-top:3px}.clientHero{padding:18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.clientHero h2{margin:0;font-size:20px}.clientStats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.clientStat{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff}.clientStat label{display:block;font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase}.clientStat strong{display:block;font-size:20px;margin-top:4px}.clientTwoCol{display:grid;grid-template-columns:1fr 1fr;gap:10px}.clientSection{border:1px solid var(--line);border-radius:10px;padding:13px;background:#fff}.clientSection h3{font-size:12px;margin:0 0 10px}.contactRow,.clientDataRow{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #eef2f7;font-size:11px}.contactRow:first-of-type,.clientDataRow:first-of-type{border-top:0}.contactRow small,.clientDataRow small{color:var(--muted);display:block;margin-top:2px}.clientTabs{display:flex;gap:4px;padding:0 18px;border-bottom:1px solid var(--line);overflow:auto}.clientTab{border:0;background:transparent;padding:11px 9px;font-size:10px;font-weight:800;color:#64748b;cursor:pointer;border-bottom:2px solid transparent}.clientTab.active{color:var(--accent);border-bottom-color:var(--accent)}.clientBody{padding:14px 18px 18px}.clientTable{width:100%;border-collapse:collapse;font-size:10px}.clientTable th{text-align:left;color:var(--muted);font-size:9px;padding:8px;border-bottom:1px solid var(--line)}.clientTable td{padding:9px 8px;border-bottom:1px solid #eef2f7}.clientTable tr.clickable{cursor:pointer}.clientTable tr.clickable:hover{background:#f8fafc}@media(max-width:900px){.clientsWorkspace{grid-template-columns:1fr}.clientMaster{position:static}.clientStats{grid-template-columns:repeat(2,1fr)}.clientTwoCol{grid-template-columns:1fr}}
+
+.clientModalBackdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);display:none;align-items:center;justify-content:center;z-index:4000;padding:24px}
+.clientModalBackdrop.show{display:flex}
+.clientModal{width:min(560px,100%);background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.28);overflow:hidden}
+.clientModalHead{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #e2e8f0}
+.clientModalHead h3{margin:0;font-size:18px}.clientModalBody{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.clientModalBody .full{grid-column:1/-1}.clientModalBody label{display:block;font-size:11px;font-weight:800;color:#64748b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.clientModalBody input,.clientModalBody select,.clientModalBody textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px 11px;background:#fff;color:#0f172a;font:inherit}
+.clientModalBody textarea{min-height:92px;resize:vertical}.clientModalFoot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px 20px}.clientFormError{grid-column:1/-1;color:#b91c1c;font-size:12px;display:none}
+@media(max-width:700px){.clientModalBody{grid-template-columns:1fr}.clientModalBody .full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><b>Theater Hub 2.0</b><span>Web prototype · v8</span></div>
+    <div class="nav">
+      <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
+      <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
+      <button data-page="projectsPage" onclick="showPage('projectsPage',this)">Projects <small>6</small></button>
+      <button data-page="clientsPage" onclick="showPage('clientsPage',this)">Clients</button>
+      <button data-page="meetingsPage" onclick="showPage('meetingsPage',this)">Meetings</button>
+      <button data-page="documentsPage" onclick="showPage('documentsPage',this)">Documents</button>
+    </div>
+    <div class="sidebarNote">Prototype only · Supabase 미연결<br>추가/수정 내용은 새로고침 시 초기화됩니다.</div>
+  </aside>
+
+  <main class="main">
+    <section id="dashboardPage" class="page active"><div class="pageShell">
+      <div class="pageHead"><div><h1>Dashboard</h1><div class="sub">Project 운영현황과 KPI를 한 화면에서 확인합니다. 아래 KPI 목표값은 프로토타입용 샘플입니다.</div></div><div class="dashboardActions"><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">Open Projects</button><div class="toolbar"><button class="btn primary" onclick="openClientAddSite()">+ Add Site</button><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div></div></div>
+      <div class="metricRow">
+        <div class="card metric"><div class="eyebrow">2026 Signing KPI</div><strong>3 / 5</strong><small>60% achieved</small><div class="progress"><i style="width:60%"></i></div></div>
+        <div class="card metric"><div class="eyebrow">2026 Opening KPI</div><strong>2 / 4</strong><small>50% achieved</small><div class="progress"><i style="width:50%"></i></div></div>
+        <div class="card metric"><div class="eyebrow">Active Projects</div><strong>4</strong><small>Pending pipeline</small></div>
+        <div class="card metric"><div class="eyebrow">At Risk / TBD</div><strong>1</strong><small>Schedule review required</small></div>
+      </div>
+      <div class="dashboardGrid">
+        <div class="dashboardStack">
+          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>KPI-linked Projects</b><div class="sub">Signing / Opening 일정과 Project 상태를 기준으로 자동 집계하는 영역</div></div><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">View Projects</button></div>
+            <div class="pipelineRow"><b>Signing</b><div class="pipelineBar"><i style="width:60%"></i></div><strong>3 / 5</strong></div>
+            <div class="pipelineRow"><b>Opening</b><div class="pipelineBar"><i style="width:50%"></i></div><strong>2 / 4</strong></div>
+            <div class="pipelineRow"><b>2026 Pipeline</b><div class="pipelineBar"><i style="width:80%"></i></div><strong>4</strong></div>
+            <div class="kpiNote">실제 구축 시 KPI 목표값은 별도 설정값으로 두고, Project의 Signing / Opening / Status 변경에 따라 실적이 자동 반영되도록 구성합니다.</div>
+          </div>
+          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Upcoming Milestones</b><div class="sub">가까운 Signing / Shipping / Opening 일정</div></div></div>
+            <div class="milestoneItem"><b>Scope Cinema · Cinnamon Life</b><small>Signing · 2026.10 · SCREENX</small></div>
+            <div class="milestoneItem"><b>HOYTS · Sylvia Park</b><small>Opening · 2026.12 · SCREENX</small></div>
+            <div class="milestoneItem"><b>Showtime · Taichung Station</b><small>Signing · 2026 Q4 · 4DX</small></div>
+          </div>
+        </div>
+        <div class="dashboardStack">
+          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Needs Attention</b><div class="sub">TBD 또는 일정 확인이 필요한 Project</div></div></div>
+            <div class="attentionItem"><div><b>Vieshow · Big City · 4DX</b><small>Signing TBD · Opening TBD</small></div><span class="miniBadge">Review</span></div>
+            <div class="attentionItem"><div><b>Scope Cinema · Cinnamon Life</b><small>Next Action · Contract execution</small></div><span class="miniBadge">Action</span></div>
+          </div>
+          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Recent Activity</b><div class="sub">Project History의 최신 변경사항</div></div></div>
+            <div class="activityItem"><b>Cinnamon Life · Opening updated</b><small>2026.09.11 · 2027 Q1 → 2027.03</small></div>
+            <div class="activityItem"><b>Cinnamon Life · Stage changed</b><small>2026.09.05 · Proposal → Contract</small></div>
+            <div class="activityItem"><b>Taipei Xinyi · Operating review</b><small>2026.09.09 · Project updated</small></div>
+          </div>
+          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Map Snapshot</b><div class="sub">Site 현황으로 바로 이동</div></div><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div><div style="font-size:26px;font-weight:850">7 Sites</div><div class="sub" style="margin-top:4px">Operating 4 · Planned 3 · Radius / distance tools available</div></div>
+        </div>
+      </div>
+    </div></section>
+
+    <section id="mapPage" class="page"><div class="pageShell">
+      <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Site가 지도 데이터의 기준입니다. 주소/장소명 또는 지도 클릭으로 위치를 지정하고, 내부적으로 좌표를 저장합니다.</div></div><div class="toolbar"><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
+      <div class="mapWorkspace">
+        <div class="card mapCard">
+          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / client" oninput="renderMarkers()"><select id="countryFilter" class="search" onchange="renderMarkers()"><option value="">All Countries</option><option>Taiwan</option><option>Australia</option><option>Sri Lanka</option><option>New Zealand</option></select><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
+          <div id="map"></div><div id="mapHint" class="mapHint">지도에서 위치를 클릭하세요.</div><div id="distanceBadge" class="distanceBadge"></div>
+        </div>
+        <div id="mapPanel" class="card sidePanel"><div class="panelEmpty"><div><b>Site를 선택하세요</b><br><br>Marker 클릭 → 상세 확인<br><b>Edit</b> → 정보 수정<br><b>Move Pin</b> → 지도에서 위치 변경<br><b>+ Add Site</b> → 신규 Site 추가</div></div></div>
+      </div>
+    </div></section>
+
+    <section id="projectsPage" class="page"><div class="pageShell">
+      <div class="pageHead"><div><h1>Projects</h1><div class="sub">Project의 현재 상태와 변경 History를 하나의 DB에서 관리합니다.</div><div id="dbStatus" class="sub" style="margin-top:4px">Connecting to database...</div></div><div class="toolbar"><button class="btn" onclick="reloadV2Data()">↻ Refresh</button><button class="btn primary" onclick="openNewProject()">+ New Project</button></div></div>
+      <div class="kpis"><div class="card kpi"><label>Pending</label><strong>4</strong><span>Active pipeline</span></div><div class="card kpi"><label>Opened</label><strong>1</strong><span>Retained with history</span></div><div class="card kpi"><label>On Hold</label><strong>1</strong><span>Review required</span></div><div class="card kpi"><label>Updated this month</label><strong>5</strong><span>History events</span></div></div>
+      <div class="projectWorkspace">
+        <div class="card projectListCard">
+          <div class="listTools"><input id="projectSearch" placeholder="Search project / client" oninput="renderProjectList()"><div class="row"><select id="projectStatusFilter" onchange="renderProjectList()"><option value="">All Status</option><option>Pending</option><option>Opened</option><option>On Hold</option></select><select id="projectSort" onchange="renderProjectList()"><option value="opening">Opening</option><option value="updated">Recently Updated</option><option value="client">Client A-Z</option></select></div></div>
+          <div id="projectList"></div>
+        </div>
+        <div id="projectDetail" class="card detail"></div>
+      </div>
+    </div></section>
+
+    <section id="clientsPage" class="page"><div class="pageShell"><div class="pageHead"><div><h1>Clients</h1><div class="sub">거래처별 Site · Project · Commercial · Meeting · Document · Contact를 한 곳에서 봅니다.</div></div><button class="btn primary" onclick="openAddClient()">+ Add Client</button></div><div class="clientsWorkspace"><div class="card clientMaster"><div class="clientSearch"><input id="clientSearch" placeholder="Search client" oninput="renderClientList()"></div><div id="clientList"></div></div><div class="card" id="clientDetail"></div></div></div></section>
+    <section id="meetingsPage" class="page"><div class="pageShell"><div class="pageHead"><div><h1>Meetings</h1><div class="sub">Meeting은 여러 Project에 연결할 수 있도록 구성할 예정입니다.</div></div></div><div class="card placeholder">기존 Meeting AI 기능은 유지하고 Project Link만 새 구조로 연결합니다.</div></div></section>
+    <section id="documentsPage" class="page"><div class="pageShell"><div class="pageHead"><div><h1>Documents</h1><div class="sub">Quotation, Contract, Drawing, Commercial 파일을 Project에 연결합니다.</div></div></div><div class="card placeholder">Document Library prototype 예정</div></div></section>
+  </main>
+</div>
+
+
+<div id="projectModal" class="modal"><div class="modalBox" style="max-width:760px"><div class="modalHead"><div><h3 id="projectModalTitle">New Project</h3><div class="sub" id="projectModalSub">Project의 현재 상태를 등록합니다. 이후 변경사항은 History로 누적됩니다.</div></div><button class="x" onclick="closeProjectModal()">✕</button></div><div class="form">
+  <div class="formGrid"><div class="field"><label>Client</label><select id="pClient" onchange="refreshProjectSiteOptions()"></select></div><div class="field"><label>Site / Theater</label><select id="pSite"><option value="">Not linked yet</option></select></div></div>
+  <div class="formGrid"><div class="field"><label>Project Name</label><input id="pName" placeholder="e.g. Taipei Xinyi #5"></div><div class="field"><label>Format</label><select id="pFormat"><option>SCREENX</option><option>4DX</option><option>ULTRA 4DX</option><option>Other</option></select></div></div>
+  <div class="formGrid"><div class="field"><label>Auditorium</label><input id="pAuditorium" placeholder="#5 / Auditorium 3"></div><div class="field"><label>BM</label><select id="pBm"><option>Sales</option><option>P-JV</option><option>F-JV</option></select></div></div>
+  <div class="formGrid"><div class="field"><label>Status</label><select id="pStatus"><option>Pending</option><option>Opened</option><option>On Hold</option><option>Cancelled</option></select></div><div class="field"><label>Stage</label><select id="pStage"><option>Lead</option><option>Feasibility</option><option>Proposal</option><option>Negotiation</option><option>Contract</option><option>Shipping</option><option>Installation</option><option>Opened</option></select></div></div>
+  <div class="formGrid"><div class="field"><label>Signing</label><input id="pSigning" placeholder="2026-10 / 2026 Q4 / TBD"></div><div class="field"><label>Shipping</label><input id="pShipping" placeholder="2026-12 / 2027 Q1 / TBD"></div></div>
+  <div class="formGrid"><div class="field"><label>Opening</label><input id="pOpening" placeholder="2027-03 / 2027 Q1 / TBD"></div><div class="field"><label>Owner</label><input id="pOwner" placeholder="Owner / PIC"></div></div>
+  <div class="field"><label>Next Action</label><input id="pNext" placeholder="e.g. Revised quotation / Contract execution"></div>
+  <div class="field"><label id="pNoteLabel">Initial Note</label><textarea id="pNote" placeholder="Optional. 저장 시 첫 History로 기록됩니다."></textarea></div>
+  <div class="actions"><button class="btn" onclick="closeProjectModal()">Cancel</button><button class="btn primary" id="projectSaveBtn" onclick="saveProjectFromModal()">Create Project</button></div>
+</div></div></div>
+<div id="historyModal" class="modal"><div class="modalBox"><div class="modalHead"><h3 id="historyModalTitle">Add History</h3><button class="x" onclick="closeHistoryModal()">✕</button></div><div class="form"><div class="formGrid"><div class="field"><label>Date</label><input id="hDate" type="date"></div><div class="field"><label>Type</label><select id="hType"><option>Stage</option><option>Status</option><option>Signing</option><option>Opening</option><option>Shipping</option><option>Site</option><option>Commercial</option><option>Project</option><option>Note</option></select></div></div><div class="field"><label>Title</label><input id="hTitle"></div><div class="formGrid"><div class="field"><label>Before</label><input id="hBefore"></div><div class="field"><label>After</label><input id="hAfter"></div></div><div class="field"><label>Note</label><textarea id="hNote"></textarea></div><div class="actions"><button class="btn" onclick="closeHistoryModal()">Cancel</button><button class="btn primary" onclick="saveHistory()">Save</button></div></div></div></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let sites=[
+ {id:1,client:'Vieshow',name:'Taipei Xinyi',country:'Taiwan',city:'Taipei',status:'Operating',formats:['4DX','SCREENX'],lat:25.0337,lng:121.5645,address:'Xinyi District, Taipei',projects:[101]},
+ {id:7,client:'Demo Cinema Group A',name:'Taipei Demo East',country:'Taiwan',city:'Taipei',status:'Operating',formats:['SCREENX'],lat:25.0418,lng:121.5510,address:'Prototype sample site',projects:[]},
+ {id:8,client:'Demo Cinema Group B',name:'Taipei Demo South',country:'Taiwan',city:'Taipei',status:'Planned',formats:['4DX'],lat:25.0108,lng:121.5590,address:'Prototype sample site',projects:[]},
+ {id:9,client:'Demo Cinema Group C',name:'Taipei Demo North',country:'Taiwan',city:'Taipei',status:'Operating',formats:['4DX','SCREENX'],lat:25.0780,lng:121.5660,address:'Prototype sample site',projects:[]},
+ {id:2,client:'Scope Cinema',name:'Cinnamon Life',country:'Sri Lanka',city:'Colombo',status:'Planned',formats:['SCREENX'],lat:6.9271,lng:79.8612,address:'Colombo, Sri Lanka',projects:[102]},
+ {id:3,client:'HOYTS',name:'Bondi Junction',country:'Australia',city:'Sydney',status:'Planned',formats:['SCREENX'],lat:-33.8912,lng:151.2509,address:'Bondi Junction NSW',projects:[103]},
+ {id:4,client:'HOYTS',name:'Sylvia Park',country:'New Zealand',city:'Auckland',status:'Operating',formats:['SCREENX'],lat:-36.9158,lng:174.8405,address:'286 Mount Wellington Highway',projects:[104]}
+];
+let projects=[
+ {id:101,client:'Vieshow',siteId:1,name:'Taipei Xinyi #5',format:'SCREENX',bm:'P-JV',status:'Opened',stage:'Opened',signing:'2025.09',shipping:'2025.12',opening:'2026.02',next:'Operating review',updated:'2026-09-09',owner:'-',history:[{date:'2026-02-14',type:'Opening',title:'Site opened',before:'Pending',after:'Opened',note:'Opening completed.'},{date:'2026-01-10',type:'Shipping',title:'Shipping completed',before:'2025 Q4',after:'2025.12',note:''}]},
+ {id:102,client:'Scope Cinema',siteId:2,name:'Cinnamon Life',format:'SCREENX',bm:'Sales',status:'Pending',stage:'Contract',signing:'2026.10',shipping:'2026 Q4',opening:'2027 Q1',next:'Contract execution',updated:'2026-09-11',owner:'-',history:[{date:'2026-09-11',type:'Opening',title:'Opening schedule updated',before:'2027 Q1',after:'2027.03',note:'Client schedule updated.'},{date:'2026-09-05',type:'Stage',title:'Moved to Contract',before:'Proposal',after:'Contract',note:'Commercial terms aligned.'},{date:'2026-08-22',type:'Note',title:'Revised proposal requested',before:'',after:'',note:'Client requested revised commercial proposal.'}]},
+ {id:103,client:'HOYTS',siteId:3,name:'Bondi Junction',format:'SCREENX',bm:'Sales',status:'Pending',stage:'Proposal',signing:'2027 Q1',shipping:'2027 Q1',opening:'2027 Q2',next:'Revised quotation',updated:'2026-09-08',owner:'-',history:[{date:'2026-09-08',type:'Commercial',title:'Quotation revised',before:'Round 1',after:'Round 2',note:''}]},
+ {id:104,client:'HOYTS',siteId:4,name:'Sylvia Park',format:'SCREENX',bm:'Sales',status:'Pending',stage:'Installation',signing:'2026.08',shipping:'2026.10',opening:'2026.12',next:'Site readiness check',updated:'2026-09-10',owner:'-',history:[{date:'2026-09-10',type:'Stage',title:'Installation prep',before:'Shipping',after:'Installation',note:''}]},
+ {id:105,client:'Showtime',siteId:null,name:'Taichung Station',format:'4DX',bm:'P-JV',status:'Pending',stage:'Proposal',signing:'2027 Q1',shipping:'2027 Q1',opening:'2027 Q2',next:'Commercial discussion',updated:'2026-09-06',owner:'-',history:[]},
+ {id:106,client:'Vieshow',siteId:null,name:'Big City',format:'4DX',bm:'P-JV',status:'On Hold',stage:'Feasibility',signing:'TBD',shipping:'TBD',opening:'TBD',next:'Client confirmation',updated:'2026-08-31',owner:'-',history:[]}
+];
+let clientProfiles=[
+ {name:'Vieshow',country:'Taiwan',type:'Exhibitor',status:'Active',note:'Prototype example client. Client page aggregates Sites, Projects, Commercial, Meetings, Documents and Contacts.',contacts:[
+   {name:'Kevin Chen',role:'VP, Development',email:'kevin.chen@example.com',phone:'+886 2 0000 0000',primary:true},
+   {name:'Amy Lin',role:'Project Manager',email:'amy.lin@example.com',phone:'+886 2 0000 0001',primary:false}
+ ]},
+ {name:'Scope Cinema',country:'Sri Lanka',type:'Exhibitor',status:'Active',note:'Prototype client profile.',contacts:[]},
+ {name:'HOYTS',country:'Australia / New Zealand',type:'Exhibitor',status:'Active',note:'Prototype client profile.',contacts:[]},
+ {name:'Showtime',country:'Taiwan',type:'Exhibitor',status:'Active',note:'Prototype client profile.',contacts:[]}
+];
+let selectedClient='Vieshow', selectedClientTab='overview';
+let selectedProjectId=102, selectedTab='overview', selectedSiteId=null, mapMode=null, editHistoryIndex=null, editingProjectId=null;
+let map,markerLayer,mapToolLayer,measurePoints=[];
+
+function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='mapPage'&&map)setTimeout(()=>map.invalidateSize(),50);if(id==='clientsPage'){renderClientList();renderClientDetail()}}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+function initMap(){map=L.map('map',{zoomControl:true}).setView([10,115],3);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);markerLayer=L.layerGroup().addTo(map);mapToolLayer=L.layerGroup().addTo(map);map.on('click',e=>{if(mapMode==='add'){showSiteForm(null,e.latlng)}else if(mapMode==='move'&&selectedSiteId){const s=sites.find(x=>x.id===selectedSiteId);s.lat=e.latlng.lat;s.lng=e.latlng.lng;mapMode=null;document.getElementById('mapHint').style.display='none';renderMarkers();showSiteDetail(s.id,true)}else if(mapMode==='pickForm'){const lat=document.getElementById('sLat'),lng=document.getElementById('sLng');if(lat&&lng){lat.value=e.latlng.lat.toFixed(6);lng.value=e.latlng.lng.toFixed(6);mapMode=null;document.getElementById('mapHint').style.display='none';reverseGeocodeSite(e.latlng.lat,e.latlng.lng,{overwriteAddress:true});}}else if(mapMode==='measure'){addMeasurePoint(e.latlng)}});renderMarkers()}
+function markerIcon(status){const color=status==='Operating'?'#0f766e':status==='Closed'?'#b91c1c':'#b45309';return L.divIcon({className:'',html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 5px #475569"></div>`,iconSize:[15,15],iconAnchor:[8,8]})}
+function renderMarkers(){
+  if(!markerLayer)return;
+  markerLayer.clearLayers();
+  const q=(document.getElementById('mapSearch').value||'').toLowerCase();
+  const c=document.getElementById('countryFilter').value;
+  const st=document.getElementById('statusFilter').value;
+  sites.filter(s => Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lng))).filter(s => {
+    const hitQ=!q || (`${s.name} ${s.client}`).toLowerCase().includes(q);
+    const hitC=!c || s.country===c;
+    const hitS=!st || s.status===st;
+    return hitQ && hitC && hitS;
+  }).forEach(s=>{
+    L.marker([s.lat,s.lng],{icon:markerIcon(s.status)})
+      .addTo(markerLayer)
+      .bindTooltip(`${s.client} · ${s.name}`)
+      .on('click',()=>showSiteDetail(s.id));
+  });
+}
+
+function clearMapToolButtons(){['radius5Btn','radius10Btn','measureBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active')})}
+function clearMapTools(){if(mapToolLayer)mapToolLayer.clearLayers();measurePoints=[];if(mapMode==='measure')mapMode=null;clearMapToolButtons();const b=document.getElementById('distanceBadge');if(b)b.style.display='none';const h=document.getElementById('mapHint');if(h&&mapMode!== 'add' && mapMode!=='move')h.style.display='none'}
+function showRadius(km){if(!selectedSiteId){alert('먼저 기준이 될 Site marker를 선택해주세요.');return}clearMapTools();const s=sites.find(x=>x.id===selectedSiteId);if(!s)return;const center=L.latLng(s.lat,s.lng);L.circle(center,{radius:km*1000,weight:2,fillOpacity:.08}).addTo(mapToolLayer);L.circleMarker(center,{radius:5,weight:2,fillOpacity:1}).addTo(mapToolLayer);const nearby=sites.filter(x=>x.id!==s.id).map(x=>({...x,distanceKm:center.distanceTo(L.latLng(x.lat,x.lng))/1000})).filter(x=>x.distanceKm<=km).sort((a,b)=>a.distanceKm-b.distanceKm);nearby.forEach(x=>L.circleMarker([x.lat,x.lng],{radius:7,weight:2,fillOpacity:.7}).addTo(mapToolLayer).bindTooltip(`${x.client} · ${x.name} · ${x.distanceKm.toFixed(1)} km`));map.fitBounds(center.toBounds(km*2400));const btn=document.getElementById(km===5?'radius5Btn':'radius10Btn');if(btn)btn.classList.add('active');const b=document.getElementById('distanceBadge');b.innerHTML=`<b>${km} km radius</b><br>${esc(s.name)} 기준 · ${nearby.length} sites`;b.style.display='block';showSiteDetail(s.id,true);appendRadiusResults(km,s,nearby)}
+function appendRadiusResults(km,base,nearby){const panel=document.getElementById('mapPanel');if(!panel)return;const clients=[...new Set(nearby.map(x=>x.client))];panel.insertAdjacentHTML('beforeend',`<div class="radiusResults"><b>${km} km 내 극장사 / Site</b><div class="sub">${esc(base.name)} 기준 직선거리</div><div class="radiusSummary">${clients.length?clients.map(c=>`<span class="pill">${esc(c)}</span>`).join(''):'<span class="sub">반경 내 다른 Site가 없습니다.</span>'}</div>${nearby.map(x=>`<div class="radiusSite"><div><b>${esc(x.client)} · ${esc(x.name)}</b><small>${esc(x.city)}, ${esc(x.country)} · ${x.formats.map(esc).join(' / ')||'-'}</small></div><span class="distanceTag">${x.distanceKm.toFixed(2)} km</span></div>`).join('')}</div>`)}
+function startDistanceMeasure(){clearMapTools();mapMode='measure';clearMapToolButtons();document.getElementById('measureBtn').classList.add('active');const h=document.getElementById('mapHint');h.textContent='직선거리 측정: 지도에서 첫 번째 지점과 두 번째 지점을 클릭하세요.';h.style.display='block'}
+function addMeasurePoint(latlng){if(measurePoints.length>=2){mapToolLayer.clearLayers();measurePoints=[]}measurePoints.push(latlng);L.circleMarker(latlng,{radius:5,weight:2,fillOpacity:1}).addTo(mapToolLayer);if(measurePoints.length===2){const [a,b]=measurePoints;L.polyline([a,b],{weight:3,dashArray:'7 7'}).addTo(mapToolLayer);const meters=map.distance(a,b),km=meters/1000;const badge=document.getElementById('distanceBadge');badge.innerHTML=`<b>Straight distance</b><br>${km<1?Math.round(meters)+' m':km.toFixed(2)+' km'}`;badge.style.display='block';document.getElementById('mapHint').textContent='다시 측정하려면 첫 지점을 클릭하세요. Clear로 종료할 수 있습니다.'}}
+function startAddSite(){selectedSiteId=null;showSiteForm(null,null);mapMode='pickForm';const h=document.getElementById('mapHint');h.textContent='새 Site 추가: 주소로 찾기 또는 지도에서 위치를 클릭하세요.';h.style.display='block';}
+function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);selectedSiteId=id;if(mapMode==='measure')clearMapTools();mapMode=null;document.getElementById('mapHint').style.display='none';if(!keepCenter)map.setView([s.lat,s.lng],Math.max(map.getZoom(),7));const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div>${s.formats.map(f=>`<span class="pill">${esc(f)}</span>`).join('')}</div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
+function showSiteForm(id,latlng){const hasPos=!!latlng;const s=id?sites.find(x=>x.id===id):{id:null,client:'',name:'',country:'',city:'',status:'Planned',formats:[],lat:hasPos?latlng.lat:'',lng:hasPos?latlng.lng:'',address:'',projects:[]};selectedSiteId=id;if(id||hasPos){mapMode=null;document.getElementById('mapHint').style.display='none';}document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${id?'Edit Site':'Add Site'}</h2><div class="sub">주소 검색, 지도 클릭, 좌표 직접입력 중 편한 방법을 사용하세요.</div></div></div><div class="form"><div class="field"><label>Client</label><input id="sClient" value="${esc(s.client)}"></div><div class="field"><label>Site Name</label><input id="sName" value="${esc(s.name)}"></div><div class="formGrid"><div class="field"><label>Country <small>(자동입력 · 수정 가능)</small></label><input id="sCountry" value="${esc(s.country)}"></div><div class="field"><label>City <small>(자동입력 · 수정 가능)</small></label><input id="sCity" value="${esc(s.city)}"></div></div><div class="field"><label>Address / Place <small>(자동입력 · 수정 가능)</small></label><input id="sAddress" value="${esc(s.address)}" placeholder="예: Taipei 101, Xinyi District 또는 전체 주소"><div class="locationActions"><button class="btn" type="button" onclick="geocodeSiteAddress()">주소로 찾기</button><button class="btn" type="button" onclick="pickSiteLocationOnMap()">지도에서 위치 지정</button></div></div><div class="formGrid"><div class="field"><label>Latitude</label><input id="sLat" value="${s.lat===''?'':Number(s.lat).toFixed(6)}" placeholder="예: 25.033964"></div><div class="field"><label>Longitude</label><input id="sLng" value="${s.lng===''?'':Number(s.lng).toFixed(6)}" placeholder="예: 121.564468"></div></div><div class="locationActions"><button class="btn" type="button" onclick="applyTypedCoordinates()">좌표 적용 · 지역 자동입력</button></div><div class="sub" style="margin-top:-2px">좌표를 직접 붙여넣어도 됩니다. 적용하면 지도 이동 + Country / City / Address 자동 조회.</div><div class="field"><label>Formats (comma separated)</label><input id="sFormats" value="${esc(s.formats.join(', '))}"></div><div class="field"><label>Status</label><select id="sStatus"><option ${s.status==='Operating'?'selected':''}>Operating</option><option ${s.status==='Planned'?'selected':''}>Planned</option><option ${s.status==='Closed'?'selected':''}>Closed</option></select></div><div class="actions"><button class="btn" onclick="${id?`showSiteDetail(${id})`:`cancelSiteForm()`}">Cancel</button><button class="btn primary" onclick="saveSite(${id||'null'})">Save Site</button></div></div>`}
+function pickSiteLocationOnMap(){mapMode='pickForm';const h=document.getElementById('mapHint');h.textContent='지도에서 Site 위치를 클릭하세요. 좌표가 자동 입력됩니다.';h.style.display='block';if(map)map.getContainer().scrollIntoView({behavior:'smooth',block:'center'});}
+function placeTemporaryLocation(lat,lng,label){mapToolLayer.clearLayers();map.setView([lat,lng],15);L.circleMarker([lat,lng],{radius:7,weight:2,fillOpacity:.7}).addTo(mapToolLayer);const b=document.getElementById('distanceBadge');b.innerHTML='<b>Location selected</b><br>'+esc(label||`${lat.toFixed(6)}, ${lng.toFixed(6)}`);b.style.display='block'}
+function extractLocationFields(addr={}){return{country:addr.country||'',city:addr.city||addr.town||addr.village||addr.municipality||addr.county||addr.state_district||'',address:''}}
+async function reverseGeocodeSite(lat,lng,{overwriteAddress=true}={}){try{const url=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`;const res=await fetch(url,{headers:{'Accept-Language':'en'}});if(!res.ok)throw new Error('reverse failed');const row=await res.json();const a=row.address||{};const loc=extractLocationFields(a);const country=document.getElementById('sCountry'),city=document.getElementById('sCity'),address=document.getElementById('sAddress');if(country&&loc.country)country.value=loc.country;if(city&&loc.city)city.value=loc.city;if(address&&overwriteAddress&&row.display_name)address.value=row.display_name;placeTemporaryLocation(Number(lat),Number(lng),row.display_name||'Location selected');return row}catch(e){placeTemporaryLocation(Number(lat),Number(lng),'Coordinates applied · location lookup unavailable');return null}}
+async function applyTypedCoordinates(){const lat=Number(document.getElementById('sLat')?.value),lng=Number(document.getElementById('sLng')?.value);if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('Latitude / Longitude 값을 확인해주세요.');return}document.getElementById('sLat').value=lat.toFixed(6);document.getElementById('sLng').value=lng.toFixed(6);await reverseGeocodeSite(lat,lng,{overwriteAddress:true})}
+async function geocodeSiteAddress(){const address=(document.getElementById('sAddress')?.value||'').trim();if(!address){alert('Address / Place를 먼저 입력해주세요.');return}try{const url='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&q='+encodeURIComponent(address);const res=await fetch(url,{headers:{'Accept-Language':'en'}});const rows=await res.json();if(!rows.length){alert('검색 결과가 없습니다. 지도에서 위치 지정을 사용해주세요.');return}const row=rows[0],lat=Number(row.lat),lng=Number(row.lon),a=row.address||{},loc=extractLocationFields(a);document.getElementById('sLat').value=lat.toFixed(6);document.getElementById('sLng').value=lng.toFixed(6);if(loc.country)document.getElementById('sCountry').value=loc.country;if(loc.city)document.getElementById('sCity').value=loc.city;if(row.display_name)document.getElementById('sAddress').value=row.display_name;placeTemporaryLocation(lat,lng,row.display_name);}catch(e){alert('주소 검색에 실패했습니다. 지도에서 위치 지정을 사용해주세요.')}}
+function cancelSiteForm(){selectedSiteId=null;document.getElementById('mapPanel').innerHTML='<div class="panelEmpty"><div><b>Site를 선택하세요</b><br><br>Marker를 클릭하거나 + Add Site를 사용하세요.</div></div>'}
+function saveSite(id){const obj={client:document.getElementById('sClient').value.trim(),name:document.getElementById('sName').value.trim(),country:document.getElementById('sCountry').value.trim(),city:document.getElementById('sCity').value.trim(),address:document.getElementById('sAddress').value.trim(),lat:Number(document.getElementById('sLat').value),lng:Number(document.getElementById('sLng').value),formats:document.getElementById('sFormats').value.split(',').map(x=>x.trim()).filter(Boolean),status:document.getElementById('sStatus').value};if(!obj.name||!Number.isFinite(obj.lat)||!Number.isFinite(obj.lng)){alert('Site Name과 좌표를 확인해주세요.');return}if(id){Object.assign(sites.find(x=>x.id===id),obj)}else{id=Math.max(...sites.map(x=>x.id))+1;sites.push({id,...obj,projects:[]})}renderMarkers();showSiteDetail(id,true)}
+function moveSite(id){selectedSiteId=id;mapMode='move';document.getElementById('mapHint').textContent='새 Marker 위치를 지도에서 클릭하세요.';document.getElementById('mapHint').style.display='block'}
+function openProjectFromMap(id){selectedProjectId=id;renderProjectList();renderProjectDetail();showPage('projectsPage',document.querySelector('[data-page="projectsPage"]'))}
+
+
+
+const V2_API='/api/v2-projects';
+let v2DbConnected=false;
+
+function setDbStatus(text,ok=false){
+  const el=document.getElementById('dbStatus');
+  if(!el)return;
+  el.textContent=text;
+  el.style.color=ok?'#047857':'#b45309';
+}
+async function apiV2(action,payload={},method='POST'){
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(method!=='GET')opts.body=JSON.stringify({action,...payload});
+  const url=method==='GET'?`${V2_API}?action=${encodeURIComponent(action)}`:V2_API;
+  const res=await fetch(url,opts);
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||data.ok===false)throw new Error(data.error||`HTTP ${res.status}`);
+  return data;
+}
+function normalizeProjectRow(r){
+  return {
+    id:Number(r.id), client:r.client||r.client_name_snapshot||'Unassigned', clientId:r.client_id??null,
+    siteId:r.site_id??null, name:r.name||r.project_name||'', format:r.format||'', auditorium:r.auditorium||'',
+    bm:r.bm||'Sales', status:r.status||'Pending', stage:r.stage||'Lead', signing:r.signing||r.signing_text||'TBD',
+    shipping:r.shipping||r.shipping_text||'TBD', opening:r.opening||r.opening_text||'TBD', owner:r.owner||'-',
+    next:r.next||r.next_action||'-', updated:(r.updated_at||r.created_at||'').slice(0,10), history:(r.history||[]).map(h=>({
+      id:h.id, date:h.date||h.event_date||'', type:h.type||h.change_type||'Note', title:h.title||'History update',
+      before:h.before??h.before_value??'', after:h.after??h.after_value??'', note:h.note||'', source:h.source||'Manual'
+    }))
+  };
+}
+function normalizeMaster(data){
+  if(Array.isArray(data.clients)&&data.clients.length){
+    clientProfiles=data.clients.map(c=>({id:c.id,name:c.name,country:c.country||'',type:c.type||'Exhibitor',status:c.status||'Active',note:c.note||'',contacts:[]}));
+  }
+  if(Array.isArray(data.sites)){
+    sites=data.sites.map(x=>({id:Number(x.id),clientId:x.client_id??null,client:x.client||'',name:x.name||`Site ${x.id}`,country:x.country||'',city:x.city||'',status:x.status||'Operating',formats:Array.isArray(x.formats)?x.formats:(x.formats?String(x.formats).split(/[,/]/).map(v=>v.trim()).filter(Boolean):[]),lat:Number(x.lat),lng:Number(x.lng),address:x.address||'',projects:[]}));
+  }
+}
+async function reloadV2Data(){
+  setDbStatus('Connecting to Supabase...');
+  try{
+    const [pd,md]=await Promise.all([apiV2('list',{},'GET'),apiV2('master',{},'GET')]);
+    normalizeMaster(md);
+    projects=(pd.projects||[]).map(normalizeProjectRow);
+    sites.forEach(s=>s.projects=[]);
+    projects.forEach(p=>{const s=sites.find(x=>x.id===Number(p.siteId));if(s&&!s.projects.includes(p.id))s.projects.push(p.id)});
+    if(!projects.some(p=>p.id===selectedProjectId))selectedProjectId=projects[0]?.id??null;
+    v2DbConnected=true;
+    setDbStatus(`Supabase connected · ${projects.length} projects`,true);
+    renderMarkers();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail();
+  }catch(err){
+    console.error(err);v2DbConnected=false;
+    setDbStatus('Preview mode · DB/API not connected yet');
+  }
+}
+function projectPayloadFromForm(){
+  const get=id=>document.getElementById(id);
+  const client=(get('pClient')?.value||'').trim();
+  const siteIdRaw=get('pSite')?.value||'';
+  const siteId=siteIdRaw!==''?Number(siteIdRaw):null;
+  const clientObj=clientProfiles.find(c=>c.name===client);
+  const siteObj=sites.find(s=>s.id===siteId);
+  return {
+    client_id:clientObj?.id??null, client_name_snapshot:client,
+    site_id:Number.isFinite(siteId)?siteId:null, site_name_snapshot:siteObj?.name||null,
+    project_name:(get('pName')?.value||'').trim(), format:get('pFormat')?.value||'SCREENX', auditorium:(get('pAuditorium')?.value||'').trim(),
+    bm:get('pBm')?.value||'Sales', status:get('pStatus')?.value||'Pending', stage:get('pStage')?.value||'Lead',
+    signing_text:(get('pSigning')?.value||'').trim()||'TBD', shipping_text:(get('pShipping')?.value||'').trim()||'TBD',
+    opening_text:(get('pOpening')?.value||'').trim()||'TBD', owner:(get('pOwner')?.value||'').trim()||'-', next_action:(get('pNext')?.value||'').trim()||'-'
+  };
+}
+async function saveProjectFromModal(){
+  if(!v2DbConnected)return saveProjectFromModalLocal();
+  const payload=projectPayloadFromForm();
+  if(!payload.client_name_snapshot||!payload.project_name){alert('Client와 Project Name은 필수입니다.');return}
+  const note=(document.getElementById('pNote')?.value||'').trim();
+  const btn=document.getElementById('projectSaveBtn');if(btn){btn.disabled=true;btn.textContent='Saving...'}
+  try{
+    const data=editingProjectId!==null
+      ? await apiV2('update',{id:editingProjectId,project:payload,change_note:note})
+      : await apiV2('create',{project:payload,initial_note:note});
+    selectedProjectId=Number(data.project?.id||editingProjectId||selectedProjectId);
+    document.getElementById('projectModal').classList.remove('open');editingProjectId=null;
+    await reloadV2Data();
+  }catch(err){alert(`Project 저장 실패: ${err.message}`)}finally{if(btn){btn.disabled=false;btn.textContent=editingProjectId!==null?'Save Changes':'Create Project'}}
+}
+async function saveHistory(){
+  if(!v2DbConnected)return saveHistoryLocal();
+  const p=projects.find(x=>x.id===selectedProjectId);if(!p)return;
+  const h={event_date:document.getElementById('hDate').value,change_type:document.getElementById('hType').value,title:document.getElementById('hTitle').value.trim()||'History update',before_value:document.getElementById('hBefore').value.trim(),after_value:document.getElementById('hAfter').value.trim(),note:document.getElementById('hNote').value.trim(),source:'Manual'};
+  try{
+    const existing=editHistoryIndex===null?null:p.history[editHistoryIndex];
+    if(existing?.id)await apiV2('history_update',{history_id:existing.id,history:h});
+    else await apiV2('history_create',{project_id:p.id,history:h});
+    closeHistoryModal();await reloadV2Data();selectedTab='history';renderProjectDetail();
+  }catch(err){alert(`History 저장 실패: ${err.message}`)}
+}
+async function deleteHistory(i){
+  if(!v2DbConnected)return deleteHistoryLocal(i);
+  const p=projects.find(x=>x.id===selectedProjectId),h=p?.history?.[i];if(!h)return;
+  if(!confirm('이 History를 삭제할까요?'))return;
+  try{if(h.id)await apiV2('history_delete',{history_id:h.id});await reloadV2Data();selectedTab='history';renderProjectDetail()}catch(err){alert(`History 삭제 실패: ${err.message}`)}
+}
+
+function projectClientOptions(selected=''){
+  const names=[...new Set([...clientProfiles.map(c=>c.name),...sites.map(s=>s.client),...projects.map(p=>p.client)])].sort();
+  const sel=document.getElementById('pClient');
+  sel.innerHTML=names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if(selected && names.includes(selected)) sel.value=selected;
+  return names;
+}
+function openNewProject(){
+  editingProjectId=null;
+  const names=projectClientOptions(projects.find(x=>x.id===selectedProjectId)?.client||'');
+  ['pName','pAuditorium','pSigning','pShipping','pOpening','pOwner','pNext','pNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pFormat').value='SCREENX';
+  document.getElementById('pBm').value='Sales';
+  document.getElementById('pStatus').value='Pending';
+  document.getElementById('pStage').value='Lead';
+  refreshProjectSiteOptions();
+  document.getElementById('projectModalTitle').textContent='New Project';
+  document.getElementById('projectModalSub').textContent='Project의 현재 상태를 등록합니다. 이후 변경사항은 History로 누적됩니다.';
+  document.getElementById('pNoteLabel').textContent='Initial Note';
+  document.getElementById('pNote').placeholder='Optional. 저장 시 첫 History로 기록됩니다.';
+  document.getElementById('projectSaveBtn').textContent='Create Project';
+  document.getElementById('projectModal').classList.add('open');
+}
+function openEditProject(){
+  const p=projects.find(x=>x.id===selectedProjectId); if(!p)return;
+  editingProjectId=p.id;
+  projectClientOptions(p.client);
+  refreshProjectSiteOptions();
+  document.getElementById('pSite').value=p.siteId??'';
+  document.getElementById('pName').value=p.name||'';
+  document.getElementById('pFormat').value=p.format||'SCREENX';
+  document.getElementById('pAuditorium').value=p.auditorium||'';
+  document.getElementById('pBm').value=p.bm||'Sales';
+  document.getElementById('pStatus').value=p.status||'Pending';
+  document.getElementById('pStage').value=p.stage||'Lead';
+  document.getElementById('pSigning').value=p.signing||'';
+  document.getElementById('pShipping').value=p.shipping||'';
+  document.getElementById('pOpening').value=p.opening||'';
+  document.getElementById('pOwner').value=p.owner||'';
+  document.getElementById('pNext').value=p.next||'';
+  document.getElementById('pNote').value='';
+  document.getElementById('projectModalTitle').textContent='Edit Project';
+  document.getElementById('projectModalSub').textContent='현재값을 수정하면 변경된 항목만 Project History에 자동 기록됩니다.';
+  document.getElementById('pNoteLabel').textContent='Change Note (optional)';
+  document.getElementById('pNote').placeholder='이번 변경 사유를 적으면 자동 History에 함께 기록됩니다.';
+  document.getElementById('projectSaveBtn').textContent='Save Changes';
+  document.getElementById('projectModal').classList.add('open');
+}
+function closeProjectModal(){document.getElementById('projectModal').classList.remove('open');editingProjectId=null}
+function refreshProjectSiteOptions(){
+  const client=document.getElementById('pClient')?.value||'';
+  const sel=document.getElementById('pSite');
+  if(!sel)return;
+  const options=sites.filter(s=>s.client===client);
+  sel.innerHTML='<option value="">Not linked yet</option>'+options.map(s=>`<option value="${s.id}">${esc(s.name)} · ${esc(s.city||s.country||'')}</option>`).join('');
+}
+function saveProjectFromModalLocal(){
+  try{
+    const get=(id)=>document.getElementById(id);
+    const client=(get('pClient')?.value||'').trim();
+    const name=(get('pName')?.value||'').trim();
+    if(!client||!name){alert('Client와 Project Name은 필수입니다.');return;}
+    const siteIdRaw=get('pSite')?.value||'';
+    const siteId=siteIdRaw!==''?Number(siteIdRaw):null;
+    const today=new Date().toISOString().slice(0,10);
+    const note=(get('pNote')?.value||'').trim();
+    const values={
+      client, siteId:Number.isFinite(siteId)?siteId:null, name,
+      format:get('pFormat')?.value||'SCREENX', auditorium:(get('pAuditorium')?.value||'').trim(),
+      bm:get('pBm')?.value||'Sales', status:get('pStatus')?.value||'Pending', stage:get('pStage')?.value||'Lead',
+      signing:(get('pSigning')?.value||'').trim()||'TBD', shipping:(get('pShipping')?.value||'').trim()||'TBD',
+      opening:(get('pOpening')?.value||'').trim()||'TBD', owner:(get('pOwner')?.value||'').trim()||'-',
+      next:(get('pNext')?.value||'').trim()||'-'
+    };
+
+    if(editingProjectId!==null){
+      const p=projects.find(x=>x.id===editingProjectId); if(!p)throw new Error('Project not found');
+      const old={...p};
+      const siteName=id=>sites.find(s=>s.id===id)?.name||(id?'Unknown Site':'Not linked');
+      const labels={client:'Client',siteId:'Site',name:'Project Name',format:'Format',auditorium:'Auditorium',bm:'BM',status:'Status',stage:'Stage',signing:'Signing',shipping:'Shipping',opening:'Opening',owner:'Owner',next:'Next Action'};
+      const types={stage:'Stage',signing:'Signing',shipping:'Shipping',opening:'Opening',status:'Status',siteId:'Site'};
+      const changes=[];
+      Object.keys(labels).forEach(k=>{
+        const before=k==='siteId'?siteName(old[k]):String(old[k]??'');
+        const after=k==='siteId'?siteName(values[k]):String(values[k]??'');
+        if(before!==after)changes.push({key:k,before,after});
+      });
+      if(old.siteId!==values.siteId){
+        const oldSite=sites.find(s=>s.id===old.siteId); if(oldSite?.projects)oldSite.projects=oldSite.projects.filter(id=>id!==p.id);
+        const newSite=sites.find(s=>s.id===values.siteId); if(newSite){if(!Array.isArray(newSite.projects))newSite.projects=[];if(!newSite.projects.includes(p.id))newSite.projects.push(p.id)}
+      }
+      Object.assign(p,values,{updated:today});
+      if(!Array.isArray(p.history))p.history=[];
+      changes.reverse().forEach(c=>p.history.unshift({date:today,type:types[c.key]||'Project',title:`${labels[c.key]} updated`,before:c.before||'-',after:c.after||'-',note}));
+      if(!changes.length && note)p.history.unshift({date:today,type:'Note',title:'Project note',before:'',after:'',note});
+      selectedProjectId=p.id;
+    }else{
+      const numericIds=projects.map(p=>Number(p.id)).filter(Number.isFinite);
+      const id=(numericIds.length?Math.max(...numericIds):100)+1;
+      const proj={id,...values,updated:today,history:[]};
+      if(note)proj.history.push({date:today,type:'Note',title:'Project created',before:'',after:'',note});
+      projects.push(proj);
+      if(Number.isFinite(siteId)){
+        const s=sites.find(x=>Number(x.id)===siteId); if(s){if(!Array.isArray(s.projects))s.projects=[];if(!s.projects.includes(id))s.projects.push(id)}
+      }
+      if(!clientProfiles.some(c=>c.name===client)){
+        const matchedSite=sites.find(s=>s.client===client);
+        clientProfiles.push({name:client,country:matchedSite?.country||'-',type:'Exhibitor',status:'Active',note:'',contacts:[]});
+      }
+      selectedProjectId=id;
+    }
+    selectedTab='overview';
+    closeProjectModal();
+    renderProjectList(); renderProjectDetail();
+    if(typeof renderClientList==='function')renderClientList();
+    if(typeof renderDashboard==='function')renderDashboard();
+  }catch(err){console.error('Project save failed',err);alert('Project 저장 중 오류가 발생했습니다: '+(err?.message||err));}
+}
+
+function sortedProjects(){
+  let arr=[...projects];
+  const q=(document.getElementById('projectSearch')?.value||'').toLowerCase();
+  const st=document.getElementById('projectStatusFilter')?.value||'';
+  const sort=document.getElementById('projectSort')?.value||'opening';
+  arr=arr.filter(p=>{
+    const hitQ=!q || (`${p.client} ${p.name} ${p.format}`).toLowerCase().includes(q);
+    const hitS=!st || p.status===st;
+    return hitQ && hitS;
+  });
+  if(sort==='updated') arr.sort((a,b)=>b.updated.localeCompare(a.updated));
+  else if(sort==='client') arr.sort((a,b)=>a.client.localeCompare(b.client));
+  else arr.sort((a,b)=>(a.opening==='TBD'?'9999':a.opening).localeCompare(b.opening==='TBD'?'9999':b.opening));
+  return arr;
+}
+function renderProjectList(){const arr=sortedProjects(),groups={};arr.forEach(p=>(groups[p.client]??=[]).push(p));document.getElementById('projectList').innerHTML=Object.entries(groups).map(([client,ps])=>`<div class="clientGroup"><div class="clientGroupHead"><span>${esc(client)}</span><span>${ps.length}</span></div>${ps.map(p=>`<div class="projectRow ${p.id===selectedProjectId?'active':''}" onclick="selectProject(${p.id})"><div class="projectRowTop"><div><div class="projectName">${esc(p.name)}</div><div class="projectMeta">${esc(p.format)} · ${esc(p.status)} · Sign ${esc(p.signing||'TBD')} · Open ${esc(p.opening)}</div></div><span class="stage">${esc(p.stage)}</span></div></div>`).join('')}</div>`).join('')||'<div class="panelEmpty">No projects</div>'}
+function selectProject(id){selectedProjectId=id;selectedTab='overview';renderProjectList();renderProjectDetail()}
+function renderProjectDetail(){const p=projects.find(x=>x.id===selectedProjectId);if(!p){document.getElementById('projectDetail').innerHTML='<div class="panelEmpty">Project를 선택하세요.</div>';return}const site=sites.find(s=>s.id===p.siteId);document.getElementById('projectDetail').innerHTML=`<div class="detailHero"><div><h2>${esc(p.client)} · ${esc(p.name)}</h2><div class="meta">${esc(p.format)} · ${esc(p.bm)} ${site?`· Linked Site: ${esc(site.name)}`:'· Site not linked'}</div><div style="margin-top:8px"><span class="pill ${p.status==='Opened'?'green':p.status==='On Hold'?'amber':''}">${esc(p.status)}</span><span class="pill">${esc(p.stage)}</span></div></div><div class="toolbar"><button class="btn" onclick="openEditProject()">Edit Project</button>${site?`<button class="btn" onclick="jumpToSite(${site.id})">View Map</button>`:''}</div></div><div class="tabs">${['overview','history','commercial','meetings','documents'].map(t=>`<button class="tab ${selectedTab===t?'active':''}" onclick="setProjectTab('${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div><div class="tabBody" id="tabBody"></div>`;renderTabBody()}
+function setProjectTab(t){selectedTab=t;renderProjectDetail()}
+function renderTabBody(){const p=projects.find(x=>x.id===selectedProjectId),el=document.getElementById('tabBody');if(selectedTab==='overview'){el.innerHTML=`<div class="overviewGrid">${info('Client',p.client)}${info('Site',sites.find(s=>s.id===p.siteId)?.name||'Not linked')}${info('Country',sites.find(s=>s.id===p.siteId)?.country||'-')}${info('Format',p.format)}${info('Auditorium',p.auditorium||'-')}${info('BM',p.bm)}${info('Stage',p.stage)}${info('Signing',p.signing||'TBD')}${info('Shipping',p.shipping)}${info('Opening',p.opening)}${info('Owner',p.owner)}<div class="info wide"><label>Next Action</label><strong>${esc(p.next)}</strong></div></div>`}else if(selectedTab==='history'){el.innerHTML=`<div class="historyTop"><div><b>Project History</b><div class="sub">자동 변경이력 + 수동 기록을 한 곳에서 관리</div></div><button class="btn primary" onclick="openHistoryModal()">+ Add History</button></div><div class="timeline">${p.history.length?p.history.map((h,i)=>`<div class="historyItem"><div class="historyCard"><div class="historyDate">${esc(h.date)} · ${esc(h.type)}</div><div class="historyTitle">${esc(h.title)}</div><div class="historyText">${h.before||h.after?`${esc(h.before||'-')} → ${esc(h.after||'-')}<br>`:''}${esc(h.note||'')}</div><div class="historyActions"><button class="tiny" onclick="editHistory(${i})">Edit</button><button class="tiny" onclick="deleteHistory(${i})">Delete</button></div></div></div>`).join(''):'<div class="placeholder" style="margin-left:14px">No history yet</div>'}</div>`}else if(selectedTab==='commercial'){el.innerHTML=`<div class="historyTop"><div><b>Current Commercial Terms</b><div class="sub">Project 단위의 협상 라운드</div></div><button class="btn primary" onclick="alert('직전 Round를 복사해 새 Round를 만드는 동작으로 연결합니다.')">+ Add Next Round</button></div><div class="commercialCurrent">${info('Current Round','Round 4')}${info('System Fee','$150,000')}${info('Revenue Share','6%')}${info('Content Fee','$500 / title')}${info('Supervision Fee','$750 / day + OPE')}${info('Payment','10% / 70% / 20%')}</div><div class="rounds"><div class="round"><div><b>Round 4 · Scope</b><br><small>2026.03.29</small></div><span class="stage">Current</span></div><div class="round"><div><b>Round 3 · Scope</b><br><small>2026.02.19</small></div><span class="stage">Rejected</span></div><div class="round"><div><b>Round 2 · CJ</b><br><small>2026.01.20</small></div></div></div>`}else{el.innerHTML=`<div class="placeholder">${selectedTab[0].toUpperCase()+selectedTab.slice(1)}는 Project에 연결되는 구조로 다음 단계에서 상세 구현합니다.</div>`}}
+function info(label,value){return `<div class="info"><label>${esc(label)}</label><strong>${esc(value)}</strong></div>`}
+function jumpToSite(id){showPage('mapPage',document.querySelector('[data-page="mapPage"]'));setTimeout(()=>showSiteDetail(id),80)}
+
+function openHistoryModal(){editHistoryIndex=null;document.getElementById('historyModalTitle').textContent='Add History';document.getElementById('hDate').value=new Date().toISOString().slice(0,10);['hTitle','hBefore','hAfter','hNote'].forEach(id=>document.getElementById(id).value='');document.getElementById('hType').value='Note';document.getElementById('historyModal').classList.add('open')}
+function editHistory(i){const h=projects.find(x=>x.id===selectedProjectId).history[i];editHistoryIndex=i;document.getElementById('historyModalTitle').textContent='Edit History';document.getElementById('hDate').value=h.date;document.getElementById('hType').value=h.type;document.getElementById('hTitle').value=h.title;document.getElementById('hBefore').value=h.before;document.getElementById('hAfter').value=h.after;document.getElementById('hNote').value=h.note;document.getElementById('historyModal').classList.add('open')}
+function closeHistoryModal(){document.getElementById('historyModal').classList.remove('open')}
+function saveHistoryLocal(){const h={date:document.getElementById('hDate').value,type:document.getElementById('hType').value,title:document.getElementById('hTitle').value.trim()||'History update',before:document.getElementById('hBefore').value.trim(),after:document.getElementById('hAfter').value.trim(),note:document.getElementById('hNote').value.trim()};const p=projects.find(x=>x.id===selectedProjectId);if(editHistoryIndex===null)p.history.unshift(h);else p.history[editHistoryIndex]=h;p.updated=h.date||p.updated;closeHistoryModal();renderProjectDetail();renderProjectList()}
+function deleteHistoryLocal(i){if(confirm('이 History를 삭제할까요?')){projects.find(x=>x.id===selectedProjectId).history.splice(i,1);renderProjectDetail()}}
+
+window.addEventListener('load',async()=>{initMap();await reloadV2Data();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail()});
+
+function openAddClient(){
+  const b=document.getElementById('clientModalBackdrop');if(!b)return;
+  ['newClientName','newClientCountry','newClientNote'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const type=document.getElementById('newClientType'),status=document.getElementById('newClientStatus'),err=document.getElementById('clientFormError');
+  if(type)type.value='Exhibitor'; if(status)status.value='Active'; if(err){err.style.display='none';err.textContent=''}
+  b.classList.add('show');setTimeout(()=>document.getElementById('newClientName')?.focus(),0);
+}
+function closeAddClient(){document.getElementById('clientModalBackdrop')?.classList.remove('show')}
+function saveNewClient(){
+  const name=(document.getElementById('newClientName')?.value||'').trim();
+  const country=(document.getElementById('newClientCountry')?.value||'').trim()||'-';
+  const type=document.getElementById('newClientType')?.value||'Exhibitor';
+  const status=document.getElementById('newClientStatus')?.value||'Active';
+  const note=(document.getElementById('newClientNote')?.value||'').trim();
+  const err=document.getElementById('clientFormError');
+  if(!name){if(err){err.textContent='Client Name을 입력해주세요.';err.style.display='block'};return}
+  if(clientProfiles.some(c=>c.name.toLowerCase()===name.toLowerCase())){if(err){err.textContent='같은 이름의 Client가 이미 있습니다.';err.style.display='block'};return}
+  clientProfiles.push({name,country,type,status,note,contacts:[]});
+  selectedClient=name; selectedClientTab='overview'; closeAddClient(); renderClientList(); renderClientDetail();
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddClient();closeCommercialModal()}});
+
+function clientProfile(name){return clientProfiles.find(c=>c.name===name)||{name,country:'-',type:'Client',status:'Active',note:'',contacts:[]}}
+function renderClientList(){const q=(document.getElementById('clientSearch')?.value||'').toLowerCase();const names=[...new Set([...clientProfiles.map(c=>c.name),...projects.map(p=>p.client),...sites.map(s=>s.client)])].filter(n=>n.toLowerCase().includes(q)).sort();const el=document.getElementById('clientList');if(!el)return;el.innerHTML=names.map(n=>{const cp=clientProfile(n),pc=projects.filter(p=>p.client===n).length,sc=sites.filter(s=>s.client===n).length;return `<div class="clientItem ${n===selectedClient?'active':''}" onclick="selectClient('${n.replace(/'/g,"\'")}')"><b>${esc(n)}</b><small>${esc(cp.country)} · ${pc} Projects · ${sc} Sites</small></div>`}).join('')||'<div class="panelEmpty">No clients</div>'}
+function selectClient(name){selectedClient=name;selectedClientTab='overview';renderClientList();renderClientDetail()}
+function setClientTab(tab){selectedClientTab=tab;renderClientDetail()}
+function renderClientDetail(){const el=document.getElementById('clientDetail');if(!el)return;const c=clientProfile(selectedClient),ps=projects.filter(p=>p.client===selectedClient),ss=sites.filter(s=>s.client===selectedClient),active=ps.filter(p=>p.status==='Pending'||p.status==='On Hold').length,opened=ps.filter(p=>p.status==='Opened').length;el.innerHTML=`<div class="clientHero"><div><h2>${esc(c.name)}</h2><div class="sub">${esc(c.country)} · ${esc(c.type)}</div><div style="margin-top:8px"><span class="pill green">${esc(c.status)}</span></div></div><div class="toolbar"><button class="btn" onclick="alert('Client 기본정보 Edit 폼으로 연결 예정')">Edit Client</button></div></div><div class="clientTabs">${['overview','sites','projects','commercial','meetings','documents','contacts'].map(t=>`<button class="clientTab ${selectedClientTab===t?'active':''}" onclick="setClientTab('${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div><div class="clientBody" id="clientTabBody"></div>`;renderClientTab(c,ps,ss,active,opened)}
+function renderClientTab(c,ps,ss,active,opened){const el=document.getElementById('clientTabBody');if(selectedClientTab==='overview'){const primary=c.contacts.find(x=>x.primary)||c.contacts[0];el.innerHTML=`<div class="clientStats"><div class="clientStat"><label>Active Projects</label><strong>${active}</strong></div><div class="clientStat"><label>Opened Projects</label><strong>${opened}</strong></div><div class="clientStat"><label>Sites</label><strong>${ss.length}</strong></div><div class="clientStat"><label>Contacts</label><strong>${c.contacts.length}</strong></div></div><div class="clientTwoCol"><div class="clientSection"><h3>Client Overview</h3><div class="clientDataRow"><div><b>Country / Region</b><small>${esc(c.country)}</small></div></div><div class="clientDataRow"><div><b>Client Type</b><small>${esc(c.type)}</small></div></div><div class="clientDataRow"><div><b>Notes</b><small>${esc(c.note||'-')}</small></div></div></div><div class="clientSection"><h3>Primary Contact</h3>${primary?`<div class="contactRow"><div><b>${esc(primary.name)} ${primary.primary?'<span class="pill">Primary</span>':''}</b><small>${esc(primary.role)}<br>${esc(primary.email)} · ${esc(primary.phone)}</small></div><button class="tiny" onclick="setClientTab('contacts')">View</button></div>`:'<div class="sub">No contacts yet.</div>'}<div style="margin-top:12px"><b style="font-size:11px">Upcoming / Attention</b>${ps.filter(p=>p.status!=='Opened').slice(0,3).map(p=>`<div class="clientDataRow"><div><b>${esc(p.name)} · ${esc(p.format)}</b><small>${esc(p.stage)} · Signing ${esc(p.signing)} · Opening ${esc(p.opening)}</small></div><button class="tiny" onclick="openClientProject(${p.id})">Open</button></div>`).join('')||'<div class="sub" style="margin-top:8px">No active projects.</div>'}</div></div></div>`}else if(selectedClientTab==='sites'){el.innerHTML=`<div class="historyTop"><div><b>Sites · ${ss.length}</b><div class="sub">Map의 Site 데이터를 Client 기준으로 모아봅니다.</div></div><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div><table class="clientTable"><thead><tr><th>Site</th><th>City / Country</th><th>Formats</th><th>Status</th><th></th></tr></thead><tbody>${ss.map(x=>`<tr class="clickable" onclick="openClientSite(${x.id})"><td><b>${esc(x.name)}</b></td><td>${esc(x.city)}, ${esc(x.country)}</td><td>${x.formats.map(esc).join(' / ')}</td><td>${esc(x.status)}</td><td>View Map →</td></tr>`).join('')||'<tr><td colspan="5">No sites</td></tr>'}</tbody></table>`}else if(selectedClientTab==='projects'){el.innerHTML=`<div class="historyTop"><div><b>Projects · ${ps.length}</b><div class="sub">Pending부터 Opened까지 Client의 전체 Project history</div></div></div><table class="clientTable"><thead><tr><th>Project</th><th>Format</th><th>Status</th><th>Stage</th><th>Signing</th><th>Opening</th></tr></thead><tbody>${ps.map(p=>`<tr class="clickable" onclick="openClientProject(${p.id})"><td><b>${esc(p.name)}</b></td><td>${esc(p.format)}</td><td>${esc(p.status)}</td><td>${esc(p.stage)}</td><td>${esc(p.signing)}</td><td>${esc(p.opening)}</td></tr>`).join('')||'<tr><td colspan="6">No projects</td></tr>'}</tbody></table>`}else if(selectedClientTab==='contacts'){el.innerHTML=`<div class="historyTop"><div><b>Contacts · ${c.contacts.length}</b><div class="sub">Project별 담당자와 연결할 Client contact master</div></div><button class="btn primary" onclick="alert('실제 구축 시 Add Contact 폼')">+ Add Contact</button></div><div class="clientSection">${c.contacts.map(x=>`<div class="contactRow"><div><b>${esc(x.name)} ${x.primary?'<span class="pill">Primary</span>':''}</b><small>${esc(x.role)}<br>${esc(x.email)} · ${esc(x.phone)}</small></div><button class="tiny" onclick="alert('Contact Edit 폼으로 연결 예정')">Edit</button></div>`).join('')||'<div class="sub">No contacts yet.</div>'}</div>`}else if(selectedClientTab==='commercial'){const cr=commercialRecords.filter(r=>r.client===c.name).sort((a,b)=>(b.date||'').localeCompare(a.date||''));el.innerHTML=`<div class="historyTop"><div><b>Commercial History · ${cr.length}</b><div class="sub">Client에서 새 Commercial을 추가하고 Project에 연결할 수 있습니다.</div></div><button class="btn primary" onclick="openAddCommercial()">+ Add Commercial</button></div>${cr.length?cr.map(r=>{const p=projects.find(x=>x.id===r.projectId);return `<div class="commercialCard"><div class="commercialCardTop"><div><b>${esc(p?p.name:'Client-level Commercial')} ${p?'· '+esc(p.format):''}</b><div class="sub">${esc(r.round||'Round')} · ${esc(r.date||'-')} · From ${esc(r.from||'-')} · ${esc(r.bm||'-')}</div></div><div class="toolbar"><button class="tiny" onclick="editClientCommercial(${r.id})">Edit</button>${p?`<button class="tiny" onclick="openClientProjectCommercial(${p.id})">Open Project</button>`:''}</div></div><div class="commercialTerms"><div class="commercialTerm"><label>System Fee</label><b>${esc(r.systemFee||'-')}</b></div><div class="commercialTerm"><label>Revenue Share</label><b>${esc(r.revenueShare||'-')}</b></div><div class="commercialTerm"><label>Content Fee</label><b>${esc(r.contentFee||'-')}</b></div><div class="commercialTerm"><label>Supervision Fee</label><b>${esc(r.supervisionFee||'-')}</b></div><div class="commercialTerm"><label>Payment</label><b>${esc(r.payment||'-')}</b></div><div class="commercialTerm"><label>Notes</label><b>${esc(r.notes||'-')}</b></div></div></div>`}).join(''):'<div class="placeholder">No commercial records yet. + Add Commercial로 첫 기록을 추가하세요.</div>'}` }else if(selectedClientTab==='meetings'){el.innerHTML=`<div class="placeholder"><b>${esc(c.name)} Meetings</b><br><br>Project/Client에 연결된 미팅을 날짜순으로 모으는 영역입니다.<br><span class="sub">예시: 2026.08.27 · Commercial Review · Linked Project: Taipei Xinyi #5</span></div>`}else{el.innerHTML=`<div class="placeholder"><b>${esc(c.name)} Documents</b><br><br>계약서 · Proposal · Quotation · 도면 등을 Client 기준으로 모으는 영역입니다.</div>`}}
+
+function openClientAddSite(){
+  const client=selectedClient;
+  showPage('mapPage',document.querySelector('[data-page=mapPage]'));
+  setTimeout(()=>{
+    startAddSite();
+    const input=document.getElementById('sClient');
+    if(input)input.value=client;
+  },100);
+}
+function openAddCommercial(){
+  commercialEditingId=null;
+  const modal=document.getElementById('commercialModalBackdrop');
+  document.getElementById('commercialModalTitle').textContent='Add Commercial';
+  const select=document.getElementById('commercialProject');
+  const ps=projects.filter(p=>p.client===selectedClient);
+  select.innerHTML='<option value="">Client-level / Not linked</option>'+ps.map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.format)}</option>`).join('');
+  document.getElementById('commercialDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('commercialRound').value='Round 1';
+  document.getElementById('commercialFrom').value='';
+  document.getElementById('commercialBM').value=ps[0]?.bm||'Sales';
+  ['commercialSystemFee','commercialRevenueShare','commercialContentFee','commercialSupervisionFee','commercialPayment','commercialNotes'].forEach(id=>document.getElementById(id).value='');
+  modal.classList.add('open');
+}
+function editClientCommercial(id){
+  const r=commercialRecords.find(x=>x.id===id);if(!r)return;
+  commercialEditingId=id;
+  const ps=projects.filter(p=>p.client===r.client);
+  const select=document.getElementById('commercialProject');
+  select.innerHTML='<option value="">Client-level / Not linked</option>'+ps.map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.format)}</option>`).join('');
+  select.value=r.projectId||'';
+  document.getElementById('commercialModalTitle').textContent='Edit Commercial';
+  document.getElementById('commercialDate').value=r.date||'';
+  document.getElementById('commercialRound').value=r.round||'';
+  document.getElementById('commercialFrom').value=r.from||'';
+  document.getElementById('commercialBM').value=r.bm||'Sales';
+  document.getElementById('commercialSystemFee').value=r.systemFee||'';
+  document.getElementById('commercialRevenueShare').value=r.revenueShare||'';
+  document.getElementById('commercialContentFee').value=r.contentFee||'';
+  document.getElementById('commercialSupervisionFee').value=r.supervisionFee||'';
+  document.getElementById('commercialPayment').value=r.payment||'';
+  document.getElementById('commercialNotes').value=r.notes||'';
+  document.getElementById('commercialModalBackdrop').classList.add('open');
+}
+function closeCommercialModal(){document.getElementById('commercialModalBackdrop')?.classList.remove('open')}
+function saveClientCommercial(){
+  const projectId=Number(document.getElementById('commercialProject').value)||null;
+  const obj={client:selectedClient,projectId,date:document.getElementById('commercialDate').value,round:document.getElementById('commercialRound').value.trim(),from:document.getElementById('commercialFrom').value.trim(),bm:document.getElementById('commercialBM').value,systemFee:document.getElementById('commercialSystemFee').value.trim(),revenueShare:document.getElementById('commercialRevenueShare').value.trim(),contentFee:document.getElementById('commercialContentFee').value.trim(),supervisionFee:document.getElementById('commercialSupervisionFee').value.trim(),payment:document.getElementById('commercialPayment').value.trim(),notes:document.getElementById('commercialNotes').value.trim()};
+  if(!obj.date){alert('Offer Date를 입력해주세요.');return}
+  if(commercialEditingId){Object.assign(commercialRecords.find(x=>x.id===commercialEditingId),obj)}else{const id=commercialRecords.length?Math.max(...commercialRecords.map(x=>x.id))+1:1;commercialRecords.push({id,...obj})}
+  closeCommercialModal();renderClientDetail();
+}
+function openClientProject(id){selectedProjectId=id;selectedTab='overview';renderProjectList();renderProjectDetail();showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))}
+function openClientProjectCommercial(id){selectedProjectId=id;selectedTab='commercial';renderProjectList();renderProjectDetail();showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))}
+function openClientSite(id){showPage('mapPage',document.querySelector('[data-page=mapPage]'));setTimeout(()=>showSiteDetail(id),80)}
+
+</script>
+
+<div id="clientModalBackdrop" class="clientModalBackdrop" onclick="if(event.target===this)closeAddClient()">
+  <div class="clientModal" role="dialog" aria-modal="true" aria-labelledby="clientModalTitle">
+    <div class="clientModalHead"><h3 id="clientModalTitle">Add Client</h3><button class="tiny" onclick="closeAddClient()">✕</button></div>
+    <div class="clientModalBody">
+      <div class="full"><label>Client Name *</label><input id="newClientName" placeholder="e.g. Vieshow"></div>
+      <div><label>Country / Region</label><input id="newClientCountry" placeholder="e.g. Taiwan"></div>
+      <div><label>Client Type</label><select id="newClientType"><option>Exhibitor</option><option>Partner</option><option>Distributor</option><option>Developer</option><option>Other</option></select></div>
+      <div><label>Status</label><select id="newClientStatus"><option>Active</option><option>Prospect</option><option>Inactive</option></select></div>
+      <div></div>
+      <div class="full"><label>Notes</label><textarea id="newClientNote" placeholder="Relationship, market context, key notes..."></textarea></div>
+      <div id="clientFormError" class="clientFormError"></div>
+    </div>
+    <div class="clientModalFoot"><button class="btn" onclick="closeAddClient()">Cancel</button><button class="btn primary" onclick="saveNewClient()">Save Client</button></div>
+  </div>
+</div>
+
+<div id="commercialModalBackdrop" class="commercialModalBackdrop" onclick="if(event.target===this)closeCommercialModal()">
+  <div class="commercialModal" role="dialog" aria-modal="true" aria-labelledby="commercialModalTitle">
+    <div class="commercialModalHead"><h3 id="commercialModalTitle">Add Commercial</h3><button class="tiny" onclick="closeCommercialModal()">✕</button></div>
+    <div class="commercialModalBody">
+      <div class="full"><label>Linked Project</label><select id="commercialProject"></select></div>
+      <div><label>Offer Date *</label><input id="commercialDate" type="date"></div>
+      <div><label>Round</label><input id="commercialRound" placeholder="Round 1"></div>
+      <div><label>From</label><input id="commercialFrom" placeholder="CJ / Client"></div>
+      <div><label>BM</label><select id="commercialBM"><option>Sales</option><option>P-JV</option><option>F-JV</option></select></div>
+      <div><label>System Fee</label><input id="commercialSystemFee" placeholder="$150,000"></div>
+      <div><label>Revenue Share</label><input id="commercialRevenueShare" placeholder="6%"></div>
+      <div><label>Content Fee</label><input id="commercialContentFee" placeholder="$500 / title"></div>
+      <div><label>Supervision Fee</label><input id="commercialSupervisionFee" placeholder="$750 / day + OPE"></div>
+      <div class="full"><label>Payment Terms</label><input id="commercialPayment" placeholder="10% / 70% / 20%"></div>
+      <div class="full"><label>Notes</label><textarea id="commercialNotes" placeholder="Commercial context, negotiation notes..."></textarea></div>
+    </div>
+    <div class="commercialModalFoot"><button class="btn" onclick="closeCommercialModal()">Cancel</button><button class="btn primary" onclick="saveClientCommercial()">Save Commercial</button></div>
+  </div>
+</div>
+</body></html>
