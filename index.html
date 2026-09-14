@@ -67,7 +67,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
       <button data-page="meetingsPage" onclick="showPage('meetingsPage',this)">Meetings</button>
       <button data-page="documentsPage" onclick="showPage('documentsPage',this)">Documents</button>
     </div>
-    <div class="sidebarNote">Prototype only · Supabase 미연결<br>추가/수정 내용은 새로고침 시 초기화됩니다.</div>
+    <div class="sidebarNote">Theater Hub 2.0 · Supabase 연동<br>Project / History는 DB에 저장됩니다.</div>
   </aside>
 
   <main class="main">
@@ -76,7 +76,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
       <div class="metricRow">
         <div class="card metric"><div class="eyebrow">2026 Signing KPI</div><strong>3 / 5</strong><small>60% achieved</small><div class="progress"><i style="width:60%"></i></div></div>
         <div class="card metric"><div class="eyebrow">2026 Opening KPI</div><strong>2 / 4</strong><small>50% achieved</small><div class="progress"><i style="width:50%"></i></div></div>
-        <div class="card metric"><div class="eyebrow">Active Projects</div><strong>4</strong><small>Pending pipeline</small></div>
+        <div class="card metric"><div class="eyebrow">Active Projects</div><strong>0</strong><small>Supabase loading…</small></div>
         <div class="card metric"><div class="eyebrow">At Risk / TBD</div><strong>1</strong><small>Schedule review required</small></div>
       </div>
       <div class="dashboardGrid">
@@ -121,7 +121,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 
     <section id="projectsPage" class="page"><div class="pageShell">
       <div class="pageHead"><div><h1>Projects</h1><div class="sub">Project의 현재 상태와 변경 History를 하나의 DB에서 관리합니다.</div><div id="dbStatus" class="sub" style="margin-top:4px">Connecting to database...</div></div><div class="toolbar"><button class="btn" onclick="reloadV2Data()">↻ Refresh</button><button class="btn primary" onclick="openNewProject()">+ New Project</button></div></div>
-      <div class="kpis"><div class="card kpi"><label>Pending</label><strong>4</strong><span>Active pipeline</span></div><div class="card kpi"><label>Opened</label><strong>1</strong><span>Retained with history</span></div><div class="card kpi"><label>On Hold</label><strong>1</strong><span>Review required</span></div><div class="card kpi"><label>Updated this month</label><strong>5</strong><span>History events</span></div></div>
+      <div class="kpis"><div class="card kpi"><label>Pending</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>Opened</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>On Hold</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>Updated this month</label><strong>0</strong><span>Loading from Supabase</span></div></div>
       <div class="projectWorkspace">
         <div class="card projectListCard">
           <div class="listTools"><input id="projectSearch" placeholder="Search project / client" oninput="renderProjectList()"><div class="row"><select id="projectStatusFilter" onchange="renderProjectList()"><option value="">All Status</option><option>Pending</option><option>Opened</option><option>On Hold</option></select><select id="projectSort" onchange="renderProjectList()"><option value="opening">Opening</option><option value="updated">Recently Updated</option><option value="client">Client A-Z</option></select></div></div>
@@ -278,12 +278,89 @@ async function reloadV2Data(){
     if(!projects.some(p=>p.id===selectedProjectId))selectedProjectId=projects[0]?.id??null;
     v2DbConnected=true;
     setDbStatus(`Supabase connected · ${projects.length} projects`,true);
-    renderMarkers();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail();
+    // Projects KPI must be refreshed directly from the Supabase-backed projects array.
+    // Do this before rendering other panels so stale prototype numbers can never remain on screen.
+    renderProjectKpis();
+    renderMarkers();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail();renderDashboard();
   }catch(err){
     console.error(err);v2DbConnected=false;
     setDbStatus('Preview mode · DB/API not connected yet');
   }
 }
+
+
+function projectHasTbd(p){
+  return [p.signing,p.shipping,p.opening].some(v=>!v||String(v).trim()===''||String(v).toUpperCase().includes('TBD'));
+}
+function countYearField(field,year){
+  return projects.filter(p=>String(p[field]||'').includes(String(year))).length;
+}
+function renderProjectKpis(){
+  const el=document.querySelector('#projectsPage .kpis'); if(!el)return;
+  const pending=projects.filter(p=>p.status==='Pending').length;
+  const opened=projects.filter(p=>p.status==='Opened').length;
+  const hold=projects.filter(p=>p.status==='On Hold').length;
+  const now=new Date(); const ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const historyThisMonth=projects.reduce((n,p)=>n+(p.history||[]).filter(h=>String(h.date||'').startsWith(ym)).length,0);
+  el.innerHTML=`<div class="card kpi"><label>Pending</label><strong>${pending}</strong><span>Active pipeline</span></div><div class="card kpi"><label>Opened</label><strong>${opened}</strong><span>Retained with history</span></div><div class="card kpi"><label>On Hold</label><strong>${hold}</strong><span>Review required</span></div><div class="card kpi"><label>Updated this month</label><strong>${historyThisMonth}</strong><span>History events</span></div>`;
+}
+function milestoneRows(){
+  const rows=[];
+  projects.forEach(p=>{
+    [['Signing',p.signing],['Shipping',p.shipping],['Opening',p.opening]].forEach(([type,val])=>{
+      if(val&&String(val).trim()&&String(val).toUpperCase()!=='TBD')rows.push({p,type,val:String(val)});
+    });
+  });
+  rows.sort((a,b)=>a.val.localeCompare(b.val));
+  return rows.slice(0,5);
+}
+function recentHistoryRows(){
+  const rows=[];
+  projects.forEach(p=>(p.history||[]).forEach(h=>rows.push({p,h})));
+  rows.sort((a,b)=>String(b.h.date||'').localeCompare(String(a.h.date||'')));
+  return rows.slice(0,5);
+}
+function renderDashboard(){
+  const shell=document.querySelector('#dashboardPage .pageShell'); if(!shell)return;
+  const pending=projects.filter(p=>p.status==='Pending').length;
+  const active=projects.filter(p=>p.status==='Pending'||p.status==='On Hold').length;
+  const atRisk=projects.filter(p=>p.status!=='Opened'&&projectHasTbd(p)).length;
+  const sign2026=countYearField('signing',2026), open2026=countYearField('opening',2026);
+  const milestones=milestoneRows(), recent=recentHistoryRows();
+  const operating=sites.filter(s=>s.status==='Operating').length, planned=sites.filter(s=>s.status==='Planned').length;
+  shell.innerHTML=`
+    <div class="pageHead"><div><h1>Dashboard</h1><div class="sub">Supabase의 Project / History 데이터를 기준으로 실시간 집계합니다. KPI 목표값은 아직 설정하지 않았습니다.</div></div><div class="dashboardActions"><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">Open Projects</button><div class="toolbar"><button class="btn primary" onclick="openClientAddSite()">+ Add Site</button><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div></div></div>
+    <div class="metricRow">
+      <div class="card metric"><div class="eyebrow">2026 Signing</div><strong>${sign2026}</strong><small>KPI target not set</small></div>
+      <div class="card metric"><div class="eyebrow">2026 Opening</div><strong>${open2026}</strong><small>KPI target not set</small></div>
+      <div class="card metric"><div class="eyebrow">Active Projects</div><strong>${active}</strong><small>Pending ${pending} · On Hold ${projects.filter(p=>p.status==='On Hold').length}</small></div>
+      <div class="card metric"><div class="eyebrow">At Risk / TBD</div><strong>${atRisk}</strong><small>Schedule review required</small></div>
+    </div>
+    <div class="dashboardGrid">
+      <div class="dashboardStack">
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>KPI-linked Projects</b><div class="sub">현재는 2026 일정 건수만 집계합니다. 목표값은 별도 설정 예정입니다.</div></div><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">View Projects</button></div>
+          <div class="pipelineRow"><b>Signing 2026</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,sign2026/projects.length*100):0}%"></i></div><strong>${sign2026}</strong></div>
+          <div class="pipelineRow"><b>Opening 2026</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,open2026/projects.length*100):0}%"></i></div><strong>${open2026}</strong></div>
+          <div class="pipelineRow"><b>Active Pipeline</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,active/projects.length*100):0}%"></i></div><strong>${active}</strong></div>
+          <div class="kpiNote">실제 KPI 목표값을 입력하면 달성률 형태로 자동 계산하도록 연결할 수 있습니다.</div>
+        </div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Upcoming Milestones</b><div class="sub">Project의 Signing / Shipping / Opening 일정</div></div></div>
+          ${milestones.length?milestones.map(x=>`<div class="milestoneItem"><b>${esc(x.p.client)} · ${esc(x.p.name)}</b><small>${esc(x.type)} · ${esc(x.val)} · ${esc(x.p.format||'-')}</small></div>`).join(''):'<div class="placeholder">등록된 일정이 없습니다.</div>'}
+        </div>
+      </div>
+      <div class="dashboardStack">
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Needs Attention</b><div class="sub">TBD 또는 일정 확인이 필요한 Project</div></div></div>
+          ${projects.filter(p=>p.status!=='Opened'&&projectHasTbd(p)).slice(0,5).map(p=>`<div class="attentionItem"><div><b>${esc(p.client)} · ${esc(p.name)} · ${esc(p.format||'-')}</b><small>Signing ${esc(p.signing||'TBD')} · Shipping ${esc(p.shipping||'TBD')} · Opening ${esc(p.opening||'TBD')}</small></div><span class="miniBadge">Review</span></div>`).join('')||'<div class="placeholder">확인이 필요한 Project가 없습니다.</div>'}
+        </div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Recent Activity</b><div class="sub">Project History의 최신 변경사항</div></div></div>
+          ${recent.length?recent.map(x=>`<div class="activityItem"><b>${esc(x.p.name)} · ${esc(x.h.title)}</b><small>${esc(x.h.date||'-')}${x.h.before||x.h.after?` · ${esc(x.h.before||'-')} → ${esc(x.h.after||'-')}`:''}</small></div>`).join(''):'<div class="placeholder">History가 없습니다.</div>'}
+        </div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Map Snapshot</b><div class="sub">Site 현황으로 바로 이동</div></div><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div><div style="font-size:26px;font-weight:850">${sites.length} Sites</div><div class="sub" style="margin-top:4px">Operating ${operating} · Planned ${planned} · Radius / distance tools available</div></div>
+      </div>
+    </div>`;
+  renderProjectKpis();
+}
+
 function projectPayloadFromForm(){
   const get=id=>document.getElementById(id);
   const client=(get('pClient')?.value||'').trim();
@@ -481,7 +558,7 @@ function closeHistoryModal(){document.getElementById('historyModal').classList.r
 function saveHistoryLocal(){const h={date:document.getElementById('hDate').value,type:document.getElementById('hType').value,title:document.getElementById('hTitle').value.trim()||'History update',before:document.getElementById('hBefore').value.trim(),after:document.getElementById('hAfter').value.trim(),note:document.getElementById('hNote').value.trim()};const p=projects.find(x=>x.id===selectedProjectId);if(editHistoryIndex===null)p.history.unshift(h);else p.history[editHistoryIndex]=h;p.updated=h.date||p.updated;closeHistoryModal();renderProjectDetail();renderProjectList()}
 function deleteHistoryLocal(i){if(confirm('이 History를 삭제할까요?')){projects.find(x=>x.id===selectedProjectId).history.splice(i,1);renderProjectDetail()}}
 
-window.addEventListener('load',async()=>{initMap();await reloadV2Data();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail()});
+window.addEventListener('load',async()=>{initMap();await reloadV2Data();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail();renderDashboard()});
 
 function openAddClient(){
   const b=document.getElementById('clientModalBackdrop');if(!b)return;
