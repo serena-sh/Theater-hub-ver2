@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Theater Hub 2.0 · Actual Build v1</title>
+<title>Theater Hub 2.0 · Actual Build v5</title>
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
@@ -58,7 +58,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><b>Theater Hub 2.0</b><span>Web prototype · v8</span></div>
+    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v5</span></div>
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
@@ -147,7 +147,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
   <div class="formGrid"><div class="field"><label>Opening</label><input id="pOpening" placeholder="2027-03 / 2027 Q1 / TBD"></div><div class="field"><label>Owner</label><input id="pOwner" placeholder="Owner / PIC"></div></div>
   <div class="field"><label>Next Action</label><input id="pNext" placeholder="e.g. Revised quotation / Contract execution"></div>
   <div class="field"><label id="pNoteLabel">Initial Note</label><textarea id="pNote" placeholder="Optional. 저장 시 첫 History로 기록됩니다."></textarea></div>
-  <div class="actions"><button class="btn" onclick="closeProjectModal()">Cancel</button><button class="btn primary" id="projectSaveBtn" onclick="saveProjectFromModal()">Create Project</button></div>
+  <div class="actions"><button class="btn danger hidden" id="projectDeleteBtn" style="margin-right:auto" onclick="deleteProjectFromModal()">Delete Project</button><button class="btn" onclick="closeProjectModal()">Cancel</button><button class="btn primary" id="projectSaveBtn" onclick="saveProjectFromModal()">Create Project</button></div>
 </div></div></div>
 <div id="historyModal" class="modal"><div class="modalBox"><div class="modalHead"><h3 id="historyModalTitle">Add History</h3><button class="x" onclick="closeHistoryModal()">✕</button></div><div class="form"><div class="formGrid"><div class="field"><label>Date</label><input id="hDate" type="date"></div><div class="field"><label>Type</label><select id="hType"><option>Stage</option><option>Status</option><option>Signing</option><option>Opening</option><option>Shipping</option><option>Site</option><option>Commercial</option><option>Project</option><option>Note</option></select></div></div><div class="field"><label>Title</label><input id="hTitle"></div><div class="formGrid"><div class="field"><label>Before</label><input id="hBefore"></div><div class="field"><label>After</label><input id="hAfter"></div></div><div class="field"><label>Note</label><textarea id="hNote"></textarea></div><div class="actions"><button class="btn" onclick="closeHistoryModal()">Cancel</button><button class="btn primary" onclick="saveHistory()">Save</button></div></div></div></div>
 
@@ -394,6 +394,33 @@ async function saveProjectFromModal(){
     await reloadV2Data();
   }catch(err){alert(`Project 저장 실패: ${err.message}`)}finally{if(btn){btn.disabled=false;btn.textContent=editingProjectId!==null?'Save Changes':'Create Project'}}
 }
+async function deleteProjectFromModal(){
+  const id=editingProjectId;
+  const p=projects.find(x=>x.id===id);
+  if(id===null||!p)return;
+  const ok=confirm(`"${p.name}" Project를 삭제할까요?\n\n이 Project와 연결된 모든 History가 영구 삭제됩니다. 이 작업은 되돌릴 수 없습니다.`);
+  if(!ok)return;
+  const btn=document.getElementById('projectDeleteBtn');
+  if(btn){btn.disabled=true;btn.textContent='Deleting...'}
+  try{
+    if(v2DbConnected){
+      await apiV2('project_delete',{id});
+    }else{
+      const idx=projects.findIndex(x=>x.id===id);
+      if(idx>=0)projects.splice(idx,1);
+    }
+    document.getElementById('projectModal').classList.remove('open');
+    editingProjectId=null;
+    selectedProjectId=null;
+    if(v2DbConnected)await reloadV2Data();
+    else{selectedProjectId=projects[0]?.id??null;renderProjects();renderDashboard();}
+  }catch(err){
+    alert(`Project 삭제 실패: ${err.message}`);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Delete Project'}
+  }
+}
+
 async function saveHistory(){
   if(!v2DbConnected)return saveHistoryLocal();
   const p=projects.find(x=>x.id===selectedProjectId);if(!p)return;
@@ -433,6 +460,7 @@ function openNewProject(){
   document.getElementById('pNoteLabel').textContent='Initial Note';
   document.getElementById('pNote').placeholder='Optional. 저장 시 첫 History로 기록됩니다.';
   document.getElementById('projectSaveBtn').textContent='Create Project';
+  document.getElementById('projectDeleteBtn').classList.add('hidden');
   document.getElementById('projectModal').classList.add('open');
 }
 function openEditProject(){
@@ -458,6 +486,7 @@ function openEditProject(){
   document.getElementById('pNoteLabel').textContent='Change Note (optional)';
   document.getElementById('pNote').placeholder='이번 변경 사유를 적으면 자동 History에 함께 기록됩니다.';
   document.getElementById('projectSaveBtn').textContent='Save Changes';
+  document.getElementById('projectDeleteBtn').classList.remove('hidden');
   document.getElementById('projectModal').classList.add('open');
 }
 function closeProjectModal(){document.getElementById('projectModal').classList.remove('open');editingProjectId=null}
