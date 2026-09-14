@@ -62,7 +62,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
-      <button data-page="projectsPage" onclick="showPage('projectsPage',this)">Projects <small>6</small></button>
+      <button data-page="projectsPage" onclick="showPage('projectsPage',this)">Projects <small id="projectNavCount">0</small></button>
       <button data-page="clientsPage" onclick="showPage('clientsPage',this)">Clients</button>
       <button data-page="meetingsPage" onclick="showPage('meetingsPage',this)">Meetings</button>
       <button data-page="documentsPage" onclick="showPage('documentsPage',this)">Documents</button>
@@ -296,6 +296,8 @@ function countYearField(field,year){
   return projects.filter(p=>String(p[field]||'').includes(String(year))).length;
 }
 function renderProjectKpis(){
+  const navCount=document.getElementById('projectNavCount');
+  if(navCount) navCount.textContent=projects.length;
   const el=document.querySelector('#projectsPage .kpis'); if(!el)return;
   const pending=projects.filter(p=>p.status==='Pending').length;
   const opened=projects.filter(p=>p.status==='Opened').length;
