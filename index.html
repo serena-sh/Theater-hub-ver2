@@ -111,7 +111,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 </div>
 
 
-<div id="kmlModal" class="modal"><div class="modalBox" style="max-width:980px;max-height:88vh;overflow:auto"><div class="modalHead"><div><h3>Import KML / KMZ</h3><div class="sub">KML 또는 KMZ의 Placemark를 확인한 뒤 Supabase Site master로 가져옵니다.</div></div><button class="x" onclick="closeKmlImport()">✕</button></div><div class="form"><div class="field"><label>KML / KMZ File</label><input id="kmlFile" type="file" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" onchange="readKmlFile(this.files[0])"></div><div id="kmlSummary" class="sub">KML 파일을 선택해주세요.</div><div id="kmlPreview"></div><div class="actions"><button class="btn" onclick="closeKmlImport()">Cancel</button><button id="kmlImportBtn" type="button" class="btn primary" onclick="window.importKmlSites()" disabled>Import Selected Sites</button></div></div></div></div>
+<div id="kmlModal" class="modal"><div class="modalBox" style="max-width:980px;max-height:88vh;overflow:auto"><div class="modalHead"><div><h3>Import KML / KMZ</h3><div class="sub">KML 또는 KMZ의 Placemark를 확인한 뒤 Supabase Site master로 가져옵니다.</div></div><button class="x" onclick="closeKmlImport()">✕</button></div><div class="form"><div class="field"><label>KML / KMZ File</label><input id="kmlFile" type="file" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" onchange="readKmlFile(this.files[0])"></div><div id="kmlSummary" class="sub">KML 파일을 선택해주세요.</div><div id="kmlPreview"></div><div class="actions"><button class="btn" onclick="closeKmlImport()">Cancel</button><button id="kmlImportBtn" type="button" class="btn primary" disabled>Import Selected Sites</button></div></div></div></div>
 <div id="projectModal" class="modal"><div class="modalBox" style="max-width:760px"><div class="modalHead"><div><h3 id="projectModalTitle">New Project</h3><div class="sub" id="projectModalSub">Project의 현재 상태를 등록합니다. 이후 변경사항은 History로 누적됩니다.</div></div><button class="x" onclick="closeProjectModal()">✕</button></div><div class="form">
   <div class="formGrid"><div class="field"><label>Client</label><select id="pClient" onchange="refreshProjectSiteOptions()"></select></div><div class="field"><label>Site / Theater</label><select id="pSite"><option value="">Not linked yet</option></select></div></div>
   <div class="formGrid"><div class="field"><label>Project Name</label><input id="pName" placeholder="e.g. Taipei Xinyi #5"></div><div class="field"><label>Format</label><select id="pFormat"><option>SCREENX</option><option>4DX</option><option>ULTRA 4DX</option><option>Other</option></select></div></div>
@@ -777,4 +777,14 @@ function openClientSite(id){showPage('mapPage',document.querySelector('[data-pag
     <div class="commercialModalFoot"><button class="btn" onclick="closeCommercialModal()">Cancel</button><button class="btn primary" onclick="saveClientCommercial()">Save Commercial</button></div>
   </div>
 </div>
+<script>
+// v15: robust KML/KMZ import button binding
+document.addEventListener('click', function(e){
+  const btn=e.target && e.target.closest ? e.target.closest('#kmlImportBtn') : null;
+  if(!btn || btn.disabled) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(typeof importKmlSites === 'function') importKmlSites();
+});
+</script>
 </body></html>
