@@ -72,44 +72,16 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 
   <main class="main">
     <section id="dashboardPage" class="page active"><div class="pageShell">
-      <div class="pageHead"><div><h1>Dashboard</h1><div class="sub">Project 운영현황과 KPI를 한 화면에서 확인합니다. 아래 KPI 목표값은 프로토타입용 샘플입니다.</div></div><div class="dashboardActions"><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">Open Projects</button><div class="toolbar"><button class="btn primary" onclick="openClientAddSite()">+ Add Site</button><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div></div></div>
-      <div class="metricRow">
-        <div class="card metric"><div class="eyebrow">2026 Signing KPI</div><strong>3 / 5</strong><small>60% achieved</small><div class="progress"><i style="width:60%"></i></div></div>
-        <div class="card metric"><div class="eyebrow">2026 Opening KPI</div><strong>2 / 4</strong><small>50% achieved</small><div class="progress"><i style="width:50%"></i></div></div>
-        <div class="card metric"><div class="eyebrow">Active Projects</div><strong>0</strong><small>Supabase loading…</small></div>
-        <div class="card metric"><div class="eyebrow">At Risk / TBD</div><strong>1</strong><small>Schedule review required</small></div>
-      </div>
-      <div class="dashboardGrid">
-        <div class="dashboardStack">
-          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>KPI-linked Projects</b><div class="sub">Signing / Opening 일정과 Project 상태를 기준으로 자동 집계하는 영역</div></div><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">View Projects</button></div>
-            <div class="pipelineRow"><b>Signing</b><div class="pipelineBar"><i style="width:60%"></i></div><strong>3 / 5</strong></div>
-            <div class="pipelineRow"><b>Opening</b><div class="pipelineBar"><i style="width:50%"></i></div><strong>2 / 4</strong></div>
-            <div class="pipelineRow"><b>2026 Pipeline</b><div class="pipelineBar"><i style="width:80%"></i></div><strong>4</strong></div>
-            <div class="kpiNote">실제 구축 시 KPI 목표값은 별도 설정값으로 두고, Project의 Signing / Opening / Status 변경에 따라 실적이 자동 반영되도록 구성합니다.</div>
-          </div>
-          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Upcoming Milestones</b><div class="sub">가까운 Signing / Shipping / Opening 일정</div></div></div>
-            <div class="milestoneItem"><b>Scope Cinema · Cinnamon Life</b><small>Signing · 2026.10 · SCREENX</small></div>
-            <div class="milestoneItem"><b>HOYTS · Sylvia Park</b><small>Opening · 2026.12 · SCREENX</small></div>
-            <div class="milestoneItem"><b>Showtime · Taichung Station</b><small>Signing · 2026 Q4 · 4DX</small></div>
-          </div>
-        </div>
-        <div class="dashboardStack">
-          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Needs Attention</b><div class="sub">TBD 또는 일정 확인이 필요한 Project</div></div></div>
-            <div class="attentionItem"><div><b>Vieshow · Big City · 4DX</b><small>Signing TBD · Opening TBD</small></div><span class="miniBadge">Review</span></div>
-            <div class="attentionItem"><div><b>Scope Cinema · Cinnamon Life</b><small>Next Action · Contract execution</small></div><span class="miniBadge">Action</span></div>
-          </div>
-          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Recent Activity</b><div class="sub">Project History의 최신 변경사항</div></div></div>
-            <div class="activityItem"><b>Cinnamon Life · Opening updated</b><small>2026.09.11 · 2027 Q1 → 2027.03</small></div>
-            <div class="activityItem"><b>Cinnamon Life · Stage changed</b><small>2026.09.05 · Proposal → Contract</small></div>
-            <div class="activityItem"><b>Taipei Xinyi · Operating review</b><small>2026.09.09 · Project updated</small></div>
-          </div>
-          <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Map Snapshot</b><div class="sub">Site 현황으로 바로 이동</div></div><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div><div style="font-size:26px;font-weight:850">7 Sites</div><div class="sub" style="margin-top:4px">Operating 4 · Planned 3 · Radius / distance tools available</div></div>
-        </div>
-      </div>
-    </div></section>
-
-    <section id="mapPage" class="page"><div class="pageShell">
-      <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Site가 지도 데이터의 기준입니다. 주소/장소명 또는 지도 클릭으로 위치를 지정하고, 내부적으로 좌표를 저장합니다.</div></div><div class="toolbar"><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
+    <div class="pageHead"><div><h1>Dashboard</h1><div class="sub">Supabase에서 실제 운영 데이터를 불러오는 중입니다.</div></div></div>
+    <div class="metricRow">
+      <div class="card metric"><div class="eyebrow">2026 Signing</div><strong>—</strong><small>Loading…</small></div>
+      <div class="card metric"><div class="eyebrow">2026 Opening</div><strong>—</strong><small>Loading…</small></div>
+      <div class="card metric"><div class="eyebrow">Active Projects</div><strong>—</strong><small>Loading…</small></div>
+      <div class="card metric"><div class="eyebrow">Needs Attention</div><strong>—</strong><small>Loading…</small></div>
+    </div>
+  </div></section>
+  <section id="mapPage" class="page"><div class="pageShell">
+      <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Site가 지도 데이터의 기준입니다. 주소/장소명 또는 지도 클릭으로 위치를 지정하고, 내부적으로 좌표를 저장합니다.</div></div><div class="toolbar"><button class="btn" onclick="openKmlImport()">Import KML</button><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
       <div class="mapWorkspace">
         <div class="card mapCard">
           <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / client" oninput="renderMarkers()"><select id="countryFilter" class="search" onchange="renderMarkers()"><option value="">All Countries</option><option>Taiwan</option><option>Australia</option><option>Sri Lanka</option><option>New Zealand</option></select><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
@@ -138,6 +110,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 </div>
 
 
+<div id="kmlModal" class="modal"><div class="modalBox" style="max-width:980px;max-height:88vh;overflow:auto"><div class="modalHead"><div><h3>Import KML</h3><div class="sub">KML의 Placemark를 확인한 뒤 Supabase Site master로 가져옵니다.</div></div><button class="x" onclick="closeKmlImport()">✕</button></div><div class="form"><div class="field"><label>KML File</label><input id="kmlFile" type="file" accept=".kml,application/vnd.google-earth.kml+xml" onchange="readKmlFile(this.files[0])"></div><div id="kmlSummary" class="sub">KML 파일을 선택해주세요.</div><div id="kmlPreview"></div><div class="actions"><button class="btn" onclick="closeKmlImport()">Cancel</button><button id="kmlImportBtn" class="btn primary" onclick="importKmlSites()" disabled>Import Selected Sites</button></div></div></div></div>
 <div id="projectModal" class="modal"><div class="modalBox" style="max-width:760px"><div class="modalHead"><div><h3 id="projectModalTitle">New Project</h3><div class="sub" id="projectModalSub">Project의 현재 상태를 등록합니다. 이후 변경사항은 History로 누적됩니다.</div></div><button class="x" onclick="closeProjectModal()">✕</button></div><div class="form">
   <div class="formGrid"><div class="field"><label>Client</label><select id="pClient" onchange="refreshProjectSiteOptions()"></select></div><div class="field"><label>Site / Theater</label><select id="pSite"><option value="">Not linked yet</option></select></div></div>
   <div class="formGrid"><div class="field"><label>Project Name</label><input id="pName" placeholder="e.g. Taipei Xinyi #5"></div><div class="field"><label>Format</label><select id="pFormat"><option>SCREENX</option><option>4DX</option><option>ULTRA 4DX</option><option>Other</option></select></div></div>
@@ -228,6 +201,19 @@ function moveSite(id){selectedSiteId=id;mapMode='move';document.getElementById('
 function openProjectFromMap(id){selectedProjectId=id;renderProjectList();renderProjectDetail();showPage('projectsPage',document.querySelector('[data-page="projectsPage"]'))}
 
 
+
+
+let kmlRows=[];
+function openKmlImport(){kmlRows=[];document.getElementById('kmlFile').value='';document.getElementById('kmlSummary').textContent='KML 파일을 선택해주세요.';document.getElementById('kmlPreview').innerHTML='';document.getElementById('kmlImportBtn').disabled=true;document.getElementById('kmlModal').classList.add('open')}
+function closeKmlImport(){document.getElementById('kmlModal').classList.remove('open')}
+function normName(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,' ')}
+function distanceKm(a,b){const R=6371,toRad=x=>x*Math.PI/180;const dLat=toRad(b.lat-a.lat),dLng=toRad(b.lng-a.lng);const x=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function findKmlDuplicate(row){return sites.find(s=>normName(s.name)===normName(row.name))||sites.find(s=>Number.isFinite(s.lat)&&Number.isFinite(s.lng)&&distanceKm(s,row)<0.1)||null}
+function placemarkText(pm,key){const nodes=[...pm.getElementsByTagName('Data')];const d=nodes.find(n=>normName(n.getAttribute('name'))===normName(key));return d?.getElementsByTagName('value')[0]?.textContent?.trim()||''}
+function parseKmlDescription(text){const out={};const plain=String(text||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'\n');plain.split(/\n+/).forEach(line=>{const m=line.match(/^\s*([^:=]+)\s*[:=]\s*(.+)\s*$/);if(m)out[normName(m[1])]=m[2].trim()});return out}
+async function readKmlFile(file){if(!file)return;try{const text=await file.text();const xml=new DOMParser().parseFromString(text,'application/xml');if(xml.querySelector('parsererror'))throw new Error('KML 형식을 읽을 수 없습니다.');const placemarks=[...xml.getElementsByTagName('Placemark')];kmlRows=[];placemarks.forEach((pm,i)=>{const coord=pm.getElementsByTagName('coordinates')[0]?.textContent?.trim().split(/\s+/)[0];if(!coord)return;const [lng,lat]=coord.split(',').map(Number);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;const name=pm.getElementsByTagName('name')[0]?.textContent?.trim()||`Site ${i+1}`;const desc=parseKmlDescription(pm.getElementsByTagName('description')[0]?.textContent||'');const client=placemarkText(pm,'client')||desc.client||desc.company||'';const country=placemarkText(pm,'country')||desc.country||'';const city=placemarkText(pm,'city')||desc.city||'';const address=placemarkText(pm,'address')||desc.address||'';const formats=placemarkText(pm,'formats')||placemarkText(pm,'format')||desc.formats||desc.format||'';const row={name,client,country,city,address,formats,status:'Operating',lat,lng,selected:true};row.duplicate=findKmlDuplicate(row);row.mode=row.duplicate?'skip':'add';kmlRows.push(row)});renderKmlPreview()}catch(err){document.getElementById('kmlSummary').textContent='KML 읽기 실패: '+err.message;document.getElementById('kmlPreview').innerHTML='';document.getElementById('kmlImportBtn').disabled=true}}
+function renderKmlPreview(){const el=document.getElementById('kmlPreview');const dup=kmlRows.filter(r=>r.duplicate).length;document.getElementById('kmlSummary').innerHTML=`<b>${kmlRows.length} locations found</b> · ${dup} possible duplicates`;document.getElementById('kmlImportBtn').disabled=!kmlRows.length;const clientOptions=['',...allClientNames()].map(n=>`<option value="${esc(n)}">${esc(n||'Unassigned')}</option>`).join('');el.innerHTML=kmlRows.length?`<div style="overflow:auto;margin-top:10px"><table class="clientTable"><thead><tr><th>Import</th><th>Site</th><th>Client</th><th>Location</th><th>Coordinates</th><th>Duplicate</th><th>Action</th></tr></thead><tbody>${kmlRows.map((r,i)=>`<tr><td><input type="checkbox" ${r.selected?'checked':''} onchange="kmlRows[${i}].selected=this.checked"></td><td><b>${esc(r.name)}</b><div class="sub">${esc(r.formats||'No format')}</div></td><td><select onchange="kmlRows[${i}].client=this.value">${clientOptions.replace(`value="${esc(r.client)}"`,`value="${esc(r.client)}" selected`)}</select></td><td>${esc([r.city,r.country].filter(Boolean).join(', ')||r.address||'-')}</td><td>${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}</td><td>${r.duplicate?`<span class="pill amber">${esc(r.duplicate.name)}</span>`:'<span class="pill green">New</span>'}</td><td><select onchange="kmlRows[${i}].mode=this.value"><option value="add" ${r.mode==='add'?'selected':''}>Add new</option>${r.duplicate?`<option value="update" ${r.mode==='update'?'selected':''}>Update existing</option><option value="skip" ${r.mode==='skip'?'selected':''}>Skip</option>`:''}</select></td></tr>`).join('')}</tbody></table></div>`:'<div class="placeholder">좌표가 있는 Placemark를 찾지 못했습니다.</div>'}
+async function importKmlSites(){const chosen=kmlRows.filter(r=>r.selected&&r.mode!=='skip');if(!chosen.length){alert('가져올 Site를 선택해주세요.');return}const btn=document.getElementById('kmlImportBtn');btn.disabled=true;btn.textContent='Importing…';try{const rows=chosen.map(r=>{const cp=clientProfiles.find(c=>normName(c.name)===normName(r.client));return {mode:r.mode,existing_id:r.mode==='update'?r.duplicate?.id:null,site:{client_id:cp?.id??null,client_name:r.client||'',name:r.name,country:r.country||'',city:r.city||'',address:r.address||'',formats:r.formats||'',status:r.status||'Operating',lat:r.lat,lng:r.lng}}});const result=await apiV2('site_import',{rows});closeKmlImport();await reloadV2Data();alert(`${result.imported||0} Sites imported${result.updated?` · ${result.updated} updated`:''}.`)}catch(err){alert('KML Import 실패: '+err.message)}finally{btn.disabled=false;btn.textContent='Import Selected Sites'}}
 
 const V2_API='/api/v2-projects';
 let v2DbConnected=false;
@@ -325,39 +311,49 @@ function recentHistoryRows(){
 function renderDashboard(){
   const shell=document.querySelector('#dashboardPage .pageShell'); if(!shell)return;
   const pending=projects.filter(p=>p.status==='Pending').length;
-  const active=projects.filter(p=>p.status==='Pending'||p.status==='On Hold').length;
-  const atRisk=projects.filter(p=>p.status!=='Opened'&&projectHasTbd(p)).length;
+  const hold=projects.filter(p=>p.status==='On Hold').length;
+  const opened=projects.filter(p=>p.status==='Opened').length;
+  const active=pending+hold;
+  const attentionProjects=projects.filter(p=>p.status!=='Opened'&&projectHasTbd(p));
   const sign2026=countYearField('signing',2026), open2026=countYearField('opening',2026);
+  const signingProjects=projects.filter(p=>String(p.signing||'').includes('2026'));
+  const openingProjects=projects.filter(p=>String(p.opening||'').includes('2026'));
   const milestones=milestoneRows(), recent=recentHistoryRows();
   const operating=sites.filter(s=>s.status==='Operating').length, planned=sites.filter(s=>s.status==='Planned').length;
+  const clientsWithProjects=new Set(projects.map(p=>p.clientId??p.client).filter(v=>v!==null&&v!==undefined&&v!=='')).size;
   shell.innerHTML=`
-    <div class="pageHead"><div><h1>Dashboard</h1><div class="sub">Supabase의 Project / History 데이터를 기준으로 실시간 집계합니다. KPI 목표값은 아직 설정하지 않았습니다.</div></div><div class="dashboardActions"><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">Open Projects</button><div class="toolbar"><button class="btn primary" onclick="openClientAddSite()">+ Add Site</button><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div></div></div>
+    <div class="pageHead"><div><h1>Dashboard</h1><div class="sub">Supabase의 실제 Project · History · Site 데이터를 기준으로 자동 집계합니다.</div></div><div class="dashboardActions"><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">Open Projects</button><div class="toolbar"><button class="btn primary" onclick="openClientAddSite()">+ Add Site</button><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div></div></div>
     <div class="metricRow">
-      <div class="card metric"><div class="eyebrow">2026 Signing</div><strong>${sign2026}</strong><small>KPI target not set</small></div>
-      <div class="card metric"><div class="eyebrow">2026 Opening</div><strong>${open2026}</strong><small>KPI target not set</small></div>
-      <div class="card metric"><div class="eyebrow">Active Projects</div><strong>${active}</strong><small>Pending ${pending} · On Hold ${projects.filter(p=>p.status==='On Hold').length}</small></div>
-      <div class="card metric"><div class="eyebrow">At Risk / TBD</div><strong>${atRisk}</strong><small>Schedule review required</small></div>
+      <div class="card metric"><div class="eyebrow">2026 Signing</div><strong>${sign2026}</strong><small>Projects scheduled in 2026</small></div>
+      <div class="card metric"><div class="eyebrow">2026 Opening</div><strong>${open2026}</strong><small>Projects scheduled in 2026</small></div>
+      <div class="card metric"><div class="eyebrow">Active Projects</div><strong>${active}</strong><small>Pending ${pending} · On Hold ${hold}</small></div>
+      <div class="card metric"><div class="eyebrow">Needs Attention</div><strong>${attentionProjects.length}</strong><small>TBD / missing schedule</small></div>
     </div>
     <div class="dashboardGrid">
       <div class="dashboardStack">
-        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>KPI-linked Projects</b><div class="sub">현재는 2026 일정 건수만 집계합니다. 목표값은 별도 설정 예정입니다.</div></div><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">View Projects</button></div>
-          <div class="pipelineRow"><b>Signing 2026</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,sign2026/projects.length*100):0}%"></i></div><strong>${sign2026}</strong></div>
-          <div class="pipelineRow"><b>Opening 2026</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,open2026/projects.length*100):0}%"></i></div><strong>${open2026}</strong></div>
-          <div class="pipelineRow"><b>Active Pipeline</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,active/projects.length*100):0}%"></i></div><strong>${active}</strong></div>
-          <div class="kpiNote">실제 KPI 목표값을 입력하면 달성률 형태로 자동 계산하도록 연결할 수 있습니다.</div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Project Pipeline</b><div class="sub">현재 Project DB의 Status 기준</div></div><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">View Projects</button></div>
+          <div class="pipelineRow"><b>Pending</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,pending/projects.length*100):0}%"></i></div><strong>${pending}</strong></div>
+          <div class="pipelineRow"><b>On Hold</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,hold/projects.length*100):0}%"></i></div><strong>${hold}</strong></div>
+          <div class="pipelineRow"><b>Opened</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,opened/projects.length*100):0}%"></i></div><strong>${opened}</strong></div>
+          <div class="kpiNote">Total ${projects.length} Projects · ${clientsWithProjects} Clients with Projects</div>
         </div>
-        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Upcoming Milestones</b><div class="sub">Project의 Signing / Shipping / Opening 일정</div></div></div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>2026 Signing / Opening</b><div class="sub">Project에 입력된 실제 일정 기준</div></div></div>
+          <div class="pipelineRow"><b>Signing</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,sign2026/projects.length*100):0}%"></i></div><strong>${sign2026}</strong></div>
+          <div class="pipelineRow"><b>Opening</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,open2026/projects.length*100):0}%"></i></div><strong>${open2026}</strong></div>
+          ${(signingProjects.length||openingProjects.length)?`<div class="kpiNote">Signing: ${signingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}<br>Opening: ${openingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}</div>`:'<div class="kpiNote">2026 일정이 입력된 Project가 없습니다.</div>'}
+        </div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Upcoming Milestones</b><div class="sub">Signing / Shipping / Opening에 입력된 가까운 일정</div></div></div>
           ${milestones.length?milestones.map(x=>`<div class="milestoneItem"><b>${esc(x.p.client)} · ${esc(x.p.name)}</b><small>${esc(x.type)} · ${esc(x.val)} · ${esc(x.p.format||'-')}</small></div>`).join(''):'<div class="placeholder">등록된 일정이 없습니다.</div>'}
         </div>
       </div>
       <div class="dashboardStack">
-        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Needs Attention</b><div class="sub">TBD 또는 일정 확인이 필요한 Project</div></div></div>
-          ${projects.filter(p=>p.status!=='Opened'&&projectHasTbd(p)).slice(0,5).map(p=>`<div class="attentionItem"><div><b>${esc(p.client)} · ${esc(p.name)} · ${esc(p.format||'-')}</b><small>Signing ${esc(p.signing||'TBD')} · Shipping ${esc(p.shipping||'TBD')} · Opening ${esc(p.opening||'TBD')}</small></div><span class="miniBadge">Review</span></div>`).join('')||'<div class="placeholder">확인이 필요한 Project가 없습니다.</div>'}
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Needs Attention</b><div class="sub">Opened가 아니면서 일정이 TBD / 미입력인 Project</div></div></div>
+          ${attentionProjects.slice(0,5).map(p=>`<div class="attentionItem"><div><b>${esc(p.client)} · ${esc(p.name)} · ${esc(p.format||'-')}</b><small>Signing ${esc(p.signing||'TBD')} · Shipping ${esc(p.shipping||'TBD')} · Opening ${esc(p.opening||'TBD')}</small></div><span class="miniBadge">Review</span></div>`).join('')||'<div class="placeholder">확인이 필요한 Project가 없습니다.</div>'}
         </div>
-        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Recent Activity</b><div class="sub">Project History의 최신 변경사항</div></div></div>
-          ${recent.length?recent.map(x=>`<div class="activityItem"><b>${esc(x.p.name)} · ${esc(x.h.title)}</b><small>${esc(x.h.date||'-')}${x.h.before||x.h.after?` · ${esc(x.h.before||'-')} → ${esc(x.h.after||'-')}`:''}</small></div>`).join(''):'<div class="placeholder">History가 없습니다.</div>'}
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Recent Activity</b><div class="sub">실제 Project History 최신 변경사항</div></div></div>
+          ${recent.length?recent.map(x=>`<div class="activityItem"><b>${esc(x.p.name)} · ${esc(x.h.title)}</b><small>${esc(x.h.date||'-')}${x.h.before||x.h.after?` · ${esc(x.h.before||'-')} → ${esc(x.h.after||'-')}`:''}${x.h.note?` · ${esc(x.h.note)}`:''}</small></div>`).join(''):'<div class="placeholder">History가 없습니다.</div>'}
         </div>
-        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Map Snapshot</b><div class="sub">Site 현황으로 바로 이동</div></div><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div><div style="font-size:26px;font-weight:850">${sites.length} Sites</div><div class="sub" style="margin-top:4px">Operating ${operating} · Planned ${planned} · Radius / distance tools available</div></div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Map Snapshot</b><div class="sub">실제 Site master 기준</div></div><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div><div style="font-size:26px;font-weight:850">${sites.length} Sites</div><div class="sub" style="margin-top:4px">Operating ${operating} · Planned ${planned}</div></div>
       </div>
     </div>`;
   renderProjectKpis();
@@ -413,7 +409,7 @@ async function deleteProjectFromModal(){
     editingProjectId=null;
     selectedProjectId=null;
     if(v2DbConnected)await reloadV2Data();
-    else{selectedProjectId=projects[0]?.id??null;renderProjects();renderDashboard();}
+    else{selectedProjectId=projects[0]?.id??null;renderProjectKpis();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail();renderDashboard();}
   }catch(err){
     alert(`Project 삭제 실패: ${err.message}`);
   }finally{
