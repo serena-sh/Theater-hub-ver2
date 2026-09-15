@@ -11,9 +11,7 @@ function headers(extra = {}) {
 }
 
 function json(res, status, body) {
-  res
-    .status(status)
-    .setHeader("Content-Type", "application/json; charset=utf-8");
+  res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(body));
 }
 
@@ -29,7 +27,6 @@ async function sb(path, opts = {}) {
 
   const text = await response.text();
   let data = null;
-
   try {
     data = text ? JSON.parse(text) : null;
   } catch {
@@ -64,7 +61,6 @@ function siteName(row) {
 function asFormats(value) {
   if (Array.isArray(value)) return value;
   if (value == null || value === "") return [];
-
   return String(value)
     .split(/[,/]/)
     .map((x) => x.trim())
@@ -87,115 +83,58 @@ async function master() {
   const clients = (clientsRaw || []).map((client) => ({
     id: Number(client.id),
     name: client.name || `Client ${client.id}`,
-    country:
-      client.country ||
-      client.region ||
-      client.country_region ||
-      "",
-    type:
-      client.client_type ||
-      client.type ||
-      "Exhibitor",
+    country: client.country || client.region || client.country_region || "",
+    type: client.client_type || client.type || "Exhibitor",
     status: client.status || "Active",
-    note:
-      client.notes ||
-      client.note ||
-      "",
+    note: client.notes || client.note || "",
   }));
 
   const sites = (sitesRaw || []).map((site) => ({
     id: Number(site.id),
-
-    client_id:
-      site.client_id == null
-        ? null
-        : Number(site.client_id),
-
+    client_id: site.client_id == null ? null : Number(site.client_id),
     client:
-      clientMap.get(Number(site.client_id)) ||
-      site.client_name ||
-      "",
-
+      clientMap.get(Number(site.client_id)) || site.client_name || "",
     name: siteName(site),
     country: site.country || "",
     city: site.city || "",
-
-    address:
-      site.address ||
-      site.address_text ||
-      "",
-
+    address: site.address || site.address_text || "",
     status: site.status || "Operating",
-
-    formats: asFormats(
-      site.formats ||
-      site.format
-    ),
-
-    lat: Number(
-      site.latitude ?? site.lat
-    ),
-
-    lng: Number(
-      site.longitude ?? site.lng
-    ),
+    formats: asFormats(site.formats || site.format),
+    lat: Number(site.latitude ?? site.lat),
+    lng: Number(site.longitude ?? site.lng),
   }));
 
   return { clients, sites };
 }
 
 async function listProjects() {
-  const rows = await sb(
-    "projects?select=*&order=updated_at.desc"
-  );
-
+  const rows = await sb("projects?select=*&order=updated_at.desc");
   const history = await sb(
     "project_history?select=*&order=event_date.desc,created_at.desc"
   );
 
   const byProject = new Map();
-
   for (const item of history || []) {
     const key = Number(item.project_id);
-
-    if (!byProject.has(key)) {
-      byProject.set(key, []);
-    }
-
+    if (!byProject.has(key)) byProject.set(key, []);
     byProject.get(key).push(item);
   }
 
   const masterData = await master();
-
   const clientMap = new Map(
-    masterData.clients.map((client) => [
-      client.id,
-      client.name,
-    ])
+    masterData.clients.map((client) => [client.id, client.name])
   );
-
-  const siteMap = new Map(
-    masterData.sites.map((site) => [
-      site.id,
-      site.name,
-    ])
-  );
+  const siteMap = new Map(masterData.sites.map((site) => [site.id, site.name]));
 
   return (rows || []).map((row) => ({
     ...row,
-
     client:
       clientMap.get(Number(row.client_id)) ||
       row.client_name_snapshot ||
       "Unassigned",
-
     site:
-      siteMap.get(Number(row.site_id)) ||
-      row.site_name_snapshot ||
-      null,
-
-    history:
-      byProject.get(Number(row.id)) || [],
+      siteMap.get(Number(row.site_id)) || row.site_name_snapshot || null,
+    history: byProject.get(Number(row.id)) || [],
   }));
 }
 
@@ -221,150 +160,115 @@ function cleanProject(project = {}) {
   ];
 
   const output = {};
-
   for (const key of allowed) {
-    if (
-      Object.prototype.hasOwnProperty.call(
-        project,
-        key
-      )
-    ) {
-      output[key] =
-        project[key] === ""
-          ? null
-          : project[key];
+    if (Object.prototype.hasOwnProperty.call(project, key)) {
+      output[key] = project[key] === "" ? null : project[key];
     }
   }
 
-  if (output.client_id === "null") {
-    output.client_id = null;
-  }
-
-  if (output.site_id === "null") {
-    output.site_id = null;
-  }
-
+  if (output.client_id === "null") output.client_id = null;
+  if (output.site_id === "null") output.site_id = null;
   return output;
 }
 
 async function oneProject(id) {
-  const rows = await sb(
-    `projects?id=eq.${q(id)}&select=*`
-  );
-
+  const rows = await sb(`projects?id=eq.${q(id)}&select=*`);
   return rows?.[0] || null;
 }
 
 async function createHistory(projectId, history = {}) {
   const body = {
     project_id: Number(projectId),
-
-    event_date:
-      history.event_date ||
-      isoDate(),
-
-    change_type:
-      history.change_type ||
-      "Note",
-
-    title:
-      history.title ||
-      "History update",
-
-    before_value:
-      history.before_value ||
-      null,
-
-    after_value:
-      history.after_value ||
-      null,
-
-    note:
-      history.note ||
-      null,
-
-    source:
-      history.source ||
-      "Manual",
+    event_date: history.event_date || isoDate(),
+    change_type: history.change_type || "Note",
+    title: history.title || "History update",
+    before_value: history.before_value || null,
+    after_value: history.after_value || null,
+    note: history.note || null,
+    source: history.source || "Manual",
   };
 
   const rows = await sb("project_history", {
     method: "POST",
-
-    headers: {
-      Prefer: "return=representation",
-    },
-
+    headers: { Prefer: "return=representation" },
     body: JSON.stringify(body),
   });
 
   return rows?.[0] || null;
 }
 
+
+
+async function siteSchemaKeys() {
+  const rows = await sb("sites?select=*&limit=1").catch(() => []);
+  return rows?.[0] ? new Set(Object.keys(rows[0])) : new Set();
+}
+
+function firstExisting(keys, candidates, fallback) {
+  for (const c of candidates) if (keys.has(c)) return c;
+  return fallback;
+}
+
+async function buildSitePayload(site, keys) {
+  const out = {};
+  const nameKey = firstExisting(keys, ["name", "site_name", "theater_name", "cinema_name"], "name");
+  const latKey = firstExisting(keys, ["latitude", "lat"], "latitude");
+  const lngKey = firstExisting(keys, ["longitude", "lng"], "longitude");
+  const addressKey = firstExisting(keys, ["address", "address_text"], "address");
+  const formatKey = firstExisting(keys, ["formats", "format"], "formats");
+  out[nameKey] = site.name;
+  out[latKey] = Number(site.lat);
+  out[lngKey] = Number(site.lng);
+  if (site.client_id != null && (keys.has("client_id") || keys.size === 0)) out.client_id = Number(site.client_id);
+  if (site.client_name && keys.has("client_name")) out.client_name = site.client_name;
+  if (site.country && (keys.has("country") || keys.size === 0)) out.country = site.country;
+  if (site.city && (keys.has("city") || keys.size === 0)) out.city = site.city;
+  if (site.address && (keys.has(addressKey) || keys.size === 0)) out[addressKey] = site.address;
+  if (site.status && (keys.has("status") || keys.size === 0)) out.status = site.status;
+  if (site.formats && (keys.has(formatKey) || keys.size === 0)) {
+    const vals = String(site.formats).split(/[,/]/).map(v=>v.trim()).filter(Boolean);
+    out[formatKey] = formatKey === "formats" ? vals : vals.join(", ");
+  }
+  return out;
+}
+
 module.exports = async function handler(req, res) {
   try {
     if (req.method === "GET") {
-      const action =
-        req.query?.action ||
-        "list";
+      const action = req.query?.action || "list";
 
       if (action === "master") {
-        return json(res, 200, {
-          ok: true,
-          ...(await master()),
-        });
+        return json(res, 200, { ok: true, ...(await master()) });
       }
 
       if (action === "list") {
-        return json(res, 200, {
-          ok: true,
-          projects: await listProjects(),
-        });
+        return json(res, 200, { ok: true, projects: await listProjects() });
       }
 
-      return json(res, 400, {
-        ok: false,
-        error: "Unknown GET action",
-      });
+      return json(res, 400, { ok: false, error: "Unknown GET action" });
     }
 
     if (req.method !== "POST") {
-      return json(res, 405, {
-        ok: false,
-        error: "Method not allowed",
-      });
+      return json(res, 405, { ok: false, error: "Method not allowed" });
     }
 
     const body =
-      typeof req.body === "string"
-        ? JSON.parse(req.body || "{}")
-        : req.body || {};
-
+      typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
     const action = body.action;
 
-    // CREATE PROJECT
     if (action === "create") {
       const project = cleanProject(body.project);
-
       if (!project.project_name) {
-        return json(res, 400, {
-          ok: false,
-          error: "project_name is required",
-        });
+        return json(res, 400, { ok: false, error: "project_name is required" });
       }
 
       const rows = await sb("projects", {
         method: "POST",
-
-        headers: {
-          Prefer: "return=representation",
-        },
-
+        headers: { Prefer: "return=representation" },
         body: JSON.stringify(project),
       });
 
       const created = rows?.[0];
-
       if (body.initial_note?.trim()) {
         await createHistory(created.id, {
           change_type: "Note",
@@ -381,53 +285,24 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      return json(res, 200, {
-        ok: true,
-        project: created,
-      });
+      return json(res, 200, { ok: true, project: created });
     }
 
-    // UPDATE PROJECT
     if (action === "update") {
       const id = Number(body.id);
-
-      if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "id is required",
-        });
-      }
+      if (!id) return json(res, 400, { ok: false, error: "id is required" });
 
       const old = await oneProject(id);
-
-      if (!old) {
-        return json(res, 404, {
-          ok: false,
-          error: "Project not found",
-        });
-      }
+      if (!old) return json(res, 404, { ok: false, error: "Project not found" });
 
       const patch = cleanProject(body.project);
+      const rows = await sb(`projects?id=eq.${q(id)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify(patch),
+      });
 
-      const rows = await sb(
-        `projects?id=eq.${q(id)}`,
-        {
-          method: "PATCH",
-
-          headers: {
-            Prefer: "return=representation",
-          },
-
-          body: JSON.stringify(patch),
-        }
-      );
-
-      const updated =
-        rows?.[0] || {
-          ...old,
-          ...patch,
-        };
-
+      const updated = rows?.[0] || { ...old, ...patch };
       const fields = {
         client_id: "Client",
         site_id: "Site",
@@ -443,7 +318,6 @@ module.exports = async function handler(req, res) {
         owner: "Owner",
         next_action: "Next Action",
       };
-
       const types = {
         status: "Status",
         stage: "Stage",
@@ -454,59 +328,23 @@ module.exports = async function handler(req, res) {
       };
 
       let changes = 0;
-
       for (const [key, label] of Object.entries(fields)) {
-        if (
-          !Object.prototype.hasOwnProperty.call(
-            patch,
-            key
-          )
-        ) {
-          continue;
-        }
-
-        const before =
-          old[key] == null
-            ? ""
-            : String(old[key]);
-
-        const after =
-          updated[key] == null
-            ? ""
-            : String(updated[key]);
-
-        if (before === after) {
-          continue;
-        }
-
+        if (!Object.prototype.hasOwnProperty.call(patch, key)) continue;
+        const before = old[key] == null ? "" : String(old[key]);
+        const after = updated[key] == null ? "" : String(updated[key]);
+        if (before === after) continue;
         changes++;
-
         await createHistory(id, {
-          change_type:
-            types[key] ||
-            "Project",
-
-          title:
-            `${label} updated`,
-
-          before_value:
-            before || "-",
-
-          after_value:
-            after || "-",
-
-          note:
-            body.change_note ||
-            null,
-
+          change_type: types[key] || "Project",
+          title: `${label} updated`,
+          before_value: before || "-",
+          after_value: after || "-",
+          note: body.change_note || null,
           source: "System",
         });
       }
 
-      if (
-        changes === 0 &&
-        body.change_note?.trim()
-      ) {
+      if (changes === 0 && body.change_note?.trim()) {
         await createHistory(id, {
           change_type: "Note",
           title: "Project note",
@@ -515,165 +353,78 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      return json(res, 200, {
-        ok: true,
-        project: updated,
-        changes,
-      });
+      return json(res, 200, { ok: true, project: updated, changes });
     }
 
-    // DELETE PROJECT
-    if (action === "delete") {
+    if (action === "project_delete") {
       const id = Number(body.id);
-
-      if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "id is required",
-        });
-      }
+      if (!id) return json(res, 400, { ok: false, error: "id is required" });
 
       const existing = await oneProject(id);
-
       if (!existing) {
-        return json(res, 404, {
-          ok: false,
-          error: "Project not found",
-        });
+        return json(res, 404, { ok: false, error: "Project not found" });
       }
 
-      await sb(
-        `projects?id=eq.${q(id)}`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Prefer: "return=minimal",
-          },
-        }
-      );
+      await sb(`projects?id=eq.${q(id)}`, {
+        method: "DELETE",
+        headers: { Prefer: "return=minimal" },
+      });
 
       return json(res, 200, {
         ok: true,
         deleted_id: id,
+        deleted_project: existing.project_name,
       });
     }
 
-    // CREATE HISTORY
     if (action === "history_create") {
-      const history =
-        await createHistory(
-          body.project_id,
-          body.history || {}
-        );
-
-      return json(res, 200, {
-        ok: true,
-        history,
-      });
+      const history = await createHistory(body.project_id, body.history || {});
+      return json(res, 200, { ok: true, history });
     }
 
-    // UPDATE HISTORY
     if (action === "history_update") {
       const id = Number(body.history_id);
-
       if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "history_id is required",
-        });
+        return json(res, 400, { ok: false, error: "history_id is required" });
       }
 
       const history = body.history || {};
-
       const patch = {
-        event_date:
-          history.event_date ||
-          isoDate(),
-
-        change_type:
-          history.change_type ||
-          "Note",
-
-        title:
-          history.title ||
-          "History update",
-
-        before_value:
-          history.before_value ||
-          null,
-
-        after_value:
-          history.after_value ||
-          null,
-
-        note:
-          history.note ||
-          null,
-
-        source:
-          history.source ||
-          "Manual",
+        event_date: history.event_date || isoDate(),
+        change_type: history.change_type || "Note",
+        title: history.title || "History update",
+        before_value: history.before_value || null,
+        after_value: history.after_value || null,
+        note: history.note || null,
+        source: history.source || "Manual",
       };
 
-      const rows = await sb(
-        `project_history?id=eq.${q(id)}`,
-        {
-          method: "PATCH",
-
-          headers: {
-            Prefer: "return=representation",
-          },
-
-          body: JSON.stringify(patch),
-        }
-      );
-
-      return json(res, 200, {
-        ok: true,
-        history: rows?.[0] || null,
+      const rows = await sb(`project_history?id=eq.${q(id)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify(patch),
       });
+
+      return json(res, 200, { ok: true, history: rows?.[0] || null });
     }
 
-    // DELETE HISTORY
     if (action === "history_delete") {
       const id = Number(body.history_id);
-
       if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "history_id is required",
-        });
+        return json(res, 400, { ok: false, error: "history_id is required" });
       }
 
-      await sb(
-        `project_history?id=eq.${q(id)}`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Prefer: "return=minimal",
-          },
-        }
-      );
-
-      return json(res, 200, {
-        ok: true,
+      await sb(`project_history?id=eq.${q(id)}`, {
+        method: "DELETE",
+        headers: { Prefer: "return=minimal" },
       });
+
+      return json(res, 200, { ok: true });
     }
 
-    return json(res, 400, {
-      ok: false,
-      error: "Unknown action",
-    });
+    return json(res, 400, { ok: false, error: "Unknown action" });
   } catch (err) {
     console.error(err);
-
-    return json(res, 500, {
-      ok: false,
-      error:
-        err.message ||
-        String(err),
-    });
+    return json(res, 500, { ok: false, error: err.message || String(err) });
   }
 };
