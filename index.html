@@ -22,7 +22,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.kpi{padding:14px}.kpi label{display:block;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.kpi strong{font-size:23px;display:block;margin-top:3px}.kpi span{font-size:10px;color:var(--muted)}
 /* map */
 .mapWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;min-height:calc(100vh - 125px)}
-.mapCard{overflow:hidden;position:relative}.mapTopbar{padding:10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;background:#fff}.search{border:1px solid var(--line);border-radius:9px;padding:8px 9px;background:#fff;min-width:120px}.mapTopbar .search:first-child{flex:1}.mapTools{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line);background:#fff}.mapToolBtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 9px;font-weight:750;font-size:11px;color:#334155}.mapToolBtn.active{background:#111827;color:#fff;border-color:#111827}.distanceBadge{position:absolute;z-index:720;right:14px;bottom:14px;background:rgba(255,255,255,.96);border:1px solid var(--line);box-shadow:var(--shadow);padding:9px 11px;border-radius:9px;font-size:11px;display:none}
+.mapCard{overflow:hidden;position:relative}.mapTopbar{padding:10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;background:#fff}.search{border:1px solid var(--line);border-radius:9px;padding:8px 9px;background:#fff;min-width:120px}.mapTopbar .search:first-child{flex:1}.mapTools{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line);background:#fff}.mapToolBtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 9px;font-weight:750;font-size:11px;color:#334155}.mapToolBtn.active{background:#111827;color:#fff;border-color:#111827}.distanceBadge{position:absolute;z-index:720;right:14px;bottom:14px;background:rgba(255,255,255,.96);border:1px solid var(--line);box-shadow:var(--shadow);padding:9px 11px;border-radius:9px;font-size:11px;display:none}.mapLegend{position:absolute;z-index:710;right:14px;top:118px;background:rgba(255,255,255,.96);border:1px solid var(--line);box-shadow:var(--shadow);padding:10px 12px;border-radius:10px;font-size:11px;line-height:1.7}.mapLegend b{display:block;margin-bottom:3px}.legendDot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.08)}
 #map{height:calc(100vh - 186px);min-height:600px;background:#dce5ee}.mapHint{position:absolute;z-index:700;left:14px;bottom:14px;background:rgba(17,24,39,.92);color:#fff;padding:9px 11px;border-radius:9px;font-size:11px;display:none}
 .sidePanel{padding:15px;overflow:auto;max-height:calc(100vh - 125px)}.panelEmpty{height:100%;min-height:460px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px}.panelHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:14px}.panelHead h2{font-size:18px;margin:0}.pill{display:inline-block;padding:4px 7px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:9px;font-weight:800;margin-right:4px}.pill.green{background:#ecfdf5;color:#047857}.pill.amber{background:#fff7ed;color:#c2410c}
 .form{display:grid;gap:10px}.field label{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 9px;background:#fff}.field textarea{min-height:72px;resize:vertical}.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}.siteProjects{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.miniProject{padding:9px;border:1px solid var(--line);border-radius:9px;margin-top:7px;background:#fafafa}.miniProject b{font-size:11px}.miniProject div{font-size:10px;color:var(--muted);margin-top:2px}.radiusResults{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.radiusSummary{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.radiusSite{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #eef2f7}.radiusSite:first-of-type{border-top:0}.radiusSite b{font-size:11px}.radiusSite small{display:block;color:var(--muted);margin-top:2px}.distanceTag{white-space:nowrap;font-size:10px;font-weight:850;background:#eff6ff;color:#1d4ed8;padding:4px 6px;border-radius:999px}.locationActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -59,7 +59,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v20</span></div>
+    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v21</span></div>
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
@@ -83,11 +83,11 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
     </div>
   </div></section>
   <section id="mapPage" class="page"><div class="pageShell">
-      <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Site가 지도 데이터의 기준입니다. 주소/장소명 또는 지도 클릭으로 위치를 지정하고, 내부적으로 좌표를 저장합니다.</div></div><div class="toolbar"><button class="btn" onclick="openKmlImport()">Import KML / KMZ</button><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
+      <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Supabase Site master의 실제 좌표만 표시합니다. Marker 색상은 국가별 CJ 4DPLEX Client 도입 순서를 나타냅니다.</div></div><div class="toolbar"><button class="btn" onclick="openKmlImport()">Import KML / KMZ</button><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
       <div class="mapWorkspace">
         <div class="card mapCard">
           <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / client" oninput="renderMarkers()"><select id="countryFilter" class="search" onchange="renderMarkers()"><option value="">All Countries</option><option>Taiwan</option><option>Australia</option><option>Sri Lanka</option><option>New Zealand</option></select><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
-          <div id="map"></div><div id="mapHint" class="mapHint">지도에서 위치를 클릭하세요.</div><div id="distanceBadge" class="distanceBadge"></div>
+          <div id="map"></div><div class="mapLegend"><b>CJ 4DPLEX Client Entry</b><div><span class="legendDot" style="background:#2563eb"></span>1st Client</div><div><span class="legendDot" style="background:#dc2626"></span>2nd Client</div><div><span class="legendDot" style="background:#16a34a"></span>3rd Client</div><div><span class="legendDot" style="background:#64748b"></span>Other / Not set</div></div><div id="mapHint" class="mapHint">지도에서 위치를 클릭하세요.</div><div id="distanceBadge" class="distanceBadge"></div>
         </div>
         <div id="mapPanel" class="card sidePanel"><div class="panelEmpty"><div><b>Site를 선택하세요</b><br><br>Marker 클릭 → 상세 확인<br><b>Edit</b> → 정보 수정<br><b>Move Pin</b> → 지도에서 위치 변경<br><b>+ Add Site</b> → 신규 Site 추가</div></div></div>
       </div>
@@ -138,15 +138,8 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-let sites=[
- {id:1,client:'Vieshow',name:'Taipei Xinyi',country:'Taiwan',city:'Taipei',status:'Operating',formats:['4DX','SCREENX'],lat:25.0337,lng:121.5645,address:'Xinyi District, Taipei',projects:[101]},
- {id:7,client:'Demo Cinema Group A',name:'Taipei Demo East',country:'Taiwan',city:'Taipei',status:'Operating',formats:['SCREENX'],lat:25.0418,lng:121.5510,address:'Prototype sample site',projects:[]},
- {id:8,client:'Demo Cinema Group B',name:'Taipei Demo South',country:'Taiwan',city:'Taipei',status:'Planned',formats:['4DX'],lat:25.0108,lng:121.5590,address:'Prototype sample site',projects:[]},
- {id:9,client:'Demo Cinema Group C',name:'Taipei Demo North',country:'Taiwan',city:'Taipei',status:'Operating',formats:['4DX','SCREENX'],lat:25.0780,lng:121.5660,address:'Prototype sample site',projects:[]},
- {id:2,client:'Scope Cinema',name:'Cinnamon Life',country:'Sri Lanka',city:'Colombo',status:'Planned',formats:['SCREENX'],lat:6.9271,lng:79.8612,address:'Colombo, Sri Lanka',projects:[102]},
- {id:3,client:'HOYTS',name:'Bondi Junction',country:'Australia',city:'Sydney',status:'Planned',formats:['SCREENX'],lat:-33.8912,lng:151.2509,address:'Bondi Junction NSW',projects:[103]},
- {id:4,client:'HOYTS',name:'Sylvia Park',country:'New Zealand',city:'Auckland',status:'Operating',formats:['SCREENX'],lat:-36.9158,lng:174.8405,address:'286 Mount Wellington Highway',projects:[104]}
-];
+let sites=[]; // Supabase Site master only. No prototype/demo markers.
+
 let projects=[
  {id:101,client:'Vieshow',siteId:1,name:'Taipei Xinyi #5',format:'SCREENX',bm:'P-JV',status:'Opened',stage:'Opened',signing:'2025.09',shipping:'2025.12',opening:'2026.02',next:'Operating review',updated:'2026-09-09',owner:'-',history:[{date:'2026-02-14',type:'Opening',title:'Site opened',before:'Pending',after:'Opened',note:'Opening completed.'},{date:'2026-01-10',type:'Shipping',title:'Shipping completed',before:'2025 Q4',after:'2025.12',note:''}]},
  {id:102,client:'Scope Cinema',siteId:2,name:'Cinnamon Life',format:'SCREENX',bm:'Sales',status:'Pending',stage:'Contract',signing:'2026.10',shipping:'2026 Q4',opening:'2027 Q1',next:'Contract execution',updated:'2026-09-11',owner:'-',history:[{date:'2026-09-11',type:'Opening',title:'Opening schedule updated',before:'2027 Q1',after:'2027.03',note:'Client schedule updated.'},{date:'2026-09-05',type:'Stage',title:'Moved to Contract',before:'Proposal',after:'Contract',note:'Commercial terms aligned.'},{date:'2026-08-22',type:'Note',title:'Revised proposal requested',before:'',after:'',note:'Client requested revised commercial proposal.'}]},
@@ -173,7 +166,25 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&l
 
 function initMap(){map=L.map('map',{zoomControl:true}).setView([10,115],3);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);markerLayer=L.layerGroup().addTo(map);mapToolLayer=L.layerGroup().addTo(map);map.on('click',e=>{if(mapMode==='add'){showSiteForm(null,e.latlng)}else if(mapMode==='move'&&selectedSiteId){const s=sites.find(x=>x.id===selectedSiteId);s.lat=e.latlng.lat;s.lng=e.latlng.lng;mapMode=null;document.getElementById('mapHint').style.display='none';renderMarkers();showSiteDetail(s.id,true)}else if(mapMode==='pickForm'){const lat=document.getElementById('sLat'),lng=document.getElementById('sLng');if(lat&&lng){lat.value=e.latlng.lat.toFixed(6);lng.value=e.latlng.lng.toFixed(6);mapMode=null;document.getElementById('mapHint').style.display='none';reverseGeocodeSite(e.latlng.lat,e.latlng.lng,{overwriteAddress:true});}}});map.on('click',e=>{if(mapMode==='measure'){addMeasurePoint(e.latlng);}});renderMarkers()}
 function hasValidCoords(s){return !!s && s.lat!==null && s.lat!==undefined && s.lat!=='' && s.lng!==null && s.lng!==undefined && s.lng!=='' && Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lng)) && !(Number(s.lat)===0&&Number(s.lng)===0)}
-function markerIcon(status){const color=status==='Operating'?'#0f766e':status==='Closed'?'#b91c1c':'#b45309';return L.divIcon({className:'',html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 5px #475569"></div>`,iconSize:[15,15],iconAnchor:[8,8]})}
+// Client entry order is country-specific. Add verified clients here as the master data is cleaned.
+const CJ_CLIENT_ENTRY_ORDER={
+  'Taiwan': {
+    'vie show cinemas':1,
+    'vieshow':1,
+    'showtime':2
+  }
+};
+function cjClientEntryOrder(site){
+  const country=String(site?.country||'').trim();
+  const client=String(site?.client||'').trim().toLowerCase();
+  return CJ_CLIENT_ENTRY_ORDER[country]?.[client]||null;
+}
+function markerIcon(site){
+  const order=cjClientEntryOrder(site);
+  const color=order===1?'#2563eb':order===2?'#dc2626':order===3?'#16a34a':'#64748b';
+  return L.divIcon({className:'',html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 5px #475569"></div>`,iconSize:[15,15],iconAnchor:[8,8]});
+}
+function cjEntryLabel(site){const n=cjClientEntryOrder(site);return n?`${n}${n===1?'st':n===2?'nd':'rd'} CJ Client`:'Other / Not set'}
 function renderMarkers(){
   if(!markerLayer)return;
   markerLayer.clearLayers();
@@ -186,9 +197,9 @@ function renderMarkers(){
     const hitS=!st || s.status===st;
     return hitQ && hitC && hitS;
   }).forEach(s=>{
-    L.marker([s.lat,s.lng],{icon:markerIcon(s.status)})
+    L.marker([s.lat,s.lng],{icon:markerIcon(s)})
       .addTo(markerLayer)
-      .bindTooltip(`${s.client} · ${s.name}`)
+      .bindTooltip(`${s.client||'Unassigned'} · ${s.name}<br>${cjEntryLabel(s)}`)
       .on('click',(e)=>{
         if(mapMode==='measure'){
           L.DomEvent.stopPropagation(e);
@@ -248,7 +259,7 @@ function formatSummaryHtml(site){
   return `<b>CJ 4DPLEX Formats · ${f.cj.length}</b><div style="margin-top:7px">${f.cj.length?f.cj.map(x=>`<span class="pill green">${esc(x)}</span>`).join(''):'<span class="sub">No CJ 4DPLEX format recorded</span>'}</div><div style="margin-top:11px"><b>Other Premium Formats</b><div style="margin-top:7px">${f.other.length?f.other.map(x=>`<span class="pill">${esc(x)}</span>`).join(''):'<span class="sub">None recorded</span>'}</div></div>`;
 }
 
-function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);if(!s)return;selectedSiteId=id;if(mapMode!=='measure'){mapMode=null;document.getElementById('mapHint').style.display='none';}if(!keepCenter&&hasValidCoords(s))map.setView([Number(s.lat),Number(s.lng)],Math.max(map.getZoom(),7));const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div style="margin-top:10px">${formatSummaryHtml(s)}</div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${hasValidCoords(s)?Number(s.lat).toFixed(5)+', '+Number(s.lng).toFixed(5):'Not set'}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button><button class="btn" style="color:#b91c1c;border-color:#fecaca" onclick="deleteSite(${s.id})">Delete Site</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
+function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);if(!s)return;selectedSiteId=id;if(mapMode!=='measure'){mapMode=null;document.getElementById('mapHint').style.display='none';}if(!keepCenter&&hasValidCoords(s))map.setView([Number(s.lat),Number(s.lng)],Math.max(map.getZoom(),7));const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div style="margin-top:10px">${formatSummaryHtml(s)}</div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${hasValidCoords(s)?Number(s.lat).toFixed(5)+', '+Number(s.lng).toFixed(5):'Not set'}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
 function showSiteForm(id,latlng){const hasPos=!!latlng;const s=id?sites.find(x=>x.id===id):{id:null,client:'',name:'',country:'',city:'',status:'Planned',formats:[],lat:hasPos?latlng.lat:'',lng:hasPos?latlng.lng:'',address:'',projects:[]};selectedSiteId=id;if(id||hasPos){mapMode=null;document.getElementById('mapHint').style.display='none';}document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${id?'Edit Site':'Add Site'}</h2><div class="sub">주소 검색, 지도 클릭, 좌표 직접입력 중 편한 방법을 사용하세요.</div></div></div><div class="form"><div class="field"><label>Client</label><input id="sClient" value="${esc(s.client)}"></div><div class="field"><label>Site Name</label><input id="sName" value="${esc(s.name)}"></div><div class="formGrid"><div class="field"><label>Country <small>(자동입력 · 수정 가능)</small></label><input id="sCountry" value="${esc(s.country)}"></div><div class="field"><label>City <small>(자동입력 · 수정 가능)</small></label><input id="sCity" value="${esc(s.city)}"></div></div><div class="field"><label>Address / Place <small>(자동입력 · 수정 가능)</small></label><input id="sAddress" value="${esc(s.address)}" placeholder="예: Taipei 101, Xinyi District 또는 전체 주소"><div class="locationActions"><button class="btn" type="button" onclick="geocodeSiteAddress()">주소로 찾기</button><button class="btn" type="button" onclick="pickSiteLocationOnMap()">지도에서 위치 지정</button></div></div><div class="formGrid"><div class="field"><label>Latitude</label><input id="sLat" value="${s.lat===null||s.lat===undefined||s.lat===''?'':Number(s.lat).toFixed(6)}" placeholder="예: 25.033964"></div><div class="field"><label>Longitude</label><input id="sLng" value="${s.lng===null||s.lng===undefined||s.lng===''?'':Number(s.lng).toFixed(6)}" placeholder="예: 121.564468"></div></div><div class="locationActions"><button class="btn" type="button" onclick="applyTypedCoordinates()">좌표 적용 · 지역 자동입력</button></div><div class="sub" style="margin-top:-2px">좌표를 직접 붙여넣어도 됩니다. 적용하면 지도 이동 + Country / City / Address 자동 조회.</div><div class="field"><label>Formats (comma separated)</label><input id="sFormats" value="${esc(s.formats.join(', '))}"></div><div class="field"><label>Status</label><select id="sStatus"><option ${s.status==='Operating'?'selected':''}>Operating</option><option ${s.status==='Planned'?'selected':''}>Planned</option><option ${s.status==='Closed'?'selected':''}>Closed</option></select></div><div class="actions"><button class="btn" onclick="${id?`showSiteDetail(${id})`:`cancelSiteForm()`}">Cancel</button><button class="btn primary" onclick="saveSite(${id||'null'})">Save Site</button></div></div>`}
 function pickSiteLocationOnMap(){mapMode='pickForm';const h=document.getElementById('mapHint');h.textContent='지도에서 Site 위치를 클릭하세요. 좌표가 자동 입력됩니다.';h.style.display='block';if(map)map.getContainer().scrollIntoView({behavior:'smooth',block:'center'});}
 function placeTemporaryLocation(lat,lng,label){mapToolLayer.clearLayers();map.setView([lat,lng],15);L.circleMarker([lat,lng],{radius:7,weight:2,fillOpacity:.7}).addTo(mapToolLayer);const b=document.getElementById('distanceBadge');b.innerHTML='<b>Location selected</b><br>'+esc(label||`${lat.toFixed(6)}, ${lng.toFixed(6)}`);b.style.display='block'}
@@ -259,29 +270,6 @@ async function geocodeSiteAddress(){const address=(document.getElementById('sAdd
 function cancelSiteForm(){selectedSiteId=null;document.getElementById('mapPanel').innerHTML='<div class="panelEmpty"><div><b>Site를 선택하세요</b><br><br>Marker를 클릭하거나 + Add Site를 사용하세요.</div></div>'}
 function saveSite(id){const obj={client:document.getElementById('sClient').value.trim(),name:document.getElementById('sName').value.trim(),country:document.getElementById('sCountry').value.trim(),city:document.getElementById('sCity').value.trim(),address:document.getElementById('sAddress').value.trim(),lat:Number(document.getElementById('sLat').value),lng:Number(document.getElementById('sLng').value),formats:document.getElementById('sFormats').value.split(',').map(x=>x.trim()).filter(Boolean),status:document.getElementById('sStatus').value};if(!obj.name||!Number.isFinite(obj.lat)||!Number.isFinite(obj.lng)){alert('Site Name과 좌표를 확인해주세요.');return}if(id){Object.assign(sites.find(x=>x.id===id),obj)}else{id=Math.max(...sites.map(x=>x.id))+1;sites.push({id,...obj,projects:[]})}renderMarkers();showSiteDetail(id,true)}
 function moveSite(id){selectedSiteId=id;mapMode='move';document.getElementById('mapHint').textContent='새 Marker 위치를 지도에서 클릭하세요.';document.getElementById('mapHint').style.display='block'}
-async function deleteSite(id){
-  const site=sites.find(x=>x.id===id);
-  if(!site)return;
-  const linked=projects.filter(p=>p.siteId===id);
-  if(linked.length){
-    alert(`이 Site에는 연결된 Project가 ${linked.length}개 있어 삭제할 수 없습니다. 먼저 Project의 Site 연결을 변경해주세요.`);
-    return;
-  }
-  if(!confirm(`Delete Site?\n\n${site.name}\n\n이 작업은 되돌릴 수 없습니다.`))return;
-  try{
-    const res=await fetch('/api/v2-sites',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'site_delete',id})});
-    const data=await res.json().catch(()=>({}));
-    if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
-    const idx=sites.findIndex(x=>x.id===id);
-    if(idx>=0)sites.splice(idx,1);
-    selectedSiteId=null;
-    clearMapTools();
-    renderMarkers();
-    document.getElementById('mapPanel').innerHTML='<div class="panelEmpty"><div><b>Site가 삭제되었습니다.</b><br><br>다른 Marker를 선택하거나 + Add Site를 사용하세요.</div></div>';
-  }catch(e){
-    alert('Site 삭제 실패: '+(e.message||e));
-  }
-}
 function openProjectFromMap(id){selectedProjectId=id;renderProjectList();renderProjectDetail();showPage('projectsPage',document.querySelector('[data-page="projectsPage"]'))}
 
 
