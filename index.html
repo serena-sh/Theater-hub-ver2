@@ -23,6 +23,8 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 /* map */
 .mapWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;min-height:calc(100vh - 125px)}
 .mapCard{overflow:hidden;position:relative}.mapTopbar{padding:10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;background:#fff}.search{border:1px solid var(--line);border-radius:9px;padding:8px 9px;background:#fff;min-width:120px}.mapTopbar .search:first-child{flex:1}.mapTools{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line);background:#fff}.mapToolBtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 9px;font-weight:750;font-size:11px;color:#334155}.mapToolBtn.active{background:#111827;color:#fff;border-color:#111827}.distanceBadge{position:absolute;z-index:720;right:14px;bottom:14px;background:rgba(255,255,255,.96);border:1px solid var(--line);box-shadow:var(--shadow);padding:9px 11px;border-radius:9px;font-size:11px;display:none}.mapLegend{position:absolute;z-index:710;right:14px;top:118px;background:rgba(255,255,255,.96);border:1px solid var(--line);box-shadow:var(--shadow);padding:10px 12px;border-radius:10px;font-size:11px;line-height:1.7}.mapLegend b{display:block;margin-bottom:3px}.legendDot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.08)}
+.theaterHoverTooltip.leaflet-tooltip{padding:9px 11px;border:1px solid #e5e7eb;border-radius:9px;box-shadow:0 5px 16px rgba(15,23,42,.16);background:#fff;color:#172033}
+.theaterHoverTooltip.leaflet-tooltip-top:before{border-top-color:#fff}
 #map{height:calc(100vh - 186px);min-height:600px;background:#dce5ee}.mapHint{position:absolute;z-index:700;left:14px;bottom:14px;background:rgba(17,24,39,.92);color:#fff;padding:9px 11px;border-radius:9px;font-size:11px;display:none}
 .sidePanel{padding:15px;overflow:auto;max-height:calc(100vh - 125px)}.panelEmpty{height:100%;min-height:460px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px}.panelHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:14px}.panelHead h2{font-size:18px;margin:0}.pill{display:inline-block;padding:4px 7px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:9px;font-weight:800;margin-right:4px}.pill.green{background:#ecfdf5;color:#047857}.pill.amber{background:#fff7ed;color:#c2410c}
 .form{display:grid;gap:10px}.field label{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 9px;background:#fff}.field textarea{min-height:72px;resize:vertical}.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}.siteProjects{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.miniProject{padding:9px;border:1px solid var(--line);border-radius:9px;margin-top:7px;background:#fafafa}.miniProject b{font-size:11px}.miniProject div{font-size:10px;color:var(--muted);margin-top:2px}.radiusResults{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.radiusSummary{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.radiusSite{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #eef2f7}.radiusSite:first-of-type{border-top:0}.radiusSite b{font-size:11px}.radiusSite small{display:block;color:var(--muted);margin-top:2px}.distanceTag{white-space:nowrap;font-size:10px;font-weight:850;background:#eff6ff;color:#1d4ed8;padding:4px 6px;border-radius:999px}.locationActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -59,7 +61,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v23</span></div>
+    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v24</span></div>
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
@@ -183,9 +185,13 @@ function cjClientColor(site){
   const order=cjClientEntryOrder(site);
   return order===1?'#2563eb':order===2?'#dc2626':order===3?'#16a34a':'#64748b';
 }
-function cjPopupFormats(site){
-  const cj=splitSiteFormats(site).cj;
-  return cj.length?cj.map(esc).join(' / '):'-';
+function cjHoverFormats(site){
+  const all=Array.isArray(site?.formats)?site.formats:[];
+  const cj=all.map(x=>String(x).trim()).filter(x=>{
+    const u=x.toUpperCase().replace(/\s+/g,' ');
+    return u==='4DX'||u==='SCREENX'||u==='ULTRA 4DX'||u==='ULTRA4DX';
+  });
+  return [...new Set(cj)].map(esc).join(' / ')||'-';
 }
 function markerIcon(site){
   const color=cjClientColor(site);
@@ -206,7 +212,14 @@ function renderMarkers(){
   }).forEach(s=>{
     L.marker([s.lat,s.lng],{icon:markerIcon(s)})
       .addTo(markerLayer)
-      .bindTooltip(`${s.client||'Unassigned'} · ${s.name}<br>${cjEntryLabel(s)}`)
+      .bindTooltip(
+        `<div style="min-width:180px">
+          <div style="font-size:13px;font-weight:900;color:${cjClientColor(s)};line-height:1.25">${esc(s.client||'Unassigned')}</div>
+          <div style="font-size:12px;font-weight:700;color:#172033;line-height:1.35;margin-top:4px">${esc(s.name)}</div>
+          <div style="font-size:10px;color:#64748b;margin-top:7px"><span style="font-weight:800;color:#475569">CJ 4DPLEX Format</span> · ${cjHoverFormats(s)}</div>
+        </div>`,
+        {className:'theaterHoverTooltip',direction:'top',offset:[0,-7],opacity:1}
+      )
       .on('click',(e)=>{
         if(mapMode==='measure'){
           L.DomEvent.stopPropagation(e);
