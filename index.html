@@ -61,7 +61,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v24</span></div>
+    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v26</span></div>
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
@@ -173,7 +173,16 @@ const CJ_CLIENT_ENTRY_ORDER={
   'Taiwan': {
     'vie show cinemas':1,
     'vieshow':1,
-    'showtime':2
+    'showtime':2,
+    'miranew':3
+  },
+  'Australia': {
+    'event cinemas':1,
+    'evt':1,
+    'village cinema':2,
+    'village cinemas':2,
+    'hoyts cinema':3,
+    'hoyts':3
   }
 };
 function cjClientEntryOrder(site){
