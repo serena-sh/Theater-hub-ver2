@@ -177,7 +177,14 @@ function renderMarkers(){
     L.marker([s.lat,s.lng],{icon:markerIcon(s.status)})
       .addTo(markerLayer)
       .bindTooltip(`${s.client} · ${s.name}`)
-      .on('click',()=>showSiteDetail(s.id));
+      .on('click',(e)=>{
+        if(mapMode==='measure'){
+          if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);
+          addMeasureSite(s);
+          return;
+        }
+        showSiteDetail(s.id);
+      });
   });
 }
 
@@ -185,8 +192,38 @@ function clearMapToolButtons(){['radius5Btn','radius10Btn','measureBtn'].forEach
 function clearMapTools(){if(mapToolLayer)mapToolLayer.clearLayers();measurePoints=[];if(mapMode==='measure')mapMode=null;clearMapToolButtons();const b=document.getElementById('distanceBadge');if(b)b.style.display='none';const h=document.getElementById('mapHint');if(h&&mapMode!== 'add' && mapMode!=='move')h.style.display='none'}
 function showRadius(km){if(!selectedSiteId){alert('먼저 기준이 될 Site marker를 선택해주세요.');return}clearMapTools();const s=sites.find(x=>x.id===selectedSiteId);if(!s)return;const center=L.latLng(s.lat,s.lng);L.circle(center,{radius:km*1000,weight:2,fillOpacity:.08}).addTo(mapToolLayer);L.circleMarker(center,{radius:5,weight:2,fillOpacity:1}).addTo(mapToolLayer);const nearby=sites.filter(x=>x.id!==s.id).map(x=>({...x,distanceKm:center.distanceTo(L.latLng(x.lat,x.lng))/1000})).filter(x=>x.distanceKm<=km).sort((a,b)=>a.distanceKm-b.distanceKm);nearby.forEach(x=>L.circleMarker([x.lat,x.lng],{radius:7,weight:2,fillOpacity:.7}).addTo(mapToolLayer).bindTooltip(`${x.client} · ${x.name} · ${x.distanceKm.toFixed(1)} km`));map.fitBounds(center.toBounds(km*2400));const btn=document.getElementById(km===5?'radius5Btn':'radius10Btn');if(btn)btn.classList.add('active');const b=document.getElementById('distanceBadge');b.innerHTML=`<b>${km} km radius</b><br>${esc(s.name)} 기준 · ${nearby.length} sites`;b.style.display='block';showSiteDetail(s.id,true);appendRadiusResults(km,s,nearby)}
 function appendRadiusResults(km,base,nearby){const panel=document.getElementById('mapPanel');if(!panel)return;const clients=[...new Set(nearby.map(x=>x.client))];panel.insertAdjacentHTML('beforeend',`<div class="radiusResults"><b>${km} km 내 극장사 / Site</b><div class="sub">${esc(base.name)} 기준 직선거리</div><div class="radiusSummary">${clients.length?clients.map(c=>`<span class="pill">${esc(c)}</span>`).join(''):'<span class="sub">반경 내 다른 Site가 없습니다.</span>'}</div>${nearby.map(x=>`<div class="radiusSite"><div><b>${esc(x.client)} · ${esc(x.name)}</b><small>${esc(x.city)}, ${esc(x.country)} · ${x.formats.map(esc).join(' / ')||'-'}</small></div><span class="distanceTag">${x.distanceKm.toFixed(2)} km</span></div>`).join('')}</div>`)}
-function startDistanceMeasure(){clearMapTools();mapMode='measure';clearMapToolButtons();document.getElementById('measureBtn').classList.add('active');const h=document.getElementById('mapHint');h.textContent='직선거리 측정: 지도에서 첫 번째 지점과 두 번째 지점을 클릭하세요.';h.style.display='block'}
-function addMeasurePoint(latlng){if(measurePoints.length>=2){mapToolLayer.clearLayers();measurePoints=[]}measurePoints.push(latlng);L.circleMarker(latlng,{radius:5,weight:2,fillOpacity:1}).addTo(mapToolLayer);if(measurePoints.length===2){const [a,b]=measurePoints;L.polyline([a,b],{weight:3,dashArray:'7 7'}).addTo(mapToolLayer);const meters=map.distance(a,b),km=meters/1000;const badge=document.getElementById('distanceBadge');badge.innerHTML=`<b>Straight distance</b><br>${km<1?Math.round(meters)+' m':km.toFixed(2)+' km'}`;badge.style.display='block';document.getElementById('mapHint').textContent='다시 측정하려면 첫 지점을 클릭하세요. Clear로 종료할 수 있습니다.'}}
+function startDistanceMeasure(){clearMapTools();mapMode='measure';clearMapToolButtons();document.getElementById('measureBtn').classList.add('active');const h=document.getElementById('mapHint');h.textContent='직선거리 측정: 첫 번째 Site 마커를 선택하세요.';h.style.display='block'}
+function measureLabel(latlng,n,name=''){const icon=L.divIcon({className:'',html:`<div style="width:25px;height:25px;border-radius:50%;background:#111827;color:#fff;border:3px solid #fff;box-shadow:0 2px 7px #475569;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900">${n}</div>`,iconSize:[25,25],iconAnchor:[13,13]});return L.marker(latlng,{icon,interactive:false}).addTo(mapToolLayer).bindTooltip(name||`Point ${n}`,{permanent:false})}
+function addMeasureSite(site){
+  if(!site||!Number.isFinite(Number(site.lat))||!Number.isFinite(Number(site.lng)))return;
+  if(measurePoints.length>=2){mapToolLayer.clearLayers();measurePoints=[]}
+  const latlng=L.latLng(Number(site.lat),Number(site.lng));
+  measurePoints.push({latlng,site});
+  measureLabel(latlng,measurePoints.length,site.name);
+  const h=document.getElementById('mapHint');
+  if(measurePoints.length===1){h.textContent=`① ${site.name} 선택됨 · 두 번째 Site 마커를 선택하세요.`;h.style.display='block';return}
+  finishDistanceMeasure();
+}
+function addMeasurePoint(latlng){
+  if(measurePoints.length>=2){mapToolLayer.clearLayers();measurePoints=[]}
+  measurePoints.push({latlng:L.latLng(latlng),site:null});
+  measureLabel(latlng,measurePoints.length);
+  const h=document.getElementById('mapHint');
+  if(measurePoints.length===1){h.textContent='① 첫 번째 지점 선택됨 · 두 번째 지점 또는 Site 마커를 선택하세요.';h.style.display='block';return}
+  finishDistanceMeasure();
+}
+function finishDistanceMeasure(){
+  if(measurePoints.length!==2)return;
+  const a=measurePoints[0],b=measurePoints[1];
+  L.polyline([a.latlng,b.latlng],{weight:3,dashArray:'7 7'}).addTo(mapToolLayer);
+  const meters=map.distance(a.latlng,b.latlng),km=meters/1000;
+  const badge=document.getElementById('distanceBadge');
+  const aName=a.site?esc(a.site.name):'Point 1', bName=b.site?esc(b.site.name):'Point 2';
+  badge.innerHTML=`<b>Straight distance</b><br>${aName} ↔ ${bName}<br><b>${km<1?Math.round(meters)+' m':km.toFixed(2)+' km'}</b>`;
+  badge.style.display='block';
+  const h=document.getElementById('mapHint');
+  h.textContent=`② ${b.site?b.site.name:'두 번째 지점'} 선택됨 · 다른 Site를 선택하면 새 측정을 시작합니다.`;h.style.display='block';
+}
 function startAddSite(){selectedSiteId=null;showSiteForm(null,null);mapMode='pickForm';const h=document.getElementById('mapHint');h.textContent='새 Site 추가: 주소로 찾기 또는 지도에서 위치를 클릭하세요.';h.style.display='block';}
 function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);selectedSiteId=id;if(mapMode==='measure')clearMapTools();mapMode=null;document.getElementById('mapHint').style.display='none';if(!keepCenter)map.setView([s.lat,s.lng],Math.max(map.getZoom(),7));const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div>${s.formats.map(f=>`<span class="pill">${esc(f)}</span>`).join('')}</div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
 function showSiteForm(id,latlng){const hasPos=!!latlng;const s=id?sites.find(x=>x.id===id):{id:null,client:'',name:'',country:'',city:'',status:'Planned',formats:[],lat:hasPos?latlng.lat:'',lng:hasPos?latlng.lng:'',address:'',projects:[]};selectedSiteId=id;if(id||hasPos){mapMode=null;document.getElementById('mapHint').style.display='none';}document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${id?'Edit Site':'Add Site'}</h2><div class="sub">주소 검색, 지도 클릭, 좌표 직접입력 중 편한 방법을 사용하세요.</div></div></div><div class="form"><div class="field"><label>Client</label><input id="sClient" value="${esc(s.client)}"></div><div class="field"><label>Site Name</label><input id="sName" value="${esc(s.name)}"></div><div class="formGrid"><div class="field"><label>Country <small>(자동입력 · 수정 가능)</small></label><input id="sCountry" value="${esc(s.country)}"></div><div class="field"><label>City <small>(자동입력 · 수정 가능)</small></label><input id="sCity" value="${esc(s.city)}"></div></div><div class="field"><label>Address / Place <small>(자동입력 · 수정 가능)</small></label><input id="sAddress" value="${esc(s.address)}" placeholder="예: Taipei 101, Xinyi District 또는 전체 주소"><div class="locationActions"><button class="btn" type="button" onclick="geocodeSiteAddress()">주소로 찾기</button><button class="btn" type="button" onclick="pickSiteLocationOnMap()">지도에서 위치 지정</button></div></div><div class="formGrid"><div class="field"><label>Latitude</label><input id="sLat" value="${s.lat===''?'':Number(s.lat).toFixed(6)}" placeholder="예: 25.033964"></div><div class="field"><label>Longitude</label><input id="sLng" value="${s.lng===''?'':Number(s.lng).toFixed(6)}" placeholder="예: 121.564468"></div></div><div class="locationActions"><button class="btn" type="button" onclick="applyTypedCoordinates()">좌표 적용 · 지역 자동입력</button></div><div class="sub" style="margin-top:-2px">좌표를 직접 붙여넣어도 됩니다. 적용하면 지도 이동 + Country / City / Address 자동 조회.</div><div class="field"><label>Formats (comma separated)</label><input id="sFormats" value="${esc(s.formats.join(', '))}"></div><div class="field"><label>Status</label><select id="sStatus"><option ${s.status==='Operating'?'selected':''}>Operating</option><option ${s.status==='Planned'?'selected':''}>Planned</option><option ${s.status==='Closed'?'selected':''}>Closed</option></select></div><div class="actions"><button class="btn" onclick="${id?`showSiteDetail(${id})`:`cancelSiteForm()`}">Cancel</button><button class="btn primary" onclick="saveSite(${id||'null'})">Save Site</button></div></div>`}
