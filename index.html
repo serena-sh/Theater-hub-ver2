@@ -59,7 +59,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v21</span></div>
+    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v22</span></div>
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
@@ -394,7 +394,7 @@ function normalizeMaster(data){
     clientProfiles=data.clients.map(c=>({id:c.id,name:c.name,country:c.country||'',type:c.type||'Exhibitor',status:c.status||'Active',note:c.note||'',contacts:[]}));
   }
   if(Array.isArray(data.sites)){
-    sites=data.sites.map(x=>({id:Number(x.id),clientId:x.client_id??null,client:x.client||'',name:x.name||`Site ${x.id}`,country:x.country||'',city:x.city||'',status:x.status||'Operating',formats:Array.isArray(x.formats)?x.formats:(x.formats?String(x.formats).split(/[,/]/).map(v=>v.trim()).filter(Boolean):[]),lat:(x.lat===null||x.lat===undefined||x.lat===''?null:Number(x.lat)),lng:(x.lng===null||x.lng===undefined||x.lng===''?null:Number(x.lng)),address:x.address||'',projects:[]}));
+    sites=data.sites.map(x=>({id:Number(x.id),clientId:x.client_id??null,client:x.client||'',name:x.name||`Site ${x.id}`,country:x.country||'',city:x.city||'',status:x.status||'Operating',formats:Array.isArray(x.formats)?x.formats:(x.formats?String(x.formats).split(/[,/]/).map(v=>v.trim()).filter(Boolean):[]),lat:(x.latitude!==null&&x.latitude!==undefined&&x.latitude!==''?Number(x.latitude):(x.lat!==null&&x.lat!==undefined&&x.lat!==''?Number(x.lat):null)),lng:(x.longitude!==null&&x.longitude!==undefined&&x.longitude!==''?Number(x.longitude):(x.lng!==null&&x.lng!==undefined&&x.lng!==''?Number(x.lng):null)),address:x.address||'',projects:[]}));
   }
 }
 async function reloadV2Data(){
