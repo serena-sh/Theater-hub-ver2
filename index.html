@@ -59,12 +59,13 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v7</span></div>
+    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v20</span></div>
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
       <button data-page="projectsPage" onclick="showPage('projectsPage',this)">Projects <small id="projectNavCount">0</small></button>
       <button data-page="clientsPage" onclick="showPage('clientsPage',this)">Clients</button>
+      <button data-page="kpiPage" onclick="showPage('kpiPage',this);renderKpiSettings()">KPI</button>
       <button data-page="meetingsPage" onclick="showPage('meetingsPage',this)">Meetings</button>
       <button data-page="documentsPage" onclick="showPage('documentsPage',this)">Documents</button>
     </div>
@@ -105,6 +106,16 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
     </div></section>
 
     <section id="clientsPage" class="page"><div class="pageShell"><div class="pageHead"><div><h1>Clients</h1><div class="sub">기본 목록은 실제 Project / 포맷 Site / Commercial 이력이 있는 Relevant Client만 표시합니다.</div></div><button class="btn primary" onclick="openAddClient()">+ Add Client</button></div><div class="clientsWorkspace"><div class="card clientMaster"><div class="clientSearch"><div class="clientScopeToggle"><button id="relevantClientsBtn" class="clientScopeBtn active" onclick="setClientScope('relevant')">Relevant</button><button id="allClientsBtn" class="clientScopeBtn" onclick="setClientScope('all')">All Clients</button></div><input id="clientSearch" placeholder="Search client" oninput="renderClientList()"><div id="clientScopeHint" class="clientScopeHint"></div></div><div id="clientList"></div></div><div class="card" id="clientDetail"></div></div></div></section>
+    <section id="kpiPage" class="page"><div class="pageShell">
+      <div class="pageHead"><div><h1>KPI Settings</h1><div class="sub">Dashboard의 연간 Signing / Opening 목표를 수정합니다. 현재 버전은 이 브라우저에 저장됩니다.</div></div></div>
+      <div class="card" style="max-width:760px;padding:18px">
+        <div class="formGrid"><div class="field"><label>KPI Year</label><input id="kpiYear" type="number" min="2020" max="2100"></div><div class="field"><label>Signing Target</label><input id="kpiSigningTarget" type="number" min="0" placeholder="e.g. 20"></div></div>
+        <div class="formGrid" style="margin-top:12px"><div class="field"><label>Opening Target</label><input id="kpiOpeningTarget" type="number" min="0" placeholder="e.g. 15"></div><div class="field"><label>Note</label><input id="kpiNote" placeholder="e.g. 2026 annual target"></div></div>
+        <div class="actions"><button class="btn" onclick="resetKpiSettings()">Reset</button><button class="btn primary" onclick="saveKpiSettings()">Save KPI</button></div>
+        <div id="kpiSaveStatus" class="sub" style="margin-top:10px"></div>
+      </div>
+    </div></section>
+
     <section id="meetingsPage" class="page"><div class="pageShell"><div class="pageHead"><div><h1>Meetings</h1><div class="sub">Meeting은 여러 Project에 연결할 수 있도록 구성할 예정입니다.</div></div></div><div class="card placeholder">기존 Meeting AI 기능은 유지하고 Project Link만 새 구조로 연결합니다.</div></div></section>
     <section id="documentsPage" class="page"><div class="pageShell"><div class="pageHead"><div><h1>Documents</h1><div class="sub">Quotation, Contract, Drawing, Commercial 파일을 Project에 연결합니다.</div></div></div><div class="card placeholder">Document Library prototype 예정</div></div></section>
   </main>
@@ -226,7 +237,18 @@ function finishDistanceMeasure(){
   h.textContent=`② ${b.site?b.site.name:'두 번째 지점'} 선택됨 · 다른 Site를 선택하면 새 측정을 시작합니다.`;h.style.display='block';
 }
 function startAddSite(){selectedSiteId=null;showSiteForm(null,null);mapMode='pickForm';const h=document.getElementById('mapHint');h.textContent='새 Site 추가: 주소로 찾기 또는 지도에서 위치를 클릭하세요.';h.style.display='block';}
-function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);if(!s)return;selectedSiteId=id;if(mapMode!=='measure'){mapMode=null;document.getElementById('mapHint').style.display='none';}if(!keepCenter&&hasValidCoords(s))map.setView([Number(s.lat),Number(s.lng)],Math.max(map.getZoom(),7));const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div style="margin-top:10px"><b>Special Formats · ${s.formats.length}</b><div style="margin-top:7px">${s.formats.length?s.formats.map(f=>`<span class="pill">${esc(f)}</span>`).join(''):'<span class="sub">No special format recorded</span>'}</div></div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${hasValidCoords(s)?Number(s.lat).toFixed(5)+', '+Number(s.lng).toFixed(5):'Not set'}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
+function splitSiteFormats(site){
+  const all=Array.isArray(site?.formats)?site.formats.filter(Boolean):[];
+  const cj=[],other=[];
+  all.forEach(f=>{const n=String(f).trim();const u=n.toUpperCase().replace(/\s+/g,' ');if(u==='4DX'||u==='SCREENX'||u==='ULTRA 4DX'||u==='ULTRA4DX')cj.push(n);else other.push(n)});
+  return {cj:[...new Set(cj)],other:[...new Set(other)]};
+}
+function formatSummaryHtml(site){
+  const f=splitSiteFormats(site);
+  return `<b>CJ 4DPLEX Formats · ${f.cj.length}</b><div style="margin-top:7px">${f.cj.length?f.cj.map(x=>`<span class="pill green">${esc(x)}</span>`).join(''):'<span class="sub">No CJ 4DPLEX format recorded</span>'}</div><div style="margin-top:11px"><b>Other Premium Formats</b><div style="margin-top:7px">${f.other.length?f.other.map(x=>`<span class="pill">${esc(x)}</span>`).join(''):'<span class="sub">None recorded</span>'}</div></div>`;
+}
+
+function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);if(!s)return;selectedSiteId=id;if(mapMode!=='measure'){mapMode=null;document.getElementById('mapHint').style.display='none';}if(!keepCenter&&hasValidCoords(s))map.setView([Number(s.lat),Number(s.lng)],Math.max(map.getZoom(),7));const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div style="margin-top:10px">${formatSummaryHtml(s)}</div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${hasValidCoords(s)?Number(s.lat).toFixed(5)+', '+Number(s.lng).toFixed(5):'Not set'}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
 function showSiteForm(id,latlng){const hasPos=!!latlng;const s=id?sites.find(x=>x.id===id):{id:null,client:'',name:'',country:'',city:'',status:'Planned',formats:[],lat:hasPos?latlng.lat:'',lng:hasPos?latlng.lng:'',address:'',projects:[]};selectedSiteId=id;if(id||hasPos){mapMode=null;document.getElementById('mapHint').style.display='none';}document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${id?'Edit Site':'Add Site'}</h2><div class="sub">주소 검색, 지도 클릭, 좌표 직접입력 중 편한 방법을 사용하세요.</div></div></div><div class="form"><div class="field"><label>Client</label><input id="sClient" value="${esc(s.client)}"></div><div class="field"><label>Site Name</label><input id="sName" value="${esc(s.name)}"></div><div class="formGrid"><div class="field"><label>Country <small>(자동입력 · 수정 가능)</small></label><input id="sCountry" value="${esc(s.country)}"></div><div class="field"><label>City <small>(자동입력 · 수정 가능)</small></label><input id="sCity" value="${esc(s.city)}"></div></div><div class="field"><label>Address / Place <small>(자동입력 · 수정 가능)</small></label><input id="sAddress" value="${esc(s.address)}" placeholder="예: Taipei 101, Xinyi District 또는 전체 주소"><div class="locationActions"><button class="btn" type="button" onclick="geocodeSiteAddress()">주소로 찾기</button><button class="btn" type="button" onclick="pickSiteLocationOnMap()">지도에서 위치 지정</button></div></div><div class="formGrid"><div class="field"><label>Latitude</label><input id="sLat" value="${s.lat===null||s.lat===undefined||s.lat===''?'':Number(s.lat).toFixed(6)}" placeholder="예: 25.033964"></div><div class="field"><label>Longitude</label><input id="sLng" value="${s.lng===null||s.lng===undefined||s.lng===''?'':Number(s.lng).toFixed(6)}" placeholder="예: 121.564468"></div></div><div class="locationActions"><button class="btn" type="button" onclick="applyTypedCoordinates()">좌표 적용 · 지역 자동입력</button></div><div class="sub" style="margin-top:-2px">좌표를 직접 붙여넣어도 됩니다. 적용하면 지도 이동 + Country / City / Address 자동 조회.</div><div class="field"><label>Formats (comma separated)</label><input id="sFormats" value="${esc(s.formats.join(', '))}"></div><div class="field"><label>Status</label><select id="sStatus"><option ${s.status==='Operating'?'selected':''}>Operating</option><option ${s.status==='Planned'?'selected':''}>Planned</option><option ${s.status==='Closed'?'selected':''}>Closed</option></select></div><div class="actions"><button class="btn" onclick="${id?`showSiteDetail(${id})`:`cancelSiteForm()`}">Cancel</button><button class="btn primary" onclick="saveSite(${id||'null'})">Save Site</button></div></div>`}
 function pickSiteLocationOnMap(){mapMode='pickForm';const h=document.getElementById('mapHint');h.textContent='지도에서 Site 위치를 클릭하세요. 좌표가 자동 입력됩니다.';h.style.display='block';if(map)map.getContainer().scrollIntoView({behavior:'smooth',block:'center'});}
 function placeTemporaryLocation(lat,lng,label){mapToolLayer.clearLayers();map.setView([lat,lng],15);L.circleMarker([lat,lng],{radius:7,weight:2,fillOpacity:.7}).addTo(mapToolLayer);const b=document.getElementById('distanceBadge');b.innerHTML='<b>Location selected</b><br>'+esc(label||`${lat.toFixed(6)}, ${lng.toFixed(6)}`);b.style.display='block'}
@@ -419,6 +441,25 @@ function recentHistoryRows(){
   rows.sort((a,b)=>String(b.h.date||'').localeCompare(String(a.h.date||'')));
   return rows.slice(0,5);
 }
+const KPI_STORAGE_KEY='theaterHub2_kpi_settings';
+function getKpiSettings(){
+  const base={year:2026,signingTarget:'',openingTarget:'',note:''};
+  try{return {...base,...JSON.parse(localStorage.getItem(KPI_STORAGE_KEY)||'{}')}}catch(e){return base}
+}
+function renderKpiSettings(){
+  const k=getKpiSettings();
+  const y=document.getElementById('kpiYear'),s=document.getElementById('kpiSigningTarget'),o=document.getElementById('kpiOpeningTarget'),n=document.getElementById('kpiNote');
+  if(y)y.value=k.year;if(s)s.value=k.signingTarget;if(o)o.value=k.openingTarget;if(n)n.value=k.note||'';
+}
+function saveKpiSettings(){
+  const k={year:Number(document.getElementById('kpiYear').value)||2026,signingTarget:document.getElementById('kpiSigningTarget').value,openingTarget:document.getElementById('kpiOpeningTarget').value,note:document.getElementById('kpiNote').value.trim()};
+  localStorage.setItem(KPI_STORAGE_KEY,JSON.stringify(k));
+  const st=document.getElementById('kpiSaveStatus');if(st)st.textContent='Saved · Dashboard updated';
+  renderDashboard();
+}
+function resetKpiSettings(){localStorage.removeItem(KPI_STORAGE_KEY);renderKpiSettings();renderDashboard();const st=document.getElementById('kpiSaveStatus');if(st)st.textContent='Reset to default';}
+function targetText(actual,target){return target!==''&&target!=null?`${actual} / ${Number(target)} target`:`${actual} actual · Target not set`}
+
 function renderDashboard(){
   const shell=document.querySelector('#dashboardPage .pageShell'); if(!shell)return;
   const pending=projects.filter(p=>p.status==='Pending').length;
@@ -426,17 +467,18 @@ function renderDashboard(){
   const opened=projects.filter(p=>p.status==='Opened').length;
   const active=pending+hold;
   const attentionProjects=projects.filter(p=>p.status!=='Opened'&&projectHasTbd(p));
-  const sign2026=countYearField('signing',2026), open2026=countYearField('opening',2026);
-  const signingProjects=projects.filter(p=>String(p.signing||'').includes('2026'));
-  const openingProjects=projects.filter(p=>String(p.opening||'').includes('2026'));
+  const kpi=getKpiSettings(), kpiYear=Number(kpi.year)||2026;
+  const sign2026=countYearField('signing',kpiYear), open2026=countYearField('opening',kpiYear);
+  const signingProjects=projects.filter(p=>String(p.signing||'').includes(String(kpiYear)));
+  const openingProjects=projects.filter(p=>String(p.opening||'').includes(String(kpiYear)));
   const milestones=milestoneRows(), recent=recentHistoryRows();
   const operating=sites.filter(s=>s.status==='Operating').length, planned=sites.filter(s=>s.status==='Planned').length;
   const clientsWithProjects=new Set(projects.map(p=>p.clientId??p.client).filter(v=>v!==null&&v!==undefined&&v!=='')).size;
   shell.innerHTML=`
     <div class="pageHead"><div><h1>Dashboard</h1><div class="sub">Supabase의 실제 Project · History · Site 데이터를 기준으로 자동 집계합니다.</div></div><div class="dashboardActions"><button class="btn" onclick="showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))">Open Projects</button><div class="toolbar"><button class="btn primary" onclick="openClientAddSite()">+ Add Site</button><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div></div></div>
     <div class="metricRow">
-      <div class="card metric"><div class="eyebrow">2026 Signing</div><strong>${sign2026}</strong><small>Projects scheduled in 2026</small></div>
-      <div class="card metric"><div class="eyebrow">2026 Opening</div><strong>${open2026}</strong><small>Projects scheduled in 2026</small></div>
+      <div class="card metric"><div class="eyebrow">${kpiYear} Signing</div><strong>${sign2026}</strong><small>${kpi.signingTarget!==''?`Target ${esc(kpi.signingTarget)} · ${Math.round(sign2026/Math.max(1,Number(kpi.signingTarget))*100)}%`:'Target not set'}</small></div>
+      <div class="card metric"><div class="eyebrow">${kpiYear} Opening</div><strong>${open2026}</strong><small>${kpi.openingTarget!==''?`Target ${esc(kpi.openingTarget)} · ${Math.round(open2026/Math.max(1,Number(kpi.openingTarget))*100)}%`:'Target not set'}</small></div>
       <div class="card metric"><div class="eyebrow">Active Projects</div><strong>${active}</strong><small>Pending ${pending} · On Hold ${hold}</small></div>
       <div class="card metric"><div class="eyebrow">Needs Attention</div><strong>${attentionProjects.length}</strong><small>TBD / missing schedule</small></div>
     </div>
@@ -448,10 +490,10 @@ function renderDashboard(){
           <div class="pipelineRow"><b>Opened</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,opened/projects.length*100):0}%"></i></div><strong>${opened}</strong></div>
           <div class="kpiNote">Total ${projects.length} Projects · ${clientsWithProjects} Clients with Projects</div>
         </div>
-        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>2026 Signing / Opening</b><div class="sub">Project에 입력된 실제 일정 기준</div></div></div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>${kpiYear} Signing / Opening</b><div class="sub">Project에 입력된 실제 일정 기준</div></div></div>
           <div class="pipelineRow"><b>Signing</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,sign2026/projects.length*100):0}%"></i></div><strong>${sign2026}</strong></div>
           <div class="pipelineRow"><b>Opening</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,open2026/projects.length*100):0}%"></i></div><strong>${open2026}</strong></div>
-          ${(signingProjects.length||openingProjects.length)?`<div class="kpiNote">Signing: ${signingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}<br>Opening: ${openingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}</div>`:'<div class="kpiNote">2026 일정이 입력된 Project가 없습니다.</div>'}
+          ${(signingProjects.length||openingProjects.length)?`<div class="kpiNote">Signing: ${signingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}<br>Opening: ${openingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}</div>`:'<div class="kpiNote">${kpiYear} 일정이 입력된 Project가 없습니다.</div>'}
         </div>
         <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Upcoming Milestones</b><div class="sub">Signing / Shipping / Opening에 입력된 가까운 일정</div></div></div>
           ${milestones.length?milestones.map(x=>`<div class="milestoneItem"><b>${esc(x.p.client)} · ${esc(x.p.name)}</b><small>${esc(x.type)} · ${esc(x.val)} · ${esc(x.p.format||'-')}</small></div>`).join(''):'<div class="placeholder">등록된 일정이 없습니다.</div>'}
