@@ -59,7 +59,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v22</span></div>
+    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v23</span></div>
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
@@ -179,9 +179,16 @@ function cjClientEntryOrder(site){
   const client=String(site?.client||'').trim().toLowerCase();
   return CJ_CLIENT_ENTRY_ORDER[country]?.[client]||null;
 }
-function markerIcon(site){
+function cjClientColor(site){
   const order=cjClientEntryOrder(site);
-  const color=order===1?'#2563eb':order===2?'#dc2626':order===3?'#16a34a':'#64748b';
+  return order===1?'#2563eb':order===2?'#dc2626':order===3?'#16a34a':'#64748b';
+}
+function cjPopupFormats(site){
+  const cj=splitSiteFormats(site).cj;
+  return cj.length?cj.map(esc).join(' / '):'-';
+}
+function markerIcon(site){
+  const color=cjClientColor(site);
   return L.divIcon({className:'',html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 5px #475569"></div>`,iconSize:[15,15],iconAnchor:[8,8]});
 }
 function cjEntryLabel(site){const n=cjClientEntryOrder(site);return n?`${n}${n===1?'st':n===2?'nd':'rd'} CJ Client`:'Other / Not set'}
