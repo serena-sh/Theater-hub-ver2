@@ -320,12 +320,57 @@ function geocodeWithinExpectedBounds(lat,lng,expected){
   const b=expected.bounds;
   return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=b.minLat&&lat<=b.maxLat&&lng>=b.minLng&&lng<=b.maxLng;
 }
+function geocodeAliases(site){
+  const n=normName(site?.name);
+  const aliases={
+    'sm mall of asia / s maison':['SM Mall of Asia','S Maison at Conrad Manila','Mall of Asia Complex'],
+    'sm cinema aura':['SM Aura Premier'],
+    'sm cdo uptown':['SM City CDO Uptown','SM City Cagayan de Oro Uptown'],
+    'sm light residences':['SM Light Mall','Light Mall Mandaluyong'],
+    'sm megacenter cabanatuan':['SM Megacenter Cabanatuan','SM Megacenter'],
+    'sm sorsogon':['SM City Sorsogon'],
+    'sm sta. mesa':['SM City Sta. Mesa','SM City Sta Mesa'],
+    'miranew dazhi royal cinemas':['Miramar Entertainment Park Taipei','Miramar Cinemas Dazhi'],
+    'miranew tai-mall cinemas':['TaiMall Shopping Center Taoyuan','Taimall'],
+    'miranew tai-mall royal cinemas':['TaiMall Shopping Center Taoyuan','Taimall'],
+    'ayala malls centrio':['Centrio Mall Cagayan de Oro','Ayala Centrio'],
+    'ayala malls circuit':['Ayala Malls Circuit Makati','Circuit Makati'],
+    'tgv 1 shamelin':['1 Shamelin Mall Kuala Lumpur','1 Shamelin Shopping Mall'],
+    'tgv dpulze':['DPULZE Shopping Centre Cyberjaya','DPULZE Cyberjaya'],
+    'tgv strand kota damansara':['The Strand Kota Damansara'],
+    'tgv jaya shopping centre':['Jaya Shopping Centre Petaling Jaya'],
+    'tgv mines':['The Mines Shopping Mall Seri Kembangan','The Mines'],
+    'tgv setiawalk':['SetiaWalk Puchong'],
+    'tgv sunway putra':['Sunway Putra Mall Kuala Lumpur'],
+    'tgv bukit tinggi':['AEON Mall Bukit Tinggi Klang','Bukit Tinggi Shopping Centre Klang'],
+    'tgv central i-city':['Central i-City Shah Alam'],
+    'tgv cheras selatan':['AEON Mall Cheras Selatan'],
+    'tgv suria klcc':['Suria KLCC Kuala Lumpur'],
+    'tgv 1st avenue':['1st Avenue Mall Penang','1st Avenue George Town Penang'],
+    'tgv gurney paragon':['Gurney Paragon Mall Penang']
+  };
+  return aliases[n]||[];
+}
+function geocodeCleanName(site){
+  return String(site?.name||'')
+    .replace(/^SM Cinema\s*[-–—:]?\s*/i,'')
+    .replace(/^TGV\s+/i,'')
+    .replace(/^MiraNew\s+/i,'')
+    .replace(/^Ayala Malls\s+/i,'')
+    .replace(/^GSC\s+/i,'')
+    .trim();
+}
 async function nominatimSearchSite(site,expected){
+  const clean=geocodeCleanName(site);
+  const aliasQueries=geocodeAliases(site);
   const attempts=[
+    ...aliasQueries.map(a=>[a,site.city,expected.name]),
     [site.address,site.city,expected.name],
+    [site.address,expected.name],
     [site.name,site.city,expected.name],
-    [site.name,site.address,expected.name],
-    [site.address,expected.name]
+    [clean,site.city,expected.name],
+    [clean,expected.name],
+    [site.name,site.address,expected.name]
   ].map(parts=>parts.filter(Boolean).join(', ')).filter((q,i,a)=>q&&a.indexOf(q)===i);
   for(const q of attempts){
     const url='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes='+encodeURIComponent(expected.code)+'&q='+encodeURIComponent(q);
