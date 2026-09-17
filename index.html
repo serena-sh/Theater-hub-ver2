@@ -86,7 +86,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
       <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Supabase Site master의 실제 좌표만 표시합니다. Marker 색상은 국가별 CJ 4DPLEX Client 도입 순서를 나타냅니다.</div></div><div class="toolbar"><button class="btn" onclick="openKmlImport()">Import KML / KMZ</button><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
       <div class="mapWorkspace">
         <div class="card mapCard">
-          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="renderMarkers()"><select id="countryFilter" class="search" onchange="onCountryFilterChange()"><option value="">All Countries</option></select><select id="clientFilter" class="search" onchange="renderMarkers()"><option value="">All Exhibitors</option></select><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div id="mapSummary" class="mapSummary"></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
+          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="renderMarkers()"><select id="countryFilter" class="search" onchange="onCountryFilterChange()"><option value="">All Countries</option></select><select id="clientFilter" class="search" onchange="renderMarkers()"><option value="">All Exhibitors</option></select><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div id="mapSummary" class="mapSummary"></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><button id="geocodeMissingBtn" class="mapToolBtn" onclick="geocodeMissingSites()">Geocode Missing</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
           <div id="map"></div><div class="mapLegend"><b>CJ 4DPLEX Client Entry</b><div><span class="legendDot" style="background:#2563eb"></span>1st Client</div><div><span class="legendDot" style="background:#dc2626"></span>2nd Client</div><div><span class="legendDot" style="background:#16a34a"></span>3rd Client</div><div><span class="legendDot" style="background:#64748b"></span>Other / Not set</div></div><div id="mapHint" class="mapHint">지도에서 위치를 클릭하세요.</div><div id="distanceBadge" class="distanceBadge"></div>
         </div>
         <div id="mapPanel" class="card sidePanel"><div class="panelEmpty"><div><b>Site를 선택하세요</b><br><br>Marker 클릭 → 상세 확인<br><b>Edit</b> → 정보 수정<br><b>Move Pin</b> → 지도에서 위치 변경<br><b>+ Add Site</b> → 신규 Site 추가</div></div></div>
@@ -171,7 +171,10 @@ const CJ_CLIENT_ENTRY_ORDER={
   'Taiwan': {
     'vie show cinemas':1,
     'vieshow':1,
-    'showtime':2
+    'showtime':2,
+    'miranew':3,
+    'miranew cinemas':3,
+    '美麗新影城':3
   },
   'Australia': {
     'event cinemas':1,
@@ -180,6 +183,12 @@ const CJ_CLIENT_ENTRY_ORDER={
     'village cinemas':2,
     'hoyts':3,
     'hoyts cinema':3
+  },
+  'Philippines': {
+    'ayala malls cinemas':1,
+    'ayala cinema':1,
+    'sm cinema':2,
+    'sm cinemas':2
   },
   'New Zealand': {
     'hoyts':3,
@@ -293,6 +302,78 @@ function finishDistanceMeasure(){
   const h=document.getElementById('mapHint');
   h.textContent=`② ${b.site?b.site.name:'두 번째 지점'} 선택됨 · 다른 Site를 선택하면 새 측정을 시작합니다.`;h.style.display='block';
 }
+
+function geocodeExpectedCountry(site){
+  const client=normName(site?.client);
+  if(client==='miranew cinemas') return {code:'tw',name:'Taiwan',bounds:{minLat:21.8,maxLat:25.5,minLng:119.2,maxLng:122.2}};
+  if(client==='ayala malls cinemas'||client==='sm cinema') return {code:'ph',name:'Philippines',bounds:{minLat:4.3,maxLat:21.3,minLng:116.8,maxLng:127.0}};
+  return null;
+}
+function geocodeWithinExpectedBounds(lat,lng,expected){
+  if(!expected)return false;
+  const b=expected.bounds;
+  return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=b.minLat&&lat<=b.maxLat&&lng>=b.minLng&&lng<=b.maxLng;
+}
+async function nominatimSearchSite(site,expected){
+  const attempts=[
+    [site.address,site.city,expected.name],
+    [site.name,site.city,expected.name],
+    [site.name,site.address,expected.name],
+    [site.address,expected.name]
+  ].map(parts=>parts.filter(Boolean).join(', ')).filter((q,i,a)=>q&&a.indexOf(q)===i);
+  for(const q of attempts){
+    const url='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes='+encodeURIComponent(expected.code)+'&q='+encodeURIComponent(q);
+    const res=await fetch(url,{headers:{'Accept':'application/json','Accept-Language':'en'}});
+    if(!res.ok)throw new Error('Nominatim HTTP '+res.status);
+    const rows=await res.json();
+    const valid=rows.find(r=>{
+      const lat=Number(r.lat),lng=Number(r.lon);
+      const cc=String(r.address?.country_code||'').toLowerCase();
+      return cc===expected.code&&geocodeWithinExpectedBounds(lat,lng,expected);
+    });
+    if(valid)return {row:valid,query:q};
+    await new Promise(r=>setTimeout(r,1100));
+  }
+  return null;
+}
+async function geocodeMissingSites(){
+  const btn=document.getElementById('geocodeMissingBtn');
+  const targets=sites.filter(s=>!hasValidCoords(s)&&s.address&&['miranew cinemas','ayala malls cinemas','sm cinema'].includes(normName(s.client)));
+  if(!targets.length){alert('MiraNew / Ayala / SM 중 좌표가 비어 있는 Site가 없습니다.');return;}
+  if(!confirm(`${targets.length}개 Site의 주소를 기준으로 좌표를 조회합니다.\nTaiwan/Philippines 국가 필터 + 좌표 범위 검증을 통과한 결과만 Supabase에 저장합니다.\n(OpenStreetMap Nominatim 사용 · 지점 수에 따라 수 분 소요될 수 있습니다.)`))return;
+  let ok=0,fail=0;
+  const failures=[];
+  btn.disabled=true;
+  try{
+    for(let i=0;i<targets.length;i++){
+      const s=targets[i],expected=geocodeExpectedCountry(s);
+      btn.textContent=`Geocoding ${i+1}/${targets.length}`;
+      try{
+        if(!expected)throw new Error('지원하지 않는 Client');
+        const found=await nominatimSearchSite(s,expected);
+        if(!found){fail++;failures.push(`${s.client} · ${s.name} — 검색 결과 없음`);continue;}
+        const lat=Number(found.row.lat),lng=Number(found.row.lon);
+        if(!geocodeWithinExpectedBounds(lat,lng,expected))throw new Error('국가 좌표 범위 밖 결과');
+        s.lat=lat;s.lng=lng;s.country=expected.name;
+        const site={client_id:s.clientId??null,name:s.name,country:expected.name,city:s.city||'',address:s.address||'',status:s.status||'Operating',format:(s.formats||[]).join(', '),latitude:lat,longitude:lng};
+        await apiV2('site_update',{id:s.id,site});
+        ok++;
+      }catch(e){
+        console.warn('Geocode failed',s.name,e);
+        fail++;failures.push(`${s.client} · ${s.name} — ${e?.message||'실패'}`);
+      }
+      renderMarkers();
+      await new Promise(r=>setTimeout(r,1100));
+    }
+  }finally{
+    btn.disabled=false;btn.textContent='Geocode Missing';
+  }
+  await reloadV2Data();
+  const failText=failures.length?'\n\n실패 지점:\n'+failures.slice(0,20).join('\n')+(failures.length>20?`\n외 ${failures.length-20}개`:''):'';
+  alert(`좌표 저장 완료: ${ok}개 / 실패: ${fail}개${failText}`);
+}
+window.geocodeMissingSites=geocodeMissingSites;
+
 function startAddSite(){selectedSiteId=null;showSiteForm(null,null);mapMode='pickForm';const h=document.getElementById('mapHint');h.textContent='새 Site 추가: 주소로 찾기 또는 지도에서 위치를 클릭하세요.';h.style.display='block';}
 function splitSiteFormats(site){
   const all=Array.isArray(site?.formats)?site.formats.filter(Boolean):[];
