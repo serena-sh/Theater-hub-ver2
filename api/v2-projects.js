@@ -8,6 +8,15 @@ const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 function json(res, status, body) {
   res.status(status);
   res.setHeader("Content-Type", "application/json; charset=utf-8");
+
+  // Master DB data should always be fresh.
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate"
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   res.end(JSON.stringify(body));
 }
 
@@ -63,8 +72,51 @@ async function sb(path, options = {}) {
   return data;
 }
 
-const q = (value) => encodeURIComponent(String(value));
-const isoDate = () => new Date().toISOString().slice(0, 10);
+/*
+ * IMPORTANT
+ * Supabase/PostgREST can limit a single SELECT response.
+ *
+ * The old master() called sb() only once for sites, so after the
+ * database became large, newly added Site rows could be missing
+ * from /api/v2-projects?action=master.
+ *
+ * This function keeps requesting pages until every row is loaded.
+ */
+async function sbAll(path, pageSize = 1000) {
+  const all = [];
+  let start = 0;
+
+  while (true) {
+    const end = start + pageSize - 1;
+
+    const rows = await sb(path, {
+      headers: {
+        Range: `${start}-${end}`,
+        "Range-Unit": "items",
+      },
+    });
+
+    if (!Array.isArray(rows)) {
+      return rows || [];
+    }
+
+    all.push(...rows);
+
+    if (rows.length < pageSize) {
+      break;
+    }
+
+    start += pageSize;
+  }
+
+  return all;
+}
+
+const q = (value) =>
+  encodeURIComponent(String(value));
+
+const isoDate = () =>
+  new Date().toISOString().slice(0, 10);
 
 function siteName(row) {
   return (
@@ -142,10 +194,22 @@ function numberOrNull(value) {
 ========================================================= */
 
 async function master() {
+  /*
+   * Use sbAll here rather than sb.
+   *
+   * This is the key fix for:
+   * - Legend Cinema only showing a couple of Sites
+   * - Major Cineplex Sites disappearing
+   * - SF Cinema Sites disappearing
+   */
   const [clientsRaw, sitesRaw] =
     await Promise.all([
-      sb("clients?select=*&order=name.asc"),
-      sb("sites?select=*&order=id.asc"),
+      sbAll(
+        "clients?select=*&order=name.asc"
+      ),
+      sbAll(
+        "sites?select=*&order=id.asc"
+      ),
     ]);
 
   const clientMap =
