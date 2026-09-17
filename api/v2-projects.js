@@ -80,7 +80,10 @@ function splitFormats(value) {
   if (!value) return [];
 
   if (Array.isArray(value)) {
-    return value.map(String).map(v => v.trim()).filter(Boolean);
+    return value
+      .map(String)
+      .map(v => v.trim())
+      .filter(Boolean);
   }
 
   return String(value)
@@ -127,7 +130,10 @@ function numberOrNull(value) {
   }
 
   const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+
+  return Number.isFinite(n)
+    ? n
+    : null;
 }
 
 
@@ -136,123 +142,150 @@ function numberOrNull(value) {
 ========================================================= */
 
 async function master() {
-  const [clientsRaw, sitesRaw] = await Promise.all([
-    sb("clients?select=*&order=name.asc"),
-    sb("sites?select=*&order=id.asc"),
-  ]);
+  const [clientsRaw, sitesRaw] =
+    await Promise.all([
+      sb("clients?select=*&order=name.asc"),
+      sb("sites?select=*&order=id.asc"),
+    ]);
 
-  const clientMap = new Map(
-    (clientsRaw || []).map(client => [
-      Number(client.id),
-      client.name || `Client ${client.id}`,
-    ])
-  );
+  const clientMap =
+    new Map(
+      (clientsRaw || []).map(client => [
+        Number(client.id),
+        client.name ||
+          `Client ${client.id}`,
+      ])
+    );
 
-  const clients = (clientsRaw || []).map(client => ({
-    id: Number(client.id),
+  const clients =
+    (clientsRaw || []).map(client => ({
+      id:
+        Number(client.id),
 
-    name:
-      client.name ||
-      `Client ${client.id}`,
+      name:
+        client.name ||
+        `Client ${client.id}`,
 
-    country:
-      client.country ||
-      client.region ||
-      client.country_region ||
-      "",
+      country:
+        client.country ||
+        client.region ||
+        client.country_region ||
+        "",
 
-    type:
-      client.client_type ||
-      client.type ||
-      "Exhibitor",
+      type:
+        client.client_type ||
+        client.type ||
+        "Exhibitor",
 
-    status:
-      client.status ||
-      "Active",
+      status:
+        client.status ||
+        "Active",
 
-    note:
-      client.notes ||
-      client.note ||
-      "",
-  }));
+      note:
+        client.notes ||
+        client.note ||
+        "",
 
-  const sites = (sitesRaw || []).map(site => ({
-    id: Number(site.id),
+      cj_client_order:
+        client.cj_client_order == null
+          ? null
+          : Number(client.cj_client_order),
+    }));
 
-    client_id:
-      site.client_id == null
-        ? null
-        : Number(site.client_id),
+  const sites =
+    (sitesRaw || []).map(site => ({
+      id:
+        Number(site.id),
 
-    client:
-      clientMap.get(Number(site.client_id)) ||
-      site.client_name ||
-      "",
+      client_id:
+        site.client_id == null
+          ? null
+          : Number(site.client_id),
 
-    name: siteName(site),
+      client:
+        clientMap.get(
+          Number(site.client_id)
+        ) ||
+        site.client_name ||
+        "",
 
-    country:
-      site.country ||
-      "",
+      name:
+        siteName(site),
 
-    city:
-      site.city ||
-      site.area ||
-      "",
+      country:
+        site.country ||
+        "",
 
-    area:
-      site.area ||
-      "",
+      city:
+        site.city ||
+        site.area ||
+        "",
 
-    address:
-      site.address ||
-      site.address_text ||
-      "",
+      area:
+        site.area ||
+        "",
 
-    status:
-      site.status ||
-      "Operating",
+      address:
+        site.address ||
+        site.address_text ||
+        "",
 
-    formats:
-      getSiteFormats(site),
+      status:
+        site.status ||
+        "Operating",
 
-    has_4dx:
-      site.has_4dx === true,
+      formats:
+        getSiteFormats(site),
 
-    has_screenx:
-      site.has_screenx === true,
+      has_4dx:
+        site.has_4dx === true,
 
-    has_ultra4dx:
-      site.has_ultra4dx === true,
+      has_screenx:
+        site.has_screenx === true,
 
-    has_imax:
-      site.has_imax === true,
+      has_ultra4dx:
+        site.has_ultra4dx === true,
 
-    other_formats:
-      site.other_formats || "",
+      has_imax:
+        site.has_imax === true,
 
-    latitude:
-      numberOrNull(site.latitude),
+      other_formats:
+        site.other_formats ||
+        "",
 
-    longitude:
-      numberOrNull(site.longitude),
+      latitude:
+        numberOrNull(
+          site.latitude
+        ),
 
-    // Front-end compatibility
-    lat:
-      numberOrNull(site.latitude),
+      longitude:
+        numberOrNull(
+          site.longitude
+        ),
 
-    lng:
-      numberOrNull(site.longitude),
+      // Front-end compatibility
+      lat:
+        numberOrNull(
+          site.latitude
+        ),
 
-    notes:
-      site.notes || "",
+      lng:
+        numberOrNull(
+          site.longitude
+        ),
 
-    source:
-      site.source || "",
+      notes:
+        site.notes ||
+        "",
 
-    format_verification:
-      site.format_verification || "",
-  }));
+      source:
+        site.source ||
+        "",
+
+      format_verification:
+        site.format_verification ||
+        "",
+    }));
 
   return {
     clients,
@@ -266,57 +299,75 @@ async function master() {
 ========================================================= */
 
 async function listProjects() {
-  const rows = await sb(
-    "projects?select=*&order=updated_at.desc"
-  );
+  const rows =
+    await sb(
+      "projects?select=*&order=updated_at.desc"
+    );
 
-  const history = await sb(
-    "project_history?select=*&order=event_date.desc,created_at.desc"
-  );
+  const history =
+    await sb(
+      "project_history?select=*&order=event_date.desc,created_at.desc"
+    );
 
-  const historyMap = new Map();
+  const historyMap =
+    new Map();
 
   for (const item of history || []) {
-    const projectId = Number(item.project_id);
+    const projectId =
+      Number(item.project_id);
 
     if (!historyMap.has(projectId)) {
-      historyMap.set(projectId, []);
+      historyMap.set(
+        projectId,
+        []
+      );
     }
 
-    historyMap.get(projectId).push(item);
+    historyMap
+      .get(projectId)
+      .push(item);
   }
 
-  const masterData = await master();
+  const masterData =
+    await master();
 
-  const clientMap = new Map(
-    masterData.clients.map(client => [
-      client.id,
-      client.name,
-    ])
-  );
+  const clientMap =
+    new Map(
+      masterData.clients.map(client => [
+        client.id,
+        client.name,
+      ])
+    );
 
-  const siteMap = new Map(
-    masterData.sites.map(site => [
-      site.id,
-      site.name,
-    ])
-  );
+  const siteMap =
+    new Map(
+      masterData.sites.map(site => [
+        site.id,
+        site.name,
+      ])
+    );
 
   return (rows || []).map(row => ({
     ...row,
 
     client:
-      clientMap.get(Number(row.client_id)) ||
+      clientMap.get(
+        Number(row.client_id)
+      ) ||
       row.client_name_snapshot ||
       "Unassigned",
 
     site:
-      siteMap.get(Number(row.site_id)) ||
+      siteMap.get(
+        Number(row.site_id)
+      ) ||
       row.site_name_snapshot ||
       null,
 
     history:
-      historyMap.get(Number(row.id)) ||
+      historyMap.get(
+        Number(row.id)
+      ) ||
       [],
   }));
 }
@@ -370,23 +421,26 @@ function cleanProject(project = {}) {
     output.client_id !== undefined &&
     output.client_id !== null
   ) {
-    output.client_id = Number(output.client_id);
+    output.client_id =
+      Number(output.client_id);
   }
 
   if (
     output.site_id !== undefined &&
     output.site_id !== null
   ) {
-    output.site_id = Number(output.site_id);
+    output.site_id =
+      Number(output.site_id);
   }
 
   return output;
 }
 
 async function oneProject(id) {
-  const rows = await sb(
-    `projects?id=eq.${q(id)}&select=*`
-  );
+  const rows =
+    await sb(
+      `projects?id=eq.${q(id)}&select=*`
+    );
 
   return rows?.[0] || null;
 }
@@ -396,9 +450,13 @@ async function oneProject(id) {
    PROJECT HISTORY
 ========================================================= */
 
-async function createHistory(projectId, history = {}) {
+async function createHistory(
+  projectId,
+  history = {}
+) {
   const payload = {
-    project_id: Number(projectId),
+    project_id:
+      Number(projectId),
 
     event_date:
       history.event_date ||
@@ -429,20 +487,73 @@ async function createHistory(projectId, history = {}) {
       "Manual",
   };
 
-  const rows = await sb(
-    "project_history",
-    {
-      method: "POST",
+  const rows =
+    await sb(
+      "project_history",
+      {
+        method: "POST",
 
-      headers: {
-        Prefer: "return=representation",
-      },
+        headers: {
+          Prefer:
+            "return=representation",
+        },
 
-      body: JSON.stringify(payload),
-    }
-  );
+        body:
+          JSON.stringify(payload),
+      }
+    );
 
   return rows?.[0] || null;
+}
+
+
+/* =========================================================
+   CLIENT PAYLOAD
+========================================================= */
+
+function cleanClient(client = {}) {
+  const output = {};
+
+  if (client.name !== undefined) {
+    output.name =
+      client.name || null;
+  }
+
+  if (client.country !== undefined) {
+    output.country =
+      client.country || null;
+  }
+
+  if (client.notes !== undefined) {
+    output.notes =
+      client.notes || null;
+  }
+
+  if (
+    client.cj_client_order !== undefined
+  ) {
+    const order =
+      client.cj_client_order === "" ||
+      client.cj_client_order === null
+        ? null
+        : Number(
+            client.cj_client_order
+          );
+
+    if (
+      order !== null &&
+      ![1, 2, 3].includes(order)
+    ) {
+      throw new Error(
+        "cj_client_order must be 1, 2, 3, or null"
+      );
+    }
+
+    output.cj_client_order =
+      order;
+  }
+
+  return output;
 }
 
 
@@ -453,7 +564,9 @@ async function createHistory(projectId, history = {}) {
 function cleanSite(site = {}) {
   const output = {};
 
-  if (site.client_id !== undefined) {
+  if (
+    site.client_id !== undefined
+  ) {
     output.client_id =
       site.client_id === "" ||
       site.client_id === null
@@ -514,12 +627,16 @@ function cleanSite(site = {}) {
       Boolean(site.has_4dx);
   }
 
-  if (site.has_screenx !== undefined) {
+  if (
+    site.has_screenx !== undefined
+  ) {
     output.has_screenx =
       Boolean(site.has_screenx);
   }
 
-  if (site.has_ultra4dx !== undefined) {
+  if (
+    site.has_ultra4dx !== undefined
+  ) {
     output.has_ultra4dx =
       Boolean(site.has_ultra4dx);
   }
@@ -529,7 +646,9 @@ function cleanSite(site = {}) {
       Boolean(site.has_imax);
   }
 
-  if (site.other_formats !== undefined) {
+  if (
+    site.other_formats !== undefined
+  ) {
     output.other_formats =
       site.other_formats || null;
   }
@@ -552,7 +671,8 @@ function cleanSite(site = {}) {
    HANDLER
 ========================================================= */
 
-module.exports = async function handler(req, res) {
+module.exports =
+async function handler(req, res) {
   try {
 
     /* =====================================================
@@ -565,29 +685,42 @@ module.exports = async function handler(req, res) {
         "list";
 
       if (action === "master") {
-        const data = await master();
+        const data =
+          await master();
 
-        return json(res, 200, {
-          ok: true,
-          ...data,
-        });
+        return json(
+          res,
+          200,
+          {
+            ok: true,
+            ...data,
+          }
+        );
       }
 
       if (action === "list") {
         const projects =
           await listProjects();
 
-        return json(res, 200, {
-          ok: true,
-          projects,
-        });
+        return json(
+          res,
+          200,
+          {
+            ok: true,
+            projects,
+          }
+        );
       }
 
-      return json(res, 400, {
-        ok: false,
-        error:
-          `Unknown GET action: ${action}`,
-      });
+      return json(
+        res,
+        400,
+        {
+          ok: false,
+          error:
+            `Unknown GET action: ${action}`,
+        }
+      );
     }
 
 
@@ -596,18 +729,26 @@ module.exports = async function handler(req, res) {
     ===================================================== */
 
     if (req.method !== "POST") {
-      return json(res, 405, {
-        ok: false,
-        error: "Method not allowed",
-      });
+      return json(
+        res,
+        405,
+        {
+          ok: false,
+          error:
+            "Method not allowed",
+        }
+      );
     }
 
     const body =
       typeof req.body === "string"
-        ? JSON.parse(req.body || "{}")
+        ? JSON.parse(
+            req.body || "{}"
+          )
         : req.body || {};
 
-    const action = body.action;
+    const action =
+      body.action;
 
 
     /* =====================================================
@@ -616,20 +757,29 @@ module.exports = async function handler(req, res) {
 
     if (action === "create") {
       const payload =
-        cleanProject(body.project || body.data || {});
+        cleanProject(
+          body.project ||
+          body.data ||
+          {}
+        );
 
-      const rows = await sb(
-        "projects",
-        {
-          method: "POST",
+      const rows =
+        await sb(
+          "projects",
+          {
+            method: "POST",
 
-          headers: {
-            Prefer: "return=representation",
-          },
+            headers: {
+              Prefer:
+                "return=representation",
+            },
 
-          body: JSON.stringify(payload),
-        }
-      );
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
 
       const project =
         rows?.[0] || null;
@@ -638,17 +788,26 @@ module.exports = async function handler(req, res) {
         await createHistory(
           project.id,
           {
-            change_type: "Created",
-            title: "Project created",
-            source: "System",
+            change_type:
+              "Created",
+
+            title:
+              "Project created",
+
+            source:
+              "System",
           }
         ).catch(() => null);
       }
 
-      return json(res, 200, {
-        ok: true,
-        project,
-      });
+      return json(
+        res,
+        200,
+        {
+          ok: true,
+          project,
+        }
+      );
     }
 
 
@@ -657,46 +816,70 @@ module.exports = async function handler(req, res) {
     ===================================================== */
 
     if (action === "update") {
-      const id = Number(body.id);
+      const id =
+        Number(body.id);
 
       if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "Project id is required",
-        });
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "Project id is required",
+          }
+        );
       }
 
       const before =
         await oneProject(id);
 
       if (!before) {
-        return json(res, 404, {
-          ok: false,
-          error: "Project not found",
-        });
+        return json(
+          res,
+          404,
+          {
+            ok: false,
+            error:
+              "Project not found",
+          }
+        );
       }
 
       const payload =
-        cleanProject(body.project || body.data || {});
+        cleanProject(
+          body.project ||
+          body.data ||
+          {}
+        );
 
-      const rows = await sb(
-        `projects?id=eq.${q(id)}`,
+      const rows =
+        await sb(
+          `projects?id=eq.${q(id)}`,
+          {
+            method: "PATCH",
+
+            headers: {
+              Prefer:
+                "return=representation",
+            },
+
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
+
+      return json(
+        res,
+        200,
         {
-          method: "PATCH",
-
-          headers: {
-            Prefer: "return=representation",
-          },
-
-          body: JSON.stringify(payload),
+          ok: true,
+          project:
+            rows?.[0] || null,
         }
       );
-
-      return json(res, 200, {
-        ok: true,
-        project:
-          rows?.[0] || null,
-      });
     }
 
 
@@ -708,22 +891,30 @@ module.exports = async function handler(req, res) {
       action === "delete" ||
       action === "project_delete"
     ) {
-      const id = Number(body.id);
+      const id =
+        Number(body.id);
 
       if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "Project id is required",
-        });
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "Project id is required",
+          }
+        );
       }
 
       await sb(
         `project_history?project_id=eq.${q(id)}`,
         {
-          method: "DELETE",
+          method:
+            "DELETE",
 
           headers: {
-            Prefer: "return=minimal",
+            Prefer:
+              "return=minimal",
           },
         }
       ).catch(() => null);
@@ -731,18 +922,24 @@ module.exports = async function handler(req, res) {
       await sb(
         `projects?id=eq.${q(id)}`,
         {
-          method: "DELETE",
+          method:
+            "DELETE",
 
           headers: {
-            Prefer: "return=minimal",
+            Prefer:
+              "return=minimal",
           },
         }
       );
 
-      return json(res, 200, {
-        ok: true,
-        deleted_id: id,
-      });
+      return json(
+        res,
+        200,
+        {
+          ok: true,
+          deleted_id: id,
+        }
+      );
     }
 
 
@@ -750,7 +947,9 @@ module.exports = async function handler(req, res) {
        HISTORY CREATE
     ===================================================== */
 
-    if (action === "history_create") {
+    if (
+      action === "history_create"
+    ) {
       const projectId =
         Number(
           body.project_id ||
@@ -758,10 +957,15 @@ module.exports = async function handler(req, res) {
         );
 
       if (!projectId) {
-        return json(res, 400, {
-          ok: false,
-          error: "project_id is required",
-        });
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "project_id is required",
+          }
+        );
       }
 
       const history =
@@ -770,10 +974,14 @@ module.exports = async function handler(req, res) {
           body.history || {}
         );
 
-      return json(res, 200, {
-        ok: true,
-        history,
-      });
+      return json(
+        res,
+        200,
+        {
+          ok: true,
+          history,
+        }
+      );
     }
 
 
@@ -781,14 +989,22 @@ module.exports = async function handler(req, res) {
        HISTORY UPDATE
     ===================================================== */
 
-    if (action === "history_update") {
-      const id = Number(body.id);
+    if (
+      action === "history_update"
+    ) {
+      const id =
+        Number(body.id);
 
       if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "History id is required",
-        });
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "History id is required",
+          }
+        );
       }
 
       const source =
@@ -806,12 +1022,13 @@ module.exports = async function handler(req, res) {
 
       const payload = {};
 
-      for (const key of allowed) {
+      for (
+        const key of allowed
+      ) {
         if (
-          Object.prototype.hasOwnProperty.call(
-            source,
-            key
-          )
+          Object.prototype
+            .hasOwnProperty
+            .call(source, key)
         ) {
           payload[key] =
             source[key] === ""
@@ -820,24 +1037,34 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      const rows = await sb(
-        `project_history?id=eq.${q(id)}`,
+      const rows =
+        await sb(
+          `project_history?id=eq.${q(id)}`,
+          {
+            method:
+              "PATCH",
+
+            headers: {
+              Prefer:
+                "return=representation",
+            },
+
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
+
+      return json(
+        res,
+        200,
         {
-          method: "PATCH",
-
-          headers: {
-            Prefer: "return=representation",
-          },
-
-          body: JSON.stringify(payload),
+          ok: true,
+          history:
+            rows?.[0] || null,
         }
       );
-
-      return json(res, 200, {
-        ok: true,
-        history:
-          rows?.[0] || null,
-      });
     }
 
 
@@ -845,31 +1072,162 @@ module.exports = async function handler(req, res) {
        HISTORY DELETE
     ===================================================== */
 
-    if (action === "history_delete") {
-      const id = Number(body.id);
+    if (
+      action === "history_delete"
+    ) {
+      const id =
+        Number(body.id);
 
       if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "History id is required",
-        });
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "History id is required",
+          }
+        );
       }
 
       await sb(
         `project_history?id=eq.${q(id)}`,
         {
-          method: "DELETE",
+          method:
+            "DELETE",
 
           headers: {
-            Prefer: "return=minimal",
+            Prefer:
+              "return=minimal",
           },
         }
       );
 
-      return json(res, 200, {
-        ok: true,
-        deleted_id: id,
-      });
+      return json(
+        res,
+        200,
+        {
+          ok: true,
+          deleted_id: id,
+        }
+      );
+    }
+
+
+    /* =====================================================
+       CLIENT CREATE
+    ===================================================== */
+
+    if (
+      action === "client_create"
+    ) {
+      const payload =
+        cleanClient(
+          body.client ||
+          body.data ||
+          {}
+        );
+
+      if (!payload.name) {
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "Client name is required",
+          }
+        );
+      }
+
+      const rows =
+        await sb(
+          "clients",
+          {
+            method:
+              "POST",
+
+            headers: {
+              Prefer:
+                "return=representation",
+            },
+
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
+
+      return json(
+        res,
+        200,
+        {
+          ok: true,
+          client:
+            rows?.[0] || null,
+        }
+      );
+    }
+
+
+    /* =====================================================
+       CLIENT UPDATE
+    ===================================================== */
+
+    if (
+      action === "client_update"
+    ) {
+      const id =
+        Number(body.id);
+
+      if (!id) {
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "Client id is required",
+          }
+        );
+      }
+
+      const payload =
+        cleanClient(
+          body.client ||
+          body.data ||
+          {}
+        );
+
+      const rows =
+        await sb(
+          `clients?id=eq.${q(id)}`,
+          {
+            method:
+              "PATCH",
+
+            headers: {
+              Prefer:
+                "return=representation",
+            },
+
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
+
+      return json(
+        res,
+        200,
+        {
+          ok: true,
+          client:
+            rows?.[0] || null,
+        }
+      );
     }
 
 
@@ -882,33 +1240,52 @@ module.exports = async function handler(req, res) {
       action === "create_site"
     ) {
       const payload =
-        cleanSite(body.site || body.data || {});
+        cleanSite(
+          body.site ||
+          body.data ||
+          {}
+        );
 
       if (!payload.name) {
-        return json(res, 400, {
-          ok: false,
-          error: "Site name is required",
-        });
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "Site name is required",
+          }
+        );
       }
 
-      const rows = await sb(
-        "sites",
+      const rows =
+        await sb(
+          "sites",
+          {
+            method:
+              "POST",
+
+            headers: {
+              Prefer:
+                "return=representation",
+            },
+
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
+
+      return json(
+        res,
+        200,
         {
-          method: "POST",
-
-          headers: {
-            Prefer: "return=representation",
-          },
-
-          body: JSON.stringify(payload),
+          ok: true,
+          site:
+            rows?.[0] || null,
         }
       );
-
-      return json(res, 200, {
-        ok: true,
-        site:
-          rows?.[0] || null,
-      });
     }
 
 
@@ -920,36 +1297,56 @@ module.exports = async function handler(req, res) {
       action === "site_update" ||
       action === "update_site"
     ) {
-      const id = Number(body.id);
+      const id =
+        Number(body.id);
 
       if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "Site id is required",
-        });
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "Site id is required",
+          }
+        );
       }
 
       const payload =
-        cleanSite(body.site || body.data || {});
+        cleanSite(
+          body.site ||
+          body.data ||
+          {}
+        );
 
-      const rows = await sb(
-        `sites?id=eq.${q(id)}`,
+      const rows =
+        await sb(
+          `sites?id=eq.${q(id)}`,
+          {
+            method:
+              "PATCH",
+
+            headers: {
+              Prefer:
+                "return=representation",
+            },
+
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
+
+      return json(
+        res,
+        200,
         {
-          method: "PATCH",
-
-          headers: {
-            Prefer: "return=representation",
-          },
-
-          body: JSON.stringify(payload),
+          ok: true,
+          site:
+            rows?.[0] || null,
         }
       );
-
-      return json(res, 200, {
-        ok: true,
-        site:
-          rows?.[0] || null,
-      });
     }
 
 
@@ -957,28 +1354,42 @@ module.exports = async function handler(req, res) {
        SITE DELETE
     ===================================================== */
 
-    if (action === "site_delete") {
-      const id = Number(body.id);
+    if (
+      action === "site_delete"
+    ) {
+      const id =
+        Number(body.id);
 
       if (!id) {
-        return json(res, 400, {
-          ok: false,
-          error: "Site id is required",
-        });
+        return json(
+          res,
+          400,
+          {
+            ok: false,
+            error:
+              "Site id is required",
+          }
+        );
       }
 
-      const sites = await sb(
-        `sites?id=eq.${q(id)}&select=*`
-      );
+      const sites =
+        await sb(
+          `sites?id=eq.${q(id)}&select=*`
+        );
 
       const site =
         sites?.[0];
 
       if (!site) {
-        return json(res, 404, {
-          ok: false,
-          error: "Site not found",
-        });
+        return json(
+          res,
+          404,
+          {
+            ok: false,
+            error:
+              "Site not found",
+          }
+        );
       }
 
       const linkedProjects =
@@ -987,40 +1398,52 @@ module.exports = async function handler(req, res) {
         ).catch(() => []);
 
       if (
-        Array.isArray(linkedProjects) &&
+        Array.isArray(
+          linkedProjects
+        ) &&
         linkedProjects.length > 0
       ) {
-        return json(res, 409, {
-          ok: false,
+        return json(
+          res,
+          409,
+          {
+            ok: false,
 
-          error:
-            `Cannot delete this Site because ${linkedProjects.length} Project(s) are linked to it.`,
+            error:
+              `Cannot delete this Site because ${linkedProjects.length} Project(s) are linked to it.`,
 
-          linked_projects:
-            linkedProjects,
-        });
+            linked_projects:
+              linkedProjects,
+          }
+        );
       }
 
       await sb(
         `sites?id=eq.${q(id)}`,
         {
-          method: "DELETE",
+          method:
+            "DELETE",
 
           headers: {
-            Prefer: "return=minimal",
+            Prefer:
+              "return=minimal",
           },
         }
       );
 
-      return json(res, 200, {
-        ok: true,
+      return json(
+        res,
+        200,
+        {
+          ok: true,
 
-        deleted_id:
-          id,
+          deleted_id:
+            id,
 
-        deleted_name:
-          siteName(site),
-      });
+          deleted_name:
+            siteName(site),
+        }
+      );
     }
 
 
@@ -1028,20 +1451,29 @@ module.exports = async function handler(req, res) {
        UNKNOWN ACTION
     ===================================================== */
 
-    return json(res, 400, {
-      ok: false,
-      error:
-        `Unknown action: ${action}`,
-    });
+    return json(
+      res,
+      400,
+      {
+        ok: false,
+        error:
+          `Unknown action: ${action}`,
+      }
+    );
 
   } catch (error) {
     console.error(error);
 
-    return json(res, 500, {
-      ok: false,
-      error:
-        error?.message ||
-        String(error),
-    });
+    return json(
+      res,
+      500,
+      {
+        ok: false,
+
+        error:
+          error?.message ||
+          String(error),
+      }
+    );
   }
 };
