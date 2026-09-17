@@ -53,31 +53,6 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 .clientModalBody input,.clientModalBody select,.clientModalBody textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px 11px;background:#fff;color:#0f172a;font:inherit}
 .clientModalBody textarea{min-height:92px;resize:vertical}.clientModalFoot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px 20px}.clientFormError{grid-column:1/-1;color:#b91c1c;font-size:12px;display:none}
 @media(max-width:700px){.clientModalBody{grid-template-columns:1fr}.clientModalBody .full{grid-column:auto}}
-
-.formatMultiFilter{position:relative;min-width:128px}
-.formatFilterBtn{width:100%;text-align:left;white-space:nowrap}
-.formatFilterMenu{display:none;position:absolute;z-index:1200;top:calc(100% + 5px);left:0;min-width:175px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:7px}
-.formatMultiFilter.open .formatFilterMenu{display:grid;gap:2px}
-.formatFilterMenu label{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
-.formatFilterMenu label:hover{background:#f8fafc}
-.formatFilterMenu input{margin:0}
-.formatFilterActions{border-top:1px solid #eef2f7;margin-top:4px;padding-top:6px;text-align:right}
-.formatFilterActions button{border:0;background:transparent;color:#2563eb;font-size:10px;font-weight:800;padding:4px 7px}
-
-
-.mapMultiFilter{position:relative;min-width:145px}
-.multiFilterBtn{width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.multiFilterMenu{display:none;position:absolute;z-index:1200;top:calc(100% + 5px);left:0;min-width:220px;max-width:310px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:7px}
-.mapMultiFilter.open .multiFilterMenu{display:block}
-.multiFilterOptions{display:grid;gap:2px;max-height:310px;overflow:auto}
-.multiFilterOptions label{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
-.multiFilterOptions label:hover{background:#f8fafc}
-.multiFilterOptions input{margin:0}
-
-
-.multiFilterSearch{width:100%;box-sizing:border-box;border:1px solid #dbe2ea;border-radius:7px;padding:7px 9px;margin-bottom:6px;font-size:11px;outline:none}
-.multiFilterSearch:focus{border-color:#94a3b8}
-
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
@@ -111,21 +86,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
       <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Supabase Site master의 실제 좌표만 표시합니다. Marker 색상은 국가별 CJ 4DPLEX Client 도입 순서를 나타냅니다.</div></div><div class="toolbar"><button class="btn" onclick="openKmlImport()">Import KML / KMZ</button><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
       <div class="mapWorkspace">
         <div class="card mapCard">
-          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="renderMarkers()"><div class="mapMultiFilter" id="countryMultiFilter">
-  <button type="button" class="search multiFilterBtn" onclick="toggleMapMultiFilter('countryMultiFilter',event)">All Countries ▾</button>
-  <div class="multiFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('country')">Clear</button></div></div>
-</div><div class="mapMultiFilter" id="clientMultiFilter">
-  <button type="button" class="search multiFilterBtn" onclick="toggleMapMultiFilter('clientMultiFilter',event)">All Exhibitors ▾</button>
-  <div class="multiFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('client')">Clear</button></div></div>
-</div><div class="formatMultiFilter" id="formatMultiFilter">
-  <button type="button" class="search formatFilterBtn" onclick="toggleFormatMenu(event)">All Formats ▾</button>
-  <div class="formatFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)">
-    <label><input type="checkbox" value="4DX" onchange="onFormatFilterChange()"> 4DX</label>
-    <label><input type="checkbox" value="SCREENX" onchange="onFormatFilterChange()"> SCREENX</label>
-    <label><input type="checkbox" value="ULTRA 4DX" onchange="onFormatFilterChange()"> ULTRA 4DX</label>
-    <div class="formatFilterActions"><button type="button" onclick="clearFormatFilters()">Clear</button></div>
-  </div>
-</div><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div id="mapSummary" class="mapSummary"></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><button id="geocodeMissingBtn" class="mapToolBtn" onclick="geocodeMissingSites()">Geocode Missing</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
+          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="renderMarkers()"><select id="countryFilter" class="search" onchange="onCountryFilterChange()"><option value="">All Countries</option></select><select id="clientFilter" class="search" onchange="renderMarkers()"><option value="">All Exhibitors</option></select><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div id="mapSummary" class="mapSummary"></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><button id="geocodeMissingBtn" class="mapToolBtn" onclick="geocodeMissingSites()">Geocode Missing</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
           <div id="map"></div><div class="mapLegend"><b>CJ 4DPLEX Client Entry</b><div><span class="legendDot" style="background:#2563eb"></span>1st Client</div><div><span class="legendDot" style="background:#dc2626"></span>2nd Client</div><div><span class="legendDot" style="background:#16a34a"></span>3rd Client</div><div><span class="legendDot" style="background:#64748b"></span>Other / Not set</div></div><div id="mapHint" class="mapHint">지도에서 위치를 클릭하세요.</div><div id="distanceBadge" class="distanceBadge"></div>
         </div>
         <div id="mapPanel" class="card sidePanel"><div class="panelEmpty"><div><b>Site를 선택하세요</b><br><br>Marker 클릭 → 상세 확인<br><b>Edit</b> → 정보 수정<br><b>Move Pin</b> → 지도에서 위치 변경<br><b>+ Add Site</b> → 신규 Site 추가</div></div></div>
@@ -224,55 +185,24 @@ const CJ_CLIENT_ENTRY_ORDER={
     'hoyts cinema':3
   },
   'Philippines': {
-    'ayala cinemas':1,
     'ayala malls cinemas':1,
     'ayala cinema':1,
     'sm cinema':2,
     'sm cinemas':2
   },
   'Malaysia': {
-    'golden screen cinema':1,
     'golden screen cinemas (gsc)':1,
     'golden screen cinemas':1,
     'gsc':1
   },
   'New Zealand': {
-    'event cinemas':1,
-    'evt':1,
     'hoyts':3,
     'hoyts cinema':3
-  },
-  'Sri Lanka': {
-    'scope cinemas':1,
-    'scope cinema':1
   }
 };
 function cjClientEntryOrder(site){
-  const clientId=Number(site?.clientId ?? site?.client_id);
   const country=String(site?.country||'').trim();
   const client=String(site?.client||'').trim().toLowerCase();
-
-  // DB value is the master. Support both front-end property names.
-  const cp=clientProfiles.find(c=>Number(c.id)===clientId);
-  const rawDbOrder=cp?.cjClientOrder ?? cp?.cj_client_order;
-  const dbOrder=rawDbOrder==null||rawDbOrder===''?null:Number(rawDbOrder);
-  if([1,2,3].includes(dbOrder)) return dbOrder;
-
-  // Hong Kong / Macau transition fallback. These IDs are the current DB IDs.
-  if(clientId===67 && country==='Hong Kong') return 1; // Broadway Circuit
-  if(clientId===69 && country==='Hong Kong') return 2; // CGV Cinemas
-  if(clientId===71 && country==='Macau') return 2;      // CGV Cinemas
-
-  // Name fallback so colors survive even if client IDs change later.
-  if(country==='Hong Kong' && client==='broadway circuit') return 1;
-  if(['Hong Kong','Macau'].includes(country) && ['cgv cinemas','cgv'].includes(client)) return 2;
-
-  // Existing legacy fallbacks.
-  if(clientId===46 && country==='Sri Lanka') return 1;
-  if(clientId===2 && ['Australia','New Zealand'].includes(country)) return 1;
-  if(clientId===6) return 1;
-  if(clientId===20) return 1;
-
   return CJ_CLIENT_ENTRY_ORDER[country]?.[client]||null;
 }
 function markerColor(site){
@@ -284,56 +214,14 @@ function markerIcon(site){
   return L.divIcon({className:'',html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 5px #475569"></div>`,iconSize:[15,15],iconAnchor:[8,8]});
 }
 function cjEntryLabel(site){const n=cjClientEntryOrder(site);return n?`${n}${n===1?'st':n===2?'nd':'rd'} CJ Client`:'Other / Not set'}
-function normalizeMapFormat(v){
-  const u=String(v||'').trim().toUpperCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ');
-  if(u==='ULTRA4DX'||u==='ULTRA 4DX')return 'ULTRA 4DX';
-  if(u==='SCREEN X')return 'SCREENX';
-  return u;
-}
-function selectedFormatFilters(){
-  return [...document.querySelectorAll('#formatMultiFilter input[type="checkbox"]:checked')].map(x=>normalizeMapFormat(x.value));
-}
-function siteMatchesFormatFilters(site){
-  const wanted=selectedFormatFilters();
-  if(!wanted.length)return true;
-  const installed=(Array.isArray(site?.formats)?site.formats:[]).map(normalizeMapFormat);
-  return wanted.some(f=>installed.includes(f)); // 여러 개 선택 시 OR
-}
-function updateFormatFilterLabel(){
-  const btn=document.querySelector('#formatMultiFilter .formatFilterBtn');
-  if(!btn)return;
-  const selected=selectedFormatFilters();
-  btn.textContent=!selected.length?'All Formats ▾':selected.length===1?`${selected[0]} ▾`:`Formats (${selected.length}) ▾`;
-}
-function toggleFormatMenu(e){
-  if(e)e.stopPropagation();
-  const root=document.getElementById('formatMultiFilter');
-  root?.classList.toggle('open');
-  if(root?.classList.contains('open'))focusMultiFilterSearch(root);
-}
-function onFormatFilterChange(){updateFormatFilterLabel();renderMarkers()}
-function clearFormatFilters(){
-  document.querySelectorAll('#formatMultiFilter input[type="checkbox"]').forEach(x=>x.checked=false);
-  updateFormatFilterLabel();renderMarkers();
-}
-document.addEventListener('click',()=>document.querySelectorAll('.mapMultiFilter,.formatMultiFilter').forEach(x=>x.classList.remove('open')));
-
-function selectedMapValues(kind){
-  const root=document.getElementById(kind==='country'?'countryMultiFilter':'clientMultiFilter');
-  return root?[...root.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value):[];
-}
 function selectedMapSites(){
   const q=(document.getElementById('mapSearch')?.value||'').trim().toLowerCase();
-  const countries=selectedMapValues('country');
-  const clients=selectedMapValues('client');
+  const country=document.getElementById('countryFilter')?.value||'';
+  const client=document.getElementById('clientFilter')?.value||'';
   const status=document.getElementById('statusFilter')?.value||'';
   return sites.filter(s=>{
     const haystack=`${s.name||''} ${s.city||''} ${s.client||''}`.toLowerCase();
-    return (!q||haystack.includes(q))
-      &&(!countries.length||countries.includes(s.country))
-      &&(!clients.length||clients.includes(s.client))
-      &&siteMatchesFormatFilters(s)
-      &&(!status||s.status===status);
+    return (!q||haystack.includes(q))&&(!country||s.country===country)&&(!client||s.client===client)&&(!status||s.status===status);
   });
 }
 function isCjFormat(f){return ['SCREENX','4DX','ULTRA 4DX','ULTRA4DX'].includes(String(f||'').trim().toUpperCase())}
@@ -342,67 +230,27 @@ function renderMapSummary(scope=selectedMapSites()){
   const exhibitors=new Set(scope.map(s=>s.client).filter(Boolean)).size;
   const cjSites=scope.filter(s=>(s.formats||[]).some(isCjFormat)).length;
   const otherSites=scope.filter(s=>(s.formats||[]).some(f=>!isCjFormat(f))).length;
-  const countries=selectedMapValues('country'),clients=selectedMapValues('client');
-  const countryLabel=!countries.length?'All countries':countries.length===1?countries[0]:`${countries.length} countries`;
-  const clientLabel=!clients.length?'':clients.length===1?clients[0]:`${clients.length} exhibitors`;
-  const label=clientLabel?`${countryLabel} · ${clientLabel}`:countryLabel;
+  const country=document.getElementById('countryFilter')?.value||'';
+  const client=document.getElementById('clientFilter')?.value||'';
+  const label=client?`${country||'All countries'} · ${client}`:(country||'All countries');
   root.innerHTML=`<div class="mapSummaryScope">${esc(label)} · 현재 필터 기준</div><div class="mapSummaryItem"><span>Exhibitors</span><b>${exhibitors}</b></div><div class="mapSummaryItem"><span>Sites</span><b>${scope.length}</b></div><div class="mapSummaryItem"><span>CJ 4DPLEX Sites</span><b>${cjSites}</b></div><div class="mapSummaryItem"><span>Other Premium Sites</span><b>${otherSites}</b></div>`;
 }
-function updateMapMultiLabel(kind){
-  const root=document.getElementById(kind==='country'?'countryMultiFilter':'clientMultiFilter');if(!root)return;
-  const selected=selectedMapValues(kind),btn=root.querySelector('.multiFilterBtn');
-  const allLabel=kind==='country'?'All Countries':'All Exhibitors';
-  const manyLabel=kind==='country'?'Countries':'Exhibitors';
-  btn.textContent=!selected.length?`${allLabel} ▾`:selected.length===1?`${selected[0]} ▾`:`${manyLabel} (${selected.length}) ▾`;
-}
-function filterMultiOptions(input){
-  const menu=input.closest('.multiFilterMenu,.formatFilterMenu');
-  const q=String(input.value||'').trim().toLowerCase();
-  menu?.querySelectorAll('label').forEach(label=>{
-    label.style.display=!q||label.textContent.toLowerCase().includes(q)?'flex':'none';
-  });
-}
-function focusMultiFilterSearch(root){
-  setTimeout(()=>root?.querySelector('.multiFilterSearch')?.focus(),0);
-}
-function toggleMapMultiFilter(id,e){
-  if(e)e.stopPropagation();
-  document.querySelectorAll('.mapMultiFilter,.formatMultiFilter').forEach(x=>{if(x.id!==id)x.classList.remove('open')});
-  const root=document.getElementById(id);
-  root?.classList.toggle('open');
-  if(root?.classList.contains('open'))focusMultiFilterSearch(root);
-}
-function renderMultiOptions(rootId,values,selected,kind){
-  const root=document.getElementById(rootId);if(!root)return;
-  const box=root.querySelector('.multiFilterOptions');
-  box.innerHTML=values.map(v=>`<label><input type="checkbox" value="${esc(v)}" ${selected.includes(v)?'checked':''} onchange="onMapMultiFilterChange('${kind}')"> ${esc(v)}</label>`).join('');
-}
 function refreshMapFilters(){
-  const prevCountries=selectedMapValues('country'),prevClients=selectedMapValues('client');
+  const countryEl=document.getElementById('countryFilter'),clientEl=document.getElementById('clientFilter');if(!countryEl||!clientEl)return;
+  const previousCountry=countryEl.value,previousClient=clientEl.value;
   const countries=[...new Set(sites.map(s=>s.country).filter(Boolean))].sort();
-  renderMultiOptions('countryMultiFilter',countries,prevCountries.filter(x=>countries.includes(x)),'country');
-  updateMapMultiLabel('country');
-  refreshClientFilter(prevClients);
+  countryEl.innerHTML=`<option value="">All Countries</option>${countries.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}`;
+  countryEl.value=countries.includes(previousCountry)?previousCountry:'';
+  refreshClientFilter(previousClient);
 }
-function refreshClientFilter(preferred=selectedMapValues('client')){
-  const countries=selectedMapValues('country');
-  const clients=[...new Set(sites.filter(s=>!countries.length||countries.includes(s.country)).map(s=>s.client).filter(Boolean))].sort();
-  const keep=preferred.filter(x=>clients.includes(x));
-  renderMultiOptions('clientMultiFilter',clients,keep,'client');
-  updateMapMultiLabel('client');
+function refreshClientFilter(preferred=''){
+  const country=document.getElementById('countryFilter')?.value||'';
+  const clientEl=document.getElementById('clientFilter');if(!clientEl)return;
+  const clients=[...new Set(sites.filter(s=>!country||s.country===country).map(s=>s.client).filter(Boolean))].sort();
+  clientEl.innerHTML=`<option value="">All Exhibitors</option>${clients.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}`;
+  clientEl.value=clients.includes(preferred)?preferred:'';
 }
-function onMapMultiFilterChange(kind){
-  updateMapMultiLabel(kind);
-  if(kind==='country')refreshClientFilter();
-  renderMarkers();
-}
-function clearMapMultiFilter(kind){
-  const root=document.getElementById(kind==='country'?'countryMultiFilter':'clientMultiFilter');
-  root?.querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=false);
-  updateMapMultiLabel(kind);
-  if(kind==='country')refreshClientFilter([]);
-  renderMarkers();
-}
+function onCountryFilterChange(){refreshClientFilter();renderMarkers()}
 function renderMarkers(){
   if(!markerLayer)return;
   markerLayer.clearLayers();
@@ -465,6 +313,8 @@ function geocodeExpectedCountry(site){
   if(['miranew','miranew cinemas'].includes(client)) return {code:'tw',name:'Taiwan',bounds:{minLat:21.8,maxLat:25.5,minLng:119.2,maxLng:122.2}};
   if(['ayala cinemas','ayala malls cinemas','sm cinema'].includes(client)) return {code:'ph',name:'Philippines',bounds:{minLat:4.3,maxLat:21.3,minLng:116.8,maxLng:127.0}};
   if(['golden screen cinema','golden screen cinemas (gsc)','golden screen cinemas','gsc','tgv cinemas','tgv'].includes(client)) return {code:'my',name:'Malaysia',bounds:{minLat:0.8,maxLat:7.6,minLng:99.5,maxLng:119.5}};
+  if(['major cineplex','major cineplex group','sf cinema','sf cinemas','sfc','sfx','sf world cinema'].includes(client)) return {code:'th',name:'Thailand',bounds:{minLat:5.5,maxLat:20.6,minLng:97.3,maxLng:105.7}};
+  if(['legend cinema','legend cinemas'].includes(client)) return {code:'kh',name:'Cambodia',bounds:{minLat:9.8,maxLat:14.8,minLng:102.2,maxLng:107.7}};
   return null;
 }
 function geocodeWithinExpectedBounds(lat,lng,expected){
@@ -472,14 +322,27 @@ function geocodeWithinExpectedBounds(lat,lng,expected){
   const b=expected.bounds;
   return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=b.minLat&&lat<=b.maxLat&&lng>=b.minLng&&lng<=b.maxLng;
 }
+function geocodeNameVariants(site,expected){
+  const n=String(site?.name||'').trim();
+  const c=normName(site?.client);
+  const out=[n];
+  if(expected?.code==='th'){
+    out.push(n.replace(/^SFW\s*[–-]\s*/i,''),n.replace(/^SFX\s*[–-]\s*/i,''),n.replace(/^SFC\s*[–-]\s*/i,''));
+    if(c.includes('major')) out.push('Major Cineplex '+n,n+' cinema');
+    if(c.includes('sf')) out.push('SF Cinema '+n,n+' Thailand');
+  }
+  if(expected?.code==='kh') out.push('Legend Cinema '+n,n+' Cambodia');
+  return [...new Set(out.filter(Boolean))];
+}
 async function nominatimSearchSite(site,expected){
-  const attempts=[
-    [site.address,site.city,expected.name],
-    [site.name,site.city,expected.name],
-    [site.name,site.address,expected.name],
-    [site.address,expected.name]
-  ].map(parts=>parts.filter(Boolean).join(', ')).filter((q,i,a)=>q&&a.indexOf(q)===i);
-  for(const q of attempts){
+  const names=geocodeNameVariants(site,expected);
+  const attempts=[];
+  for(const name of names){
+    attempts.push([name,site.city,expected.name],[name,expected.name]);
+  }
+  if(site.address) attempts.unshift([site.address,site.city,expected.name],[site.address,expected.name]);
+  const queries=attempts.map(parts=>parts.filter(Boolean).join(', ')).filter((q,i,a)=>q&&a.indexOf(q)===i);
+  for(const q of queries){
     const url='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes='+encodeURIComponent(expected.code)+'&q='+encodeURIComponent(q);
     const res=await fetch(url,{headers:{'Accept':'application/json','Accept-Language':'en'}});
     if(!res.ok)throw new Error('Nominatim HTTP '+res.status);
@@ -496,38 +359,35 @@ async function nominatimSearchSite(site,expected){
 }
 async function geocodeMissingSites(){
   const btn=document.getElementById('geocodeMissingBtn');
-  const targets=sites.filter(s=>!hasValidCoords(s)&&s.address&&['miranew','miranew cinemas','ayala cinemas','ayala malls cinemas','sm cinema','golden screen cinema','golden screen cinemas (gsc)','golden screen cinemas','gsc','tgv cinemas','tgv'].includes(normName(s.client)));
-  if(!targets.length){alert('MiraNew / Ayala / SM / GSC / TGV 중 좌표가 비어 있는 Site가 없습니다.');return;}
-  if(!confirm(`${targets.length}개 Site의 주소를 기준으로 좌표를 조회합니다.\nTaiwan/Philippines/Malaysia 국가 필터 + 좌표 범위 검증을 통과한 결과만 Supabase에 저장합니다.\n(OpenStreetMap Nominatim 사용 · 지점 수에 따라 수 분 소요될 수 있습니다.)`))return;
-  let ok=0,fail=0;
-  const failures=[];
+  const countryFilter=(document.getElementById('countryFilter')?.value||'').trim();
+  const clientFilter=(document.getElementById('clientFilter')?.value||'').trim();
+  const supported=s=>!!geocodeExpectedCountry(s);
+  const targets=sites.filter(s=>!hasValidCoords(s)&&supported(s)&&(!countryFilter||s.country===countryFilter)&&(!clientFilter||String(s.client)===clientFilter));
+  if(!targets.length){alert('현재 필터 기준으로 좌표가 비어 있는 지원 Site가 없습니다.\n지원: Major / SF / Legend / MiraNew / Ayala / SM / GSC / TGV');return;}
+  const scope=[countryFilter||'All supported countries',clientFilter||'All supported exhibitors'].join(' · ');
+  if(!confirm(`${targets.length}개 Site의 이름/주소를 기준으로 좌표를 조회합니다.\n범위: ${scope}\n국가 코드 + 좌표 범위 검증을 통과한 결과만 Supabase에 저장합니다.\n\n※ 정확도를 위해 Country와 Exhibitor 필터를 먼저 선택한 뒤 실행하는 것을 권장합니다.\n(OpenStreetMap Nominatim 사용 · 대량 처리에는 시간이 걸립니다.)`))return;
+  let ok=0,fail=0; const failures=[];
   btn.disabled=true;
   try{
     for(let i=0;i<targets.length;i++){
       const s=targets[i],expected=geocodeExpectedCountry(s);
       btn.textContent=`Geocoding ${i+1}/${targets.length}`;
       try{
-        if(!expected)throw new Error('지원하지 않는 Client');
         const found=await nominatimSearchSite(s,expected);
         if(!found){fail++;failures.push(`${s.client} · ${s.name} — 검색 결과 없음`);continue;}
-        const lat=Number(found.row.lat),lng=Number(found.row.lon);
+        const lat=Number(found.row.lat),lng=Number(found.row.lon),a=found.row.address||{};
         if(!geocodeWithinExpectedBounds(lat,lng,expected))throw new Error('국가 좌표 범위 밖 결과');
         s.lat=lat;s.lng=lng;s.country=expected.name;
-        const site={client_id:s.clientId??null,name:s.name,country:expected.name,city:s.city||'',address:s.address||'',status:s.status||'Operating',format:(s.formats||[]).join(', '),latitude:lat,longitude:lng};
-        await apiV2('site_update',{id:s.id,site});
-        ok++;
-      }catch(e){
-        console.warn('Geocode failed',s.name,e);
-        fail++;failures.push(`${s.client} · ${s.name} — ${e?.message||'실패'}`);
-      }
-      renderMarkers();
-      await new Promise(r=>setTimeout(r,1100));
+        const resolvedCity=s.city||a.city||a.town||a.municipality||a.county||a.state_district||a.state||'';
+        const resolvedAddress=s.address||found.row.display_name||'';
+        const site={client_id:s.clientId??s.client_id??null,name:s.name,country:expected.name,city:resolvedCity,address:resolvedAddress,status:s.status||'Operating',latitude:lat,longitude:lng};
+        await apiV2('site_update',{id:s.id,site}); ok++;
+      }catch(e){console.warn('Geocode failed',s.name,e);fail++;failures.push(`${s.client} · ${s.name} — ${e?.message||'실패'}`);}
+      renderMarkers(); await new Promise(r=>setTimeout(r,1100));
     }
-  }finally{
-    btn.disabled=false;btn.textContent='Geocode Missing';
-  }
+  }finally{btn.disabled=false;btn.textContent='Geocode Missing';}
   await reloadV2Data();
-  const failText=failures.length?'\n\n실패 지점:\n'+failures.slice(0,20).join('\n')+(failures.length>20?`\n외 ${failures.length-20}개`:''):'';
+  const failText=failures.length?'\n\n실패 지점:\n'+failures.slice(0,30).join('\n')+(failures.length>30?`\n외 ${failures.length-30}개`:''):'';
   alert(`좌표 저장 완료: ${ok}개 / 실패: ${fail}개${failText}`);
 }
 window.geocodeMissingSites=geocodeMissingSites;
@@ -545,61 +405,45 @@ function formatSummaryHtml(site){
 }
 
 function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);if(!s)return;selectedSiteId=id;if(mapMode!=='measure'){mapMode=null;document.getElementById('mapHint').style.display='none';}if(!keepCenter&&hasValidCoords(s))map.setView([Number(s.lat),Number(s.lng)],Math.max(map.getZoom(),7));const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div style="margin-top:10px">${formatSummaryHtml(s)}</div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${hasValidCoords(s)?Number(s.lat).toFixed(5)+', '+Number(s.lng).toFixed(5):'Not set'}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
-function showSiteForm(id,latlng){
-  const hasPos=!!latlng;
-  const s=id?sites.find(x=>x.id===id):{id:null,client:'',clientId:null,name:'',country:'',city:'',status:'Planned',formats:[],lat:hasPos?latlng.lat:'',lng:hasPos?latlng.lng:'',address:'',projects:[]};
-  selectedSiteId=id;
-  if(id||hasPos){mapMode=null;document.getElementById('mapHint').style.display='none';}
-  const clientOptions=['<option value="">Select Client</option>',...clientProfiles.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}" ${Number(c.id)===Number(s.clientId)?'selected':''}>${esc(c.name)} · ${esc(c.country||'-')}</option>`)].join('');
-  const fs=new Set((s.formats||[]).map(normalizeMapFormat));
-  document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${id?'Edit Site':'Add Site'}</h2><div class="sub">Site master를 Supabase에 직접 저장합니다.</div></div></div><div class="form">
-  <div class="field"><label>Exhibitor / Client</label><select id="sClientId" onchange="syncSiteCountryFromClient()">${clientOptions}</select></div>
-  <div class="field"><label>Site Name</label><input id="sName" value="${esc(s.name)}"></div>
-  <div class="formGrid"><div class="field"><label>Country</label><input id="sCountry" value="${esc(s.country)}"></div><div class="field"><label>City</label><input id="sCity" value="${esc(s.city)}"></div></div>
-  <div class="field"><label>Address / Place</label><input id="sAddress" value="${esc(s.address)}" placeholder="Full address"><div class="locationActions"><button class="btn" type="button" onclick="geocodeSiteAddress()">주소로 찾기</button><button class="btn" type="button" onclick="pickSiteLocationOnMap()">지도에서 위치 지정</button></div></div>
-  <div class="formGrid"><div class="field"><label>Latitude</label><input id="sLat" value="${s.lat===null||s.lat===undefined||s.lat===''?'':Number(s.lat).toFixed(6)}"></div><div class="field"><label>Longitude</label><input id="sLng" value="${s.lng===null||s.lng===undefined||s.lng===''?'':Number(s.lng).toFixed(6)}"></div></div>
-  <div class="locationActions"><button class="btn" type="button" onclick="applyTypedCoordinates()">좌표 적용 · 지역 자동입력</button></div>
-  <div class="field"><label>Formats</label><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;border:1px solid #e2e8f0;border-radius:9px;padding:10px">
-    <label style="font-size:11px;font-weight:750"><input id="sf4dx" type="checkbox" ${fs.has('4DX')?'checked':''}> 4DX</label>
-    <label style="font-size:11px;font-weight:750"><input id="sfScreenx" type="checkbox" ${fs.has('SCREENX')?'checked':''}> SCREENX</label>
-    <label style="font-size:11px;font-weight:750"><input id="sfUltra" type="checkbox" ${fs.has('ULTRA 4DX')?'checked':''}> ULTRA 4DX</label>
-    <label style="font-size:11px;font-weight:750"><input id="sfImax" type="checkbox" ${fs.has('IMAX')?'checked':''}> IMAX</label>
-  </div></div>
-  <div class="field"><label>Other Formats</label><input id="sOtherFormats" value="${esc((s.formats||[]).filter(f=>!['4DX','SCREENX','ULTRA 4DX','IMAX'].includes(normalizeMapFormat(f))).join(', '))}" placeholder="e.g. MX4D, Dolby Cinema"></div>
-  <div class="field"><label>Status</label><select id="sStatus"><option ${s.status==='Operating'?'selected':''}>Operating</option><option ${s.status==='Planned'?'selected':''}>Planned</option><option ${s.status==='Closed'?'selected':''}>Closed</option></select></div>
-  <div class="actions"><button class="btn" onclick="${id?`showSiteDetail(${id})`:`cancelSiteForm()`}">Cancel</button><button class="btn primary" onclick="saveSite(${id||'null'})">Save Site</button></div></div>`;
-}
-function syncSiteCountryFromClient(){
-  const cp=clientProfiles.find(c=>Number(c.id)===Number(document.getElementById('sClientId')?.value));
-  if(cp&&document.getElementById('sCountry')&&!document.getElementById('sCountry').value.trim())document.getElementById('sCountry').value=cp.country||'';
-}
+function showSiteForm(id,latlng){const hasPos=!!latlng;const s=id?sites.find(x=>x.id===id):{id:null,client:'',name:'',country:'',city:'',status:'Planned',formats:[],lat:hasPos?latlng.lat:'',lng:hasPos?latlng.lng:'',address:'',projects:[]};selectedSiteId=id;if(id||hasPos){mapMode=null;document.getElementById('mapHint').style.display='none';}document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${id?'Edit Site':'Add Site'}</h2><div class="sub">주소 검색, 지도 클릭, 좌표 직접입력 중 편한 방법을 사용하세요.</div></div></div><div class="form"><div class="field"><label>Client</label><input id="sClient" value="${esc(s.client)}"></div><div class="field"><label>Site Name</label><input id="sName" value="${esc(s.name)}"></div><div class="formGrid"><div class="field"><label>Country <small>(자동입력 · 수정 가능)</small></label><input id="sCountry" value="${esc(s.country)}"></div><div class="field"><label>City <small>(자동입력 · 수정 가능)</small></label><input id="sCity" value="${esc(s.city)}"></div></div><div class="field"><label>Address / Place <small>(자동입력 · 수정 가능)</small></label><input id="sAddress" value="${esc(s.address)}" placeholder="예: Taipei 101, Xinyi District 또는 전체 주소"><div class="locationActions"><button class="btn" type="button" onclick="geocodeSiteAddress()">주소로 찾기</button><button class="btn" type="button" onclick="pickSiteLocationOnMap()">지도에서 위치 지정</button></div></div><div class="formGrid"><div class="field"><label>Latitude</label><input id="sLat" value="${s.lat===null||s.lat===undefined||s.lat===''?'':Number(s.lat).toFixed(6)}" placeholder="예: 25.033964"></div><div class="field"><label>Longitude</label><input id="sLng" value="${s.lng===null||s.lng===undefined||s.lng===''?'':Number(s.lng).toFixed(6)}" placeholder="예: 121.564468"></div></div><div class="locationActions"><button class="btn" type="button" onclick="applyTypedCoordinates()">좌표 적용 · 지역 자동입력</button></div><div class="sub" style="margin-top:-2px">좌표를 직접 붙여넣어도 됩니다. 적용하면 지도 이동 + Country / City / Address 자동 조회.</div><div class="field"><label>Formats (comma separated)</label><input id="sFormats" value="${esc(s.formats.join(', '))}"></div><div class="field"><label>Status</label><select id="sStatus"><option ${s.status==='Operating'?'selected':''}>Operating</option><option ${s.status==='Planned'?'selected':''}>Planned</option><option ${s.status==='Closed'?'selected':''}>Closed</option></select></div><div class="actions"><button class="btn" onclick="${id?`showSiteDetail(${id})`:`cancelSiteForm()`}">Cancel</button><button class="btn primary" onclick="saveSite(${id||'null'})">Save Site</button></div></div>`}
+function pickSiteLocationOnMap(){mapMode='pickForm';const h=document.getElementById('mapHint');h.textContent='지도에서 Site 위치를 클릭하세요. 좌표가 자동 입력됩니다.';h.style.display='block';if(map)map.getContainer().scrollIntoView({behavior:'smooth',block:'center'});}
+function placeTemporaryLocation(lat,lng,label){mapToolLayer.clearLayers();map.setView([lat,lng],15);L.circleMarker([lat,lng],{radius:7,weight:2,fillOpacity:.7}).addTo(mapToolLayer);const b=document.getElementById('distanceBadge');b.innerHTML='<b>Location selected</b><br>'+esc(label||`${lat.toFixed(6)}, ${lng.toFixed(6)}`);b.style.display='block'}
+function extractLocationFields(addr={}){return{country:addr.country||'',city:addr.city||addr.town||addr.village||addr.municipality||addr.county||addr.state_district||'',address:''}}
+async function reverseGeocodeSite(lat,lng,{overwriteAddress=true}={}){try{const url=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`;const res=await fetch(url,{headers:{'Accept-Language':'en'}});if(!res.ok)throw new Error('reverse failed');const row=await res.json();const a=row.address||{};const loc=extractLocationFields(a);const country=document.getElementById('sCountry'),city=document.getElementById('sCity'),address=document.getElementById('sAddress');if(country&&loc.country)country.value=loc.country;if(city&&loc.city)city.value=loc.city;if(address&&overwriteAddress&&row.display_name)address.value=row.display_name;placeTemporaryLocation(Number(lat),Number(lng),row.display_name||'Location selected');return row}catch(e){placeTemporaryLocation(Number(lat),Number(lng),'Coordinates applied · location lookup unavailable');return null}}
+async function applyTypedCoordinates(){const lat=Number(document.getElementById('sLat')?.value),lng=Number(document.getElementById('sLng')?.value);if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('Latitude / Longitude 값을 확인해주세요.');return}document.getElementById('sLat').value=lat.toFixed(6);document.getElementById('sLng').value=lng.toFixed(6);await reverseGeocodeSite(lat,lng,{overwriteAddress:true})}
+async function geocodeSiteAddress(){const address=(document.getElementById('sAddress')?.value||'').trim();if(!address){alert('Address / Place를 먼저 입력해주세요.');return}try{const url='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&q='+encodeURIComponent(address);const res=await fetch(url,{headers:{'Accept-Language':'en'}});const rows=await res.json();if(!rows.length){alert('검색 결과가 없습니다. 지도에서 위치 지정을 사용해주세요.');return}const row=rows[0],lat=Number(row.lat),lng=Number(row.lon),a=row.address||{},loc=extractLocationFields(a);document.getElementById('sLat').value=lat.toFixed(6);document.getElementById('sLng').value=lng.toFixed(6);if(loc.country)document.getElementById('sCountry').value=loc.country;if(loc.city)document.getElementById('sCity').value=loc.city;if(row.display_name)document.getElementById('sAddress').value=row.display_name;placeTemporaryLocation(lat,lng,row.display_name);}catch(e){alert('주소 검색에 실패했습니다. 지도에서 위치 지정을 사용해주세요.')}}
 function cancelSiteForm(){selectedSiteId=null;document.getElementById('mapPanel').innerHTML='<div class="panelEmpty"><div><b>Site를 선택하세요</b><br><br>Marker를 클릭하거나 + Add Site를 사용하세요.</div></div>'}
-async function saveSite(id){
-  const clientId=Number(document.getElementById('sClientId')?.value)||null;
-  const name=document.getElementById('sName').value.trim();
-  const lat=Number(document.getElementById('sLat').value),lng=Number(document.getElementById('sLng').value);
-  if(!clientId||!name||!Number.isFinite(lat)||!Number.isFinite(lng)){alert('Client, Site Name, 좌표를 확인해주세요.');return}
-  const site={
-    client_id:clientId,
-    name,
-    country:document.getElementById('sCountry').value.trim(),
-    city:document.getElementById('sCity').value.trim(),
-    address:document.getElementById('sAddress').value.trim(),
-    latitude:lat,longitude:lng,
-    has_4dx:document.getElementById('sf4dx').checked,
-    has_screenx:document.getElementById('sfScreenx').checked,
-    has_ultra4dx:document.getElementById('sfUltra').checked,
-    has_imax:document.getElementById('sfImax').checked,
-    other_formats:document.getElementById('sOtherFormats').value.trim(),
-    status:document.getElementById('sStatus').value
-  };
-  try{
-    if(id)await apiV2('site_update',{id,site});
-    else await apiV2('site_create',{site});
-    await reloadV2Data();
-    const saved=id?sites.find(s=>s.id===Number(id)):sites.slice().sort((a,b)=>b.id-a.id)[0];
-    if(saved)showSiteDetail(saved.id,true);
-  }catch(err){alert('Site 저장 실패: '+err.message)}
+function saveSite(id){const obj={client:document.getElementById('sClient').value.trim(),name:document.getElementById('sName').value.trim(),country:document.getElementById('sCountry').value.trim(),city:document.getElementById('sCity').value.trim(),address:document.getElementById('sAddress').value.trim(),lat:Number(document.getElementById('sLat').value),lng:Number(document.getElementById('sLng').value),formats:document.getElementById('sFormats').value.split(',').map(x=>x.trim()).filter(Boolean),status:document.getElementById('sStatus').value};if(!obj.name||!Number.isFinite(obj.lat)||!Number.isFinite(obj.lng)){alert('Site Name과 좌표를 확인해주세요.');return}if(id){Object.assign(sites.find(x=>x.id===id),obj)}else{id=Math.max(...sites.map(x=>x.id))+1;sites.push({id,...obj,projects:[]})}renderMarkers();showSiteDetail(id,true)}
+function moveSite(id){selectedSiteId=id;mapMode='move';document.getElementById('mapHint').textContent='새 Marker 위치를 지도에서 클릭하세요.';document.getElementById('mapHint').style.display='block'}
+function openProjectFromMap(id){selectedProjectId=id;renderProjectList();renderProjectDetail();showPage('projectsPage',document.querySelector('[data-page="projectsPage"]'))}
+
+
+
+
+let kmlRows=[],kmlIgnoredShapes=0,kmlFilter='ready';
+function openKmlImport(){kmlRows=[];kmlIgnoredShapes=0;kmlFilter='ready';document.getElementById('kmlFile').value='';document.getElementById('kmlSummary').textContent='KML 또는 KMZ 파일을 선택해주세요.';document.getElementById('kmlPreview').innerHTML='';document.getElementById('kmlImportBtn').disabled=true;document.getElementById('kmlModal').classList.add('open')}
+function closeKmlImport(){document.getElementById('kmlModal').classList.remove('open')}
+function normName(v){return String(v||'').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9가-힣]+/g,' ').trim()}
+function distanceKm(a,b){const R=6371,toRad=x=>x*Math.PI/180,dLat=toRad(b.lat-a.lat),dLng=toRad(b.lng-a.lng),x=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function findKmlDuplicate(row){return sites.find(s=>normName(s.name)===normName(row.name))||sites.find(s=>hasValidCoords(s)&&distanceKm(s,row)<0.08)||null}
+function placemarkText(pm,key){const target=normName(key);for(const d of [...pm.getElementsByTagName('Data')])if(normName(d.getAttribute('name'))===target)return d.getElementsByTagName('value')[0]?.textContent?.trim()||'';for(const d of [...pm.getElementsByTagName('SimpleData')])if(normName(d.getAttribute('name'))===target)return d.textContent?.trim()||'';return ''}
+function parseKmlDescription(text){const out={},plain=String(text||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'\n');plain.split(/\n+/).forEach(line=>{const m=line.match(/^\s*([^:=]+)\s*[:=]\s*(.+)\s*$/);if(m)out[normName(m[1])]=m[2].trim()});return out}
+function directChildText(node,tag){for(const ch of [...node.children])if((ch.localName||ch.tagName||'').toLowerCase()===tag.toLowerCase())return ch.textContent?.trim()||'';return ''}
+function kmlFolderName(pm){let n=pm.parentElement;while(n){if((n.localName||'').toLowerCase()==='folder')return directChildText(n,'name');n=n.parentElement}return ''}
+function kmlClientForFolder(folder,siteName=''){const f=normName(folder),n=normName(siteName),aliases=[];if(f.startsWith('ayala cinema'))aliases.push('Ayala Malls Cinemas','Ayala Cinemas','Ayala Cinema');else if(f.includes('megaworld'))aliases.push('Megaworld Cinemas','Megaworld Cinema');else if(f.includes('walter mart'))aliases.push('Walter Mart Cinema','WalterMart Cinema','Walter Mart Cinemas');else if(f.includes('vista'))aliases.push('Vista Cinemas','Vista Cinema');else if(f.includes('robinsons'))aliases.push('Robinsons Movieworld','Robinsons');else if(f.includes('sm cinemas'))aliases.push('SM Cinemas','SM Cinema');const names=getAllClientNames();for(const a of aliases){const hit=names.find(x=>normName(x)===normName(a));if(hit)return hit}for(const a of aliases){const an=normName(a),hit=names.find(x=>normName(x).includes(an)||an.includes(normName(x)));if(hit)return hit}return names.find(x=>n===normName(x)||n.startsWith(normName(x)+' '))||''}
+async function getKmlTextFromFile(file){if(String(file.name||'').toLowerCase().endsWith('.kmz')){if(typeof JSZip==='undefined')throw new Error('KMZ 압축 해제 모듈을 불러오지 못했습니다.');const zip=await JSZip.loadAsync(await file.arrayBuffer()),names=Object.keys(zip.files).filter(n=>!zip.files[n].dir&&n.toLowerCase().endsWith('.kml'));if(!names.length)throw new Error('KMZ 안에서 KML 파일을 찾지 못했습니다.');const preferred=names.find(n=>/(^|\/)doc\.kml$/i.test(n))||names[0];return zip.files[preferred].async('string')}return file.text()}
+async function readKmlFile(file){if(!file)return;try{const text=await getKmlTextFromFile(file),xml=new DOMParser().parseFromString(text,'application/xml');if(xml.querySelector('parsererror'))throw new Error('KML/KMZ 형식을 읽을 수 없습니다.');const pms=[...xml.getElementsByTagName('Placemark')];kmlRows=[];kmlIgnoredShapes=0;pms.forEach((pm,i)=>{const point=pm.getElementsByTagName('Point')[0],shape=pm.getElementsByTagName('LineString')[0]||pm.getElementsByTagName('Polygon')[0],name=directChildText(pm,'name'),folder=kmlFolderName(pm),desc=parseKmlDescription(directChildText(pm,'description')),address=directChildText(pm,'address')||placemarkText(pm,'address')||desc.address||directChildText(pm,'description')||'',client=placemarkText(pm,'client')||desc.client||desc.company||kmlClientForFolder(folder,name),country=placemarkText(pm,'country')||desc.country||'',city=placemarkText(pm,'city')||desc.city||'',formats=placemarkText(pm,'formats')||placemarkText(pm,'format')||desc.formats||desc.format||'';if(shape&&!point){kmlIgnoredShapes++;return}if(!point){if(name||address)kmlRows.push({name:name||'(Missing name)',folder,client,country,city,address,formats,status:'Operating',lat:null,lng:null,selected:false,mode:'geocode',kind:'geocode',duplicate:null});return}const coord=point.getElementsByTagName('coordinates')[0]?.textContent?.trim().split(/\s+/)[0];if(!coord)return;const [lng,lat]=coord.split(',').map(Number);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;const row={name:name||`(Missing name ${i+1})`,folder,client,country,city,address,formats,status:'Operating',lat,lng,selected:!!name,mode:'add',kind:name?'ready':'missing',duplicate:null};row.duplicate=findKmlDuplicate(row);if(row.duplicate){row.mode='skip';row.selected=false;row.kind='duplicate'}kmlRows.push(row)});renderKmlPreview()}catch(err){document.getElementById('kmlSummary').textContent='KML/KMZ 읽기 실패: '+err.message;document.getElementById('kmlPreview').innerHTML='';document.getElementById('kmlImportBtn').disabled=true}}
+function kmlRowVisible(r){return kmlFilter==='all'||(kmlFilter==='unassigned'?r.kind!=='geocode'&&!r.client:r.kind===kmlFilter)}
+function setKmlFilter(v){kmlFilter=v;renderKmlPreview()}
+function setKmlSelection(flag){kmlRows.forEach(r=>{if(kmlRowVisible(r)&&r.kind==='ready'&&r.client)r.selected=flag});renderKmlPreview()}
+function updateKmlRow(i,key,value){
+  const r=kmlRows[i]; if(!r)return;
+  r[key]=value;
+  if(key==='client'){
+    if(!value){r.selected=false;}
+    else if(r.kind==='ready'){r.selected=true;}
+  }
+  renderKmlPreview();
 }
 function renderKmlPreview(){
   const el=document.getElementById('kmlPreview'),
@@ -693,7 +537,7 @@ function normalizeProjectRow(r){
 }
 function normalizeMaster(data){
   if(Array.isArray(data.clients)&&data.clients.length){
-    clientProfiles=data.clients.map(c=>({id:c.id,name:c.name,country:c.country||'',type:c.type||'Exhibitor',status:c.status||'Active',note:c.note||'',cjClientOrder:c.cj_client_order==null?null:Number(c.cj_client_order),contacts:[]}));
+    clientProfiles=data.clients.map(c=>({id:c.id,name:c.name,country:c.country||'',type:c.type||'Exhibitor',status:c.status||'Active',note:c.note||'',contacts:[]}));
   }
   if(Array.isArray(data.sites)){
     sites=data.sites.map(x=>{const rawFormats=Array.isArray(x.formats)?x.formats:(x.formats?String(x.formats).split(/[,/]/).map(v=>v.trim()).filter(Boolean):[]);const cjFormats=[x.has_screenx===true?'SCREENX':null,x.has_4dx===true?'4DX':null,x.has_ultra4dx===true?'ULTRA 4DX':null].filter(Boolean);const linkedClient=data.clients?.find(c=>Number(c.id)===Number(x.client_id));return{id:Number(x.id),clientId:x.client_id??null,client:x.client||x.client_name||linkedClient?.name||'',name:x.name||`Site ${x.id}`,country:x.country||'',city:x.city||'',status:x.status||'Operating',formats:[...new Set([...rawFormats,...cjFormats])],lat:(x.latitude!==null&&x.latitude!==undefined&&x.latitude!==''?Number(x.latitude):(x.lat!==null&&x.lat!==undefined&&x.lat!==''?Number(x.lat):null)),lng:(x.longitude!==null&&x.longitude!==undefined&&x.longitude!==''?Number(x.longitude):(x.lng!==null&&x.lng!==undefined&&x.lng!==''?Number(x.lng):null)),address:x.address||'',projects:[]}});
@@ -1055,44 +899,25 @@ function deleteHistoryLocal(i){if(confirm('이 History를 삭제할까요?')){pr
 
 window.addEventListener('load',async()=>{initMap();await reloadV2Data();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail();renderDashboard()});
 
-let editingClientId=null;
 function openAddClient(){
-  editingClientId=null;
   const b=document.getElementById('clientModalBackdrop');if(!b)return;
-  document.getElementById('clientModalTitle').textContent='Add Client';
   ['newClientName','newClientCountry','newClientNote'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
-  document.getElementById('newClientOrder').value='';
-  const err=document.getElementById('clientFormError');if(err){err.style.display='none';err.textContent=''}
+  const type=document.getElementById('newClientType'),status=document.getElementById('newClientStatus'),err=document.getElementById('clientFormError');
+  if(type)type.value='Exhibitor'; if(status)status.value='Active'; if(err){err.style.display='none';err.textContent=''}
   b.classList.add('show');setTimeout(()=>document.getElementById('newClientName')?.focus(),0);
 }
-function openEditClient(){
-  const c=clientProfile(selectedClient);if(!c?.id)return;
-  editingClientId=Number(c.id);
-  document.getElementById('clientModalTitle').textContent='Edit Client';
-  document.getElementById('newClientName').value=c.name||'';
-  document.getElementById('newClientCountry').value=c.country||'';
-  document.getElementById('newClientNote').value=c.note||'';
-  document.getElementById('newClientOrder').value=c.cjClientOrder||'';
-  document.getElementById('clientFormError').style.display='none';
-  document.getElementById('clientModalBackdrop').classList.add('show');
-}
 function closeAddClient(){document.getElementById('clientModalBackdrop')?.classList.remove('show')}
-async function saveNewClient(){
+function saveNewClient(){
   const name=(document.getElementById('newClientName')?.value||'').trim();
-  const country=(document.getElementById('newClientCountry')?.value||'').trim();
+  const country=(document.getElementById('newClientCountry')?.value||'').trim()||'-';
+  const type=document.getElementById('newClientType')?.value||'Exhibitor';
+  const status=document.getElementById('newClientStatus')?.value||'Active';
   const note=(document.getElementById('newClientNote')?.value||'').trim();
-  const orderRaw=document.getElementById('newClientOrder')?.value||'';
-  const cj_client_order=orderRaw===''?null:Number(orderRaw);
   const err=document.getElementById('clientFormError');
   if(!name){if(err){err.textContent='Client Name을 입력해주세요.';err.style.display='block'};return}
-  try{
-    const payload={name,country,notes:note,cj_client_order};
-    if(editingClientId)await apiV2('client_update',{id:editingClientId,client:payload});
-    else await apiV2('client_create',{client:payload});
-    selectedClient=name;selectedClientTab='overview';closeAddClient();
-    await reloadV2Data();
-    renderClientList();renderClientDetail();renderMarkers();
-  }catch(e){if(err){err.textContent='저장 실패: '+e.message;err.style.display='block'}}
+  if(clientProfiles.some(c=>c.name.toLowerCase()===name.toLowerCase())){if(err){err.textContent='같은 이름의 Client가 이미 있습니다.';err.style.display='block'};return}
+  clientProfiles.push({name,country,type,status,note,contacts:[]});
+  selectedClient=name; selectedClientTab='overview'; closeAddClient(); renderClientList(); renderClientDetail();
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddClient();closeCommercialModal()}});
 
@@ -1132,24 +957,20 @@ function renderClientList(){
   document.getElementById('allClientsBtn')?.classList.toggle('active',clientScope==='all');
   if(names.length && !names.includes(selectedClient)) selectedClient=names[0];
   const el=document.getElementById('clientList');if(!el)return;
-  el.innerHTML=names.map(n=>{const cp=clientProfile(n),pc=projects.filter(p=>p.client===n).length,sc=sites.filter(s=>s.client===n).length;return `<div class="clientItem ${n===selectedClient?'active':''}" onclick="selectClient(${JSON.stringify(n).replace(/"/g,'&quot;')})"><b>${esc(n)}</b><small>${esc(cp.country)} · ${pc} Projects · ${sc} Sites${cp.cjClientOrder?` · CJ ${cp.cjClientOrder}${cp.cjClientOrder===1?'st':cp.cjClientOrder===2?'nd':'rd'}`:''}</small></div>`}).join('')||`<div class="panelEmpty">${clientScope==='relevant'?'관련 Client가 없습니다. All Clients에서 전체 Master를 볼 수 있습니다.':'No clients'}</div>`;
+  el.innerHTML=names.map(n=>{const cp=clientProfile(n),pc=projects.filter(p=>p.client===n).length,sc=sites.filter(s=>s.client===n).length;return `<div class="clientItem ${n===selectedClient?'active':''}" onclick="selectClient(${JSON.stringify(n).replace(/"/g,'&quot;')})"><b>${esc(n)}</b><small>${esc(cp.country)} · ${pc} Projects · ${sc} Sites</small></div>`}).join('')||`<div class="panelEmpty">${clientScope==='relevant'?'관련 Client가 없습니다. All Clients에서 전체 Master를 볼 수 있습니다.':'No clients'}</div>`;
 }
 function selectClient(name){selectedClient=name;selectedClientTab='overview';renderClientList();renderClientDetail()}
 function setClientTab(tab){selectedClientTab=tab;renderClientDetail()}
-function renderClientDetail(){const el=document.getElementById('clientDetail');if(!el)return;if(!selectedClient){el.innerHTML='<div class="placeholder">Client를 선택해주세요.</div>';return}const c=clientProfile(selectedClient),ps=projects.filter(p=>p.client===selectedClient),ss=sites.filter(s=>s.client===selectedClient),active=ps.filter(p=>p.status==='Pending'||p.status==='On Hold').length,opened=ps.filter(p=>p.status==='Opened').length;el.innerHTML=`<div class="clientHero"><div><h2>${esc(c.name)}</h2><div class="sub">${esc(c.country)} · ${esc(c.type)}</div><div style="margin-top:8px"><span class="pill green">${esc(c.status)}</span></div></div><div class="toolbar"><button class="btn" onclick="openEditClient()">Edit Client</button></div></div><div class="clientTabs">${['overview','sites','projects','commercial','meetings','documents','contacts'].map(t=>`<button class="clientTab ${selectedClientTab===t?'active':''}" onclick="setClientTab('${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div><div class="clientBody" id="clientTabBody"></div>`;renderClientTab(c,ps,ss,active,opened)}
-function renderClientTab(c,ps,ss,active,opened){const el=document.getElementById('clientTabBody');if(selectedClientTab==='overview'){const primary=c.contacts.find(x=>x.primary)||c.contacts[0];el.innerHTML=`<div class="clientStats"><div class="clientStat"><label>Active Projects</label><strong>${active}</strong></div><div class="clientStat"><label>Opened Projects</label><strong>${opened}</strong></div><div class="clientStat"><label>Sites</label><strong>${ss.length}</strong></div><div class="clientStat"><label>Contacts</label><strong>${c.contacts.length}</strong></div></div><div class="clientTwoCol"><div class="clientSection"><h3>Client Overview</h3><div class="clientDataRow"><div><b>Country / Region</b><small>${esc(c.country)}</small></div></div><div class="clientDataRow"><div><b>Client Type</b><small>${esc(c.type)}</small></div></div><div class="clientDataRow"><div><b>CJ Client Order</b><small>${c.cjClientOrder?`${c.cjClientOrder}${c.cjClientOrder===1?'st':c.cjClientOrder===2?'nd':'rd'} Client · ${c.cjClientOrder===1?'Blue':c.cjClientOrder===2?'Red':'Green'}`:'Non-CJ · Gray'}</small></div></div><div class="clientDataRow"><div><b>Notes</b><small>${esc(c.note||'-')}</small></div></div></div><div class="clientSection"><h3>Primary Contact</h3>${primary?`<div class="contactRow"><div><b>${esc(primary.name)} ${primary.primary?'<span class="pill">Primary</span>':''}</b><small>${esc(primary.role)}<br>${esc(primary.email)} · ${esc(primary.phone)}</small></div><button class="tiny" onclick="setClientTab('contacts')">View</button></div>`:'<div class="sub">No contacts yet.</div>'}<div style="margin-top:12px"><b style="font-size:11px">Upcoming / Attention</b>${ps.filter(p=>p.status!=='Opened').slice(0,3).map(p=>`<div class="clientDataRow"><div><b>${esc(p.name)} · ${esc(p.format)}</b><small>${esc(p.stage)} · Signing ${esc(p.signing)} · Opening ${esc(p.opening)}</small></div><button class="tiny" onclick="openClientProject(${p.id})">Open</button></div>`).join('')||'<div class="sub" style="margin-top:8px">No active projects.</div>'}</div></div></div>`}else if(selectedClientTab==='sites'){el.innerHTML=`<div class="historyTop"><div><b>Sites · ${ss.length}</b><div class="sub">Map의 Site 데이터를 Client 기준으로 모아봅니다.</div></div><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div><table class="clientTable"><thead><tr><th>Site</th><th>City / Country</th><th>Formats</th><th>Status</th><th></th></tr></thead><tbody>${ss.map(x=>`<tr class="clickable" onclick="openClientSite(${x.id})"><td><b>${esc(x.name)}</b></td><td>${esc(x.city)}, ${esc(x.country)}</td><td>${x.formats.map(esc).join(' / ')}</td><td>${esc(x.status)}</td><td>View Map →</td></tr>`).join('')||'<tr><td colspan="5">No sites</td></tr>'}</tbody></table>`}else if(selectedClientTab==='projects'){el.innerHTML=`<div class="historyTop"><div><b>Projects · ${ps.length}</b><div class="sub">Pending부터 Opened까지 Client의 전체 Project history</div></div></div><table class="clientTable"><thead><tr><th>Project</th><th>Format</th><th>Status</th><th>Stage</th><th>Signing</th><th>Opening</th></tr></thead><tbody>${ps.map(p=>`<tr class="clickable" onclick="openClientProject(${p.id})"><td><b>${esc(p.name)}</b></td><td>${esc(p.format)}</td><td>${esc(p.status)}</td><td>${esc(p.stage)}</td><td>${esc(p.signing)}</td><td>${esc(p.opening)}</td></tr>`).join('')||'<tr><td colspan="6">No projects</td></tr>'}</tbody></table>`}else if(selectedClientTab==='contacts'){el.innerHTML=`<div class="historyTop"><div><b>Contacts · ${c.contacts.length}</b><div class="sub">Project별 담당자와 연결할 Client contact master</div></div><button class="btn primary" onclick="alert('실제 구축 시 Add Contact 폼')">+ Add Contact</button></div><div class="clientSection">${c.contacts.map(x=>`<div class="contactRow"><div><b>${esc(x.name)} ${x.primary?'<span class="pill">Primary</span>':''}</b><small>${esc(x.role)}<br>${esc(x.email)} · ${esc(x.phone)}</small></div><button class="tiny" onclick="alert('Contact Edit 폼으로 연결 예정')">Edit</button></div>`).join('')||'<div class="sub">No contacts yet.</div>'}</div>`}else if(selectedClientTab==='commercial'){const cr=commercialRecords.filter(r=>r.client===c.name).sort((a,b)=>(b.date||'').localeCompare(a.date||''));el.innerHTML=`<div class="historyTop"><div><b>Commercial History · ${cr.length}</b><div class="sub">Client에서 새 Commercial을 추가하고 Project에 연결할 수 있습니다.</div></div><button class="btn primary" onclick="openAddCommercial()">+ Add Commercial</button></div>${cr.length?cr.map(r=>{const p=projects.find(x=>x.id===r.projectId);return `<div class="commercialCard"><div class="commercialCardTop"><div><b>${esc(p?p.name:'Client-level Commercial')} ${p?'· '+esc(p.format):''}</b><div class="sub">${esc(r.round||'Round')} · ${esc(r.date||'-')} · From ${esc(r.from||'-')} · ${esc(r.bm||'-')}</div></div><div class="toolbar"><button class="tiny" onclick="editClientCommercial(${r.id})">Edit</button>${p?`<button class="tiny" onclick="openClientProjectCommercial(${p.id})">Open Project</button>`:''}</div></div><div class="commercialTerms"><div class="commercialTerm"><label>System Fee</label><b>${esc(r.systemFee||'-')}</b></div><div class="commercialTerm"><label>Revenue Share</label><b>${esc(r.revenueShare||'-')}</b></div><div class="commercialTerm"><label>Content Fee</label><b>${esc(r.contentFee||'-')}</b></div><div class="commercialTerm"><label>Supervision Fee</label><b>${esc(r.supervisionFee||'-')}</b></div><div class="commercialTerm"><label>Payment</label><b>${esc(r.payment||'-')}</b></div><div class="commercialTerm"><label>Notes</label><b>${esc(r.notes||'-')}</b></div></div></div>`}).join(''):'<div class="placeholder">No commercial records yet. + Add Commercial로 첫 기록을 추가하세요.</div>'}` }else if(selectedClientTab==='meetings'){el.innerHTML=`<div class="placeholder"><b>${esc(c.name)} Meetings</b><br><br>Project/Client에 연결된 미팅을 날짜순으로 모으는 영역입니다.<br><span class="sub">예시: 2026.08.27 · Commercial Review · Linked Project: Taipei Xinyi #5</span></div>`}else{el.innerHTML=`<div class="placeholder"><b>${esc(c.name)} Documents</b><br><br>계약서 · Proposal · Quotation · 도면 등을 Client 기준으로 모으는 영역입니다.</div>`}}
+function renderClientDetail(){const el=document.getElementById('clientDetail');if(!el)return;if(!selectedClient){el.innerHTML='<div class="placeholder">Client를 선택해주세요.</div>';return}const c=clientProfile(selectedClient),ps=projects.filter(p=>p.client===selectedClient),ss=sites.filter(s=>s.client===selectedClient),active=ps.filter(p=>p.status==='Pending'||p.status==='On Hold').length,opened=ps.filter(p=>p.status==='Opened').length;el.innerHTML=`<div class="clientHero"><div><h2>${esc(c.name)}</h2><div class="sub">${esc(c.country)} · ${esc(c.type)}</div><div style="margin-top:8px"><span class="pill green">${esc(c.status)}</span></div></div><div class="toolbar"><button class="btn" onclick="alert('Client 기본정보 Edit 폼으로 연결 예정')">Edit Client</button></div></div><div class="clientTabs">${['overview','sites','projects','commercial','meetings','documents','contacts'].map(t=>`<button class="clientTab ${selectedClientTab===t?'active':''}" onclick="setClientTab('${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div><div class="clientBody" id="clientTabBody"></div>`;renderClientTab(c,ps,ss,active,opened)}
+function renderClientTab(c,ps,ss,active,opened){const el=document.getElementById('clientTabBody');if(selectedClientTab==='overview'){const primary=c.contacts.find(x=>x.primary)||c.contacts[0];el.innerHTML=`<div class="clientStats"><div class="clientStat"><label>Active Projects</label><strong>${active}</strong></div><div class="clientStat"><label>Opened Projects</label><strong>${opened}</strong></div><div class="clientStat"><label>Sites</label><strong>${ss.length}</strong></div><div class="clientStat"><label>Contacts</label><strong>${c.contacts.length}</strong></div></div><div class="clientTwoCol"><div class="clientSection"><h3>Client Overview</h3><div class="clientDataRow"><div><b>Country / Region</b><small>${esc(c.country)}</small></div></div><div class="clientDataRow"><div><b>Client Type</b><small>${esc(c.type)}</small></div></div><div class="clientDataRow"><div><b>Notes</b><small>${esc(c.note||'-')}</small></div></div></div><div class="clientSection"><h3>Primary Contact</h3>${primary?`<div class="contactRow"><div><b>${esc(primary.name)} ${primary.primary?'<span class="pill">Primary</span>':''}</b><small>${esc(primary.role)}<br>${esc(primary.email)} · ${esc(primary.phone)}</small></div><button class="tiny" onclick="setClientTab('contacts')">View</button></div>`:'<div class="sub">No contacts yet.</div>'}<div style="margin-top:12px"><b style="font-size:11px">Upcoming / Attention</b>${ps.filter(p=>p.status!=='Opened').slice(0,3).map(p=>`<div class="clientDataRow"><div><b>${esc(p.name)} · ${esc(p.format)}</b><small>${esc(p.stage)} · Signing ${esc(p.signing)} · Opening ${esc(p.opening)}</small></div><button class="tiny" onclick="openClientProject(${p.id})">Open</button></div>`).join('')||'<div class="sub" style="margin-top:8px">No active projects.</div>'}</div></div></div>`}else if(selectedClientTab==='sites'){el.innerHTML=`<div class="historyTop"><div><b>Sites · ${ss.length}</b><div class="sub">Map의 Site 데이터를 Client 기준으로 모아봅니다.</div></div><button class="btn" onclick="showPage('mapPage',document.querySelector('[data-page=mapPage]'))">Open Map</button></div><table class="clientTable"><thead><tr><th>Site</th><th>City / Country</th><th>Formats</th><th>Status</th><th></th></tr></thead><tbody>${ss.map(x=>`<tr class="clickable" onclick="openClientSite(${x.id})"><td><b>${esc(x.name)}</b></td><td>${esc(x.city)}, ${esc(x.country)}</td><td>${x.formats.map(esc).join(' / ')}</td><td>${esc(x.status)}</td><td>View Map →</td></tr>`).join('')||'<tr><td colspan="5">No sites</td></tr>'}</tbody></table>`}else if(selectedClientTab==='projects'){el.innerHTML=`<div class="historyTop"><div><b>Projects · ${ps.length}</b><div class="sub">Pending부터 Opened까지 Client의 전체 Project history</div></div></div><table class="clientTable"><thead><tr><th>Project</th><th>Format</th><th>Status</th><th>Stage</th><th>Signing</th><th>Opening</th></tr></thead><tbody>${ps.map(p=>`<tr class="clickable" onclick="openClientProject(${p.id})"><td><b>${esc(p.name)}</b></td><td>${esc(p.format)}</td><td>${esc(p.status)}</td><td>${esc(p.stage)}</td><td>${esc(p.signing)}</td><td>${esc(p.opening)}</td></tr>`).join('')||'<tr><td colspan="6">No projects</td></tr>'}</tbody></table>`}else if(selectedClientTab==='contacts'){el.innerHTML=`<div class="historyTop"><div><b>Contacts · ${c.contacts.length}</b><div class="sub">Project별 담당자와 연결할 Client contact master</div></div><button class="btn primary" onclick="alert('실제 구축 시 Add Contact 폼')">+ Add Contact</button></div><div class="clientSection">${c.contacts.map(x=>`<div class="contactRow"><div><b>${esc(x.name)} ${x.primary?'<span class="pill">Primary</span>':''}</b><small>${esc(x.role)}<br>${esc(x.email)} · ${esc(x.phone)}</small></div><button class="tiny" onclick="alert('Contact Edit 폼으로 연결 예정')">Edit</button></div>`).join('')||'<div class="sub">No contacts yet.</div>'}</div>`}else if(selectedClientTab==='commercial'){const cr=commercialRecords.filter(r=>r.client===c.name).sort((a,b)=>(b.date||'').localeCompare(a.date||''));el.innerHTML=`<div class="historyTop"><div><b>Commercial History · ${cr.length}</b><div class="sub">Client에서 새 Commercial을 추가하고 Project에 연결할 수 있습니다.</div></div><button class="btn primary" onclick="openAddCommercial()">+ Add Commercial</button></div>${cr.length?cr.map(r=>{const p=projects.find(x=>x.id===r.projectId);return `<div class="commercialCard"><div class="commercialCardTop"><div><b>${esc(p?p.name:'Client-level Commercial')} ${p?'· '+esc(p.format):''}</b><div class="sub">${esc(r.round||'Round')} · ${esc(r.date||'-')} · From ${esc(r.from||'-')} · ${esc(r.bm||'-')}</div></div><div class="toolbar"><button class="tiny" onclick="editClientCommercial(${r.id})">Edit</button>${p?`<button class="tiny" onclick="openClientProjectCommercial(${p.id})">Open Project</button>`:''}</div></div><div class="commercialTerms"><div class="commercialTerm"><label>System Fee</label><b>${esc(r.systemFee||'-')}</b></div><div class="commercialTerm"><label>Revenue Share</label><b>${esc(r.revenueShare||'-')}</b></div><div class="commercialTerm"><label>Content Fee</label><b>${esc(r.contentFee||'-')}</b></div><div class="commercialTerm"><label>Supervision Fee</label><b>${esc(r.supervisionFee||'-')}</b></div><div class="commercialTerm"><label>Payment</label><b>${esc(r.payment||'-')}</b></div><div class="commercialTerm"><label>Notes</label><b>${esc(r.notes||'-')}</b></div></div></div>`}).join(''):'<div class="placeholder">No commercial records yet. + Add Commercial로 첫 기록을 추가하세요.</div>'}` }else if(selectedClientTab==='meetings'){el.innerHTML=`<div class="placeholder"><b>${esc(c.name)} Meetings</b><br><br>Project/Client에 연결된 미팅을 날짜순으로 모으는 영역입니다.<br><span class="sub">예시: 2026.08.27 · Commercial Review · Linked Project: Taipei Xinyi #5</span></div>`}else{el.innerHTML=`<div class="placeholder"><b>${esc(c.name)} Documents</b><br><br>계약서 · Proposal · Quotation · 도면 등을 Client 기준으로 모으는 영역입니다.</div>`}}
 
 function openClientAddSite(){
   const client=selectedClient;
   showPage('mapPage',document.querySelector('[data-page=mapPage]'));
   setTimeout(()=>{
     startAddSite();
-    const cp=clientProfile(client);
-    const input=document.getElementById('sClientId');
-    if(input && cp?.id){
-      input.value=String(cp.id);
-      syncSiteCountryFromClient();
-    }
+    const input=document.getElementById('sClient');
+    if(input)input.value=client;
   },100);
 }
 function openAddCommercial(){
@@ -1204,10 +1025,12 @@ function openClientSite(id){showPage('mapPage',document.querySelector('[data-pag
   <div class="clientModal" role="dialog" aria-modal="true" aria-labelledby="clientModalTitle">
     <div class="clientModalHead"><h3 id="clientModalTitle">Add Client</h3><button class="tiny" onclick="closeAddClient()">✕</button></div>
     <div class="clientModalBody">
-      <div class="full"><label>Client Name *</label><input id="newClientName" placeholder="e.g. Scope Cinema"></div>
-      <div class="full"><label>Country / Region</label><input id="newClientCountry" placeholder="e.g. Sri Lanka"></div>
-      <div class="full"><label>CJ Client Order / Marker Color</label><select id="newClientOrder"><option value="">Non-CJ · Gray</option><option value="1">1st Client · Blue</option><option value="2">2nd Client · Red</option><option value="3">3rd Client · Green</option></select></div>
-      <div class="full"><label>Notes</label><textarea id="newClientNote" placeholder="Relationship, contract, market context..."></textarea></div>
+      <div class="full"><label>Client Name *</label><input id="newClientName" placeholder="e.g. Vieshow"></div>
+      <div><label>Country / Region</label><input id="newClientCountry" placeholder="e.g. Taiwan"></div>
+      <div><label>Client Type</label><select id="newClientType"><option>Exhibitor</option><option>Partner</option><option>Distributor</option><option>Developer</option><option>Other</option></select></div>
+      <div><label>Status</label><select id="newClientStatus"><option>Active</option><option>Prospect</option><option>Inactive</option></select></div>
+      <div></div>
+      <div class="full"><label>Notes</label><textarea id="newClientNote" placeholder="Relationship, market context, key notes..."></textarea></div>
       <div id="clientFormError" class="clientFormError"></div>
     </div>
     <div class="clientModalFoot"><button class="btn" onclick="closeAddClient()">Cancel</button><button class="btn primary" onclick="saveNewClient()">Save Client</button></div>
