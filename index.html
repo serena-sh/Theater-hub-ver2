@@ -310,9 +310,9 @@ function finishDistanceMeasure(){
 
 function geocodeExpectedCountry(site){
   const client=normName(site?.client);
-  if(client==='miranew cinemas') return {code:'tw',name:'Taiwan',bounds:{minLat:21.8,maxLat:25.5,minLng:119.2,maxLng:122.2}};
-  if(client==='ayala malls cinemas'||client==='sm cinema') return {code:'ph',name:'Philippines',bounds:{minLat:4.3,maxLat:21.3,minLng:116.8,maxLng:127.0}};
-  if(client==='golden screen cinemas (gsc)'||client==='golden screen cinemas'||client==='gsc'||client==='tgv cinemas'||client==='tgv') return {code:'my',name:'Malaysia',bounds:{minLat:0.8,maxLat:7.6,minLng:99.5,maxLng:119.5}};
+  if(['miranew','miranew cinemas'].includes(client)) return {code:'tw',name:'Taiwan',bounds:{minLat:21.8,maxLat:25.5,minLng:119.2,maxLng:122.2}};
+  if(['ayala cinemas','ayala malls cinemas','sm cinema'].includes(client)) return {code:'ph',name:'Philippines',bounds:{minLat:4.3,maxLat:21.3,minLng:116.8,maxLng:127.0}};
+  if(['golden screen cinema','golden screen cinemas (gsc)','golden screen cinemas','gsc','tgv cinemas','tgv'].includes(client)) return {code:'my',name:'Malaysia',bounds:{minLat:0.8,maxLat:7.6,minLng:99.5,maxLng:119.5}};
   return null;
 }
 function geocodeWithinExpectedBounds(lat,lng,expected){
@@ -344,7 +344,7 @@ async function nominatimSearchSite(site,expected){
 }
 async function geocodeMissingSites(){
   const btn=document.getElementById('geocodeMissingBtn');
-  const targets=sites.filter(s=>!hasValidCoords(s)&&s.address&&['miranew cinemas','ayala malls cinemas','sm cinema','golden screen cinemas (gsc)','golden screen cinemas','gsc','tgv cinemas','tgv'].includes(normName(s.client)));
+  const targets=sites.filter(s=>!hasValidCoords(s)&&s.address&&['miranew','miranew cinemas','ayala cinemas','ayala malls cinemas','sm cinema','golden screen cinema','golden screen cinemas (gsc)','golden screen cinemas','gsc','tgv cinemas','tgv'].includes(normName(s.client)));
   if(!targets.length){alert('MiraNew / Ayala / SM / GSC / TGV 중 좌표가 비어 있는 Site가 없습니다.');return;}
   if(!confirm(`${targets.length}개 Site의 주소를 기준으로 좌표를 조회합니다.\nTaiwan/Philippines/Malaysia 국가 필터 + 좌표 범위 검증을 통과한 결과만 Supabase에 저장합니다.\n(OpenStreetMap Nominatim 사용 · 지점 수에 따라 수 분 소요될 수 있습니다.)`))return;
   let ok=0,fail=0;
