@@ -74,6 +74,10 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 .multiFilterOptions label:hover{background:#f8fafc}
 .multiFilterOptions input{margin:0}
 
+
+.multiFilterSearch{width:100%;box-sizing:border-box;border:1px solid #dbe2ea;border-radius:7px;padding:7px 9px;margin-bottom:6px;font-size:11px;outline:none}
+.multiFilterSearch:focus{border-color:#94a3b8}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
@@ -109,13 +113,13 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
         <div class="card mapCard">
           <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="renderMarkers()"><div class="mapMultiFilter" id="countryMultiFilter">
   <button type="button" class="search multiFilterBtn" onclick="toggleMapMultiFilter('countryMultiFilter',event)">All Countries ▾</button>
-  <div class="multiFilterMenu" onclick="event.stopPropagation()"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('country')">Clear</button></div></div>
+  <div class="multiFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('country')">Clear</button></div></div>
 </div><div class="mapMultiFilter" id="clientMultiFilter">
   <button type="button" class="search multiFilterBtn" onclick="toggleMapMultiFilter('clientMultiFilter',event)">All Exhibitors ▾</button>
-  <div class="multiFilterMenu" onclick="event.stopPropagation()"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('client')">Clear</button></div></div>
+  <div class="multiFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('client')">Clear</button></div></div>
 </div><div class="formatMultiFilter" id="formatMultiFilter">
   <button type="button" class="search formatFilterBtn" onclick="toggleFormatMenu(event)">All Formats ▾</button>
-  <div class="formatFilterMenu" onclick="event.stopPropagation()">
+  <div class="formatFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)">
     <label><input type="checkbox" value="4DX" onchange="onFormatFilterChange()"> 4DX</label>
     <label><input type="checkbox" value="SCREENX" onchange="onFormatFilterChange()"> SCREENX</label>
     <label><input type="checkbox" value="ULTRA 4DX" onchange="onFormatFilterChange()"> ULTRA 4DX</label>
@@ -282,7 +286,9 @@ function updateFormatFilterLabel(){
 }
 function toggleFormatMenu(e){
   if(e)e.stopPropagation();
-  document.getElementById('formatMultiFilter')?.classList.toggle('open');
+  const root=document.getElementById('formatMultiFilter');
+  root?.classList.toggle('open');
+  if(root?.classList.contains('open'))focusMultiFilterSearch(root);
 }
 function onFormatFilterChange(){updateFormatFilterLabel();renderMarkers()}
 function clearFormatFilters(){
@@ -328,10 +334,22 @@ function updateMapMultiLabel(kind){
   const manyLabel=kind==='country'?'Countries':'Exhibitors';
   btn.textContent=!selected.length?`${allLabel} ▾`:selected.length===1?`${selected[0]} ▾`:`${manyLabel} (${selected.length}) ▾`;
 }
+function filterMultiOptions(input){
+  const menu=input.closest('.multiFilterMenu,.formatFilterMenu');
+  const q=String(input.value||'').trim().toLowerCase();
+  menu?.querySelectorAll('label').forEach(label=>{
+    label.style.display=!q||label.textContent.toLowerCase().includes(q)?'flex':'none';
+  });
+}
+function focusMultiFilterSearch(root){
+  setTimeout(()=>root?.querySelector('.multiFilterSearch')?.focus(),0);
+}
 function toggleMapMultiFilter(id,e){
   if(e)e.stopPropagation();
   document.querySelectorAll('.mapMultiFilter,.formatMultiFilter').forEach(x=>{if(x.id!==id)x.classList.remove('open')});
-  document.getElementById(id)?.classList.toggle('open');
+  const root=document.getElementById(id);
+  root?.classList.toggle('open');
+  if(root?.classList.contains('open'))focusMultiFilterSearch(root);
 }
 function renderMultiOptions(rootId,values,selected,kind){
   const root=document.getElementById(rootId);if(!root)return;
