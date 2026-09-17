@@ -198,6 +198,8 @@ const CJ_CLIENT_ENTRY_ORDER={
     'gsc':1
   },
   'New Zealand': {
+    'event cinemas':1,
+    'evt':1,
     'hoyts':3,
     'hoyts cinema':3
   }
@@ -205,6 +207,7 @@ const CJ_CLIENT_ENTRY_ORDER={
 function cjClientEntryOrder(site){
   // Known Supabase client IDs: use these first so display-name variations cannot break marker colors.
   const clientId=Number(site?.clientId ?? site?.client_id);
+  if(clientId===2 && ['Australia','New Zealand'].includes(String(site?.country||'').trim())) return 1; // Event Cinemas
   if(clientId===6) return 1;   // Ayala Cinemas · Philippines
   if(clientId===20) return 1;  // Golden Screen Cinema · Malaysia
 
