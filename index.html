@@ -59,7 +59,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v23-fixed</span></div>
+    <div class="brand"><b>Theater Hub 2.0</b><span>Actual build · v22</span></div>
     <div class="nav">
       <button class="active" data-page="dashboardPage" onclick="showPage('dashboardPage',this)">Dashboard</button>
       <button data-page="mapPage" onclick="showPage('mapPage',this)">Map</button>
@@ -187,33 +187,16 @@ const CJ_CLIENT_ENTRY_ORDER={
   }
 };
 function cjClientEntryOrder(site){
-  // DB 표기 흔들림(Australia/AU, EVENT/EVT, Village Cinemas Australia 등) 때문에
-  // 정상 Site가 회색(Other)으로 떨어지지 않도록 국가/극장사명을 정규화한다.
-  const rawCountry=String(site?.country||'').trim().toLowerCase();
-  const rawClient=String(site?.client||'').trim().toLowerCase().replace(/\s+/g,' ');
-
-  let country=String(site?.country||'').trim();
-  if(rawCountry==='au'||rawCountry.includes('australia')) country='Australia';
-  else if(rawCountry==='nz'||rawCountry.includes('new zealand')) country='New Zealand';
-  else if(rawCountry==='tw'||rawCountry.includes('taiwan')) country='Taiwan';
-
-  // 호주는 DB의 실제 client 표기가 조금 달라도 동일 체인으로 인식
-  if(country==='Australia'){
-    if(/\b(event cinemas?|evt)\b/.test(rawClient)) return 1;
-    if(/\bvillage cinemas?\b/.test(rawClient)) return 2;
-    if(/\bhoyts?( cinema(s)?)?\b/.test(rawClient)) return 3;
-  }
-  if(country==='New Zealand' && /\bhoyts?( cinema(s)?)?\b/.test(rawClient)) return 3;
-  if(country==='Taiwan'){
-    if(/vie\s*show|vieshow/.test(rawClient)) return 1;
-    if(/showtime/.test(rawClient)) return 2;
-  }
-
-  return CJ_CLIENT_ENTRY_ORDER[country]?.[rawClient]||null;
+  const country=String(site?.country||'').trim();
+  const client=String(site?.client||'').trim().toLowerCase();
+  return CJ_CLIENT_ENTRY_ORDER[country]?.[client]||null;
+}
+function markerColor(site){
+  const order=cjClientEntryOrder(site);
+  return order===1?'#2563eb':order===2?'#dc2626':order===3?'#16a34a':'#64748b';
 }
 function markerIcon(site){
-  const order=cjClientEntryOrder(site);
-  const color=order===1?'#2563eb':order===2?'#dc2626':order===3?'#16a34a':'#64748b';
+  const color=markerColor(site);
   return L.divIcon({className:'',html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 5px #475569"></div>`,iconSize:[15,15],iconAnchor:[8,8]});
 }
 function cjEntryLabel(site){const n=cjClientEntryOrder(site);return n?`${n}${n===1?'st':n===2?'nd':'rd'} CJ Client`:'Other / Not set'}
@@ -262,7 +245,7 @@ function renderMarkers(){
   scope.filter(hasValidCoords).forEach(s=>{
     L.marker([s.lat,s.lng],{icon:markerIcon(s)})
       .addTo(markerLayer)
-      .bindTooltip(`${s.client||'Unassigned'} · ${s.name}<br>${cjEntryLabel(s)}`)
+      .bindTooltip(`<b style="color:${markerColor(s)}">${esc(s.client||'Unassigned')}</b> · ${esc(s.name)}<br>CJ 4DPLEX FORMAT : ${splitSiteFormats(s).cj.length?splitSiteFormats(s).cj.map(f=>`<b>${esc(f)}</b>`).join(' · '):'<span style="color:#64748b">None</span>'}`,{direction:'top',opacity:.96})
       .on('click',(e)=>{
         if(mapMode==='measure'){
           L.DomEvent.stopPropagation(e);
@@ -813,24 +796,7 @@ function closeHistoryModal(){document.getElementById('historyModal').classList.r
 function saveHistoryLocal(){const h={date:document.getElementById('hDate').value,type:document.getElementById('hType').value,title:document.getElementById('hTitle').value.trim()||'History update',before:document.getElementById('hBefore').value.trim(),after:document.getElementById('hAfter').value.trim(),note:document.getElementById('hNote').value.trim()};const p=projects.find(x=>x.id===selectedProjectId);if(editHistoryIndex===null)p.history.unshift(h);else p.history[editHistoryIndex]=h;p.updated=h.date||p.updated;closeHistoryModal();renderProjectDetail();renderProjectList()}
 function deleteHistoryLocal(i){if(confirm('이 History를 삭제할까요?')){projects.find(x=>x.id===selectedProjectId).history.splice(i,1);renderProjectDetail()}}
 
-window.addEventListener('load',async()=>{
-  try{
-    if(typeof L==='undefined') throw new Error('Leaflet library failed to load. 인터넷 연결 또는 CDN 접근을 확인해주세요.');
-    initMap();
-    await reloadV2Data();
-    refreshMapFilters();
-    renderMarkers();
-    renderProjectList();
-    renderProjectDetail();
-    renderClientList();
-    renderClientDetail();
-    renderDashboard();
-  }catch(err){
-    console.error('Theater Hub startup failed',err);
-    const db=document.getElementById('dbStatus');
-    if(db) db.textContent='Startup warning · '+(err?.message||err);
-  }
-});
+window.addEventListener('load',async()=>{initMap();await reloadV2Data();renderProjectList();renderProjectDetail();renderClientList();renderClientDetail();renderDashboard()});
 
 function openAddClient(){
   const b=document.getElementById('clientModalBackdrop');if(!b)return;
