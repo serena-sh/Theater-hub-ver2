@@ -250,6 +250,7 @@ const CJ_CLIENT_ENTRY_ORDER={
 function cjClientEntryOrder(site){
   // Known Supabase client IDs: use these first so display-name variations cannot break marker colors.
   const clientId=Number(site?.clientId ?? site?.client_id);
+  if(clientId===46 && String(site?.country||'').trim()==='Sri Lanka') return 1; // Scope Cinema · Sri Lanka
   if(clientId===2 && ['Australia','New Zealand'].includes(String(site?.country||'').trim())) return 1; // Event Cinemas
   if(clientId===6) return 1;   // Ayala Cinemas · Philippines
   if(clientId===20) return 1;  // Golden Screen Cinema · Malaysia
