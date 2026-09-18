@@ -83,6 +83,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 
 /* v6 dashboard KPI stacked progress */
 .kpiProgressRow{display:grid;grid-template-columns:110px minmax(0,1fr) 78px;gap:10px;align-items:center;padding:12px 0;border-top:1px solid #eef2f7}.kpiProgressRow:first-of-type{border-top:0}.kpiProgressTrack{height:12px;display:flex;border-radius:99px;overflow:hidden;background:transparent;border:1px solid #dbe3ec}.kpiProgressActual{height:100%;background:#2563eb;color:#fff}.kpiProgressFuture{height:100%;background:#cbd5e1;color:#334155}.kpiProgressGap{height:100%;background:transparent;color:#64748b}.kpiProgressActual,.kpiProgressFuture,.kpiProgressGap{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;line-height:1;overflow:visible;white-space:nowrap}.kpiProgressGap{border-left:1px dashed #cbd5e1}.kpiProgressValue{text-align:right;font-size:11px;white-space:nowrap}.kpiProgressValue b{font-size:12px}.kpiProgressValue small{display:block;color:var(--muted);margin-top:1px}.kpiLegend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:9px;color:#64748b}.kpiLegend span{display:flex;align-items:center;gap:5px}.kpiLegend i{display:inline-block;width:10px;height:10px;border-radius:3px}.kpiLegend .actual{background:#2563eb}.kpiLegend .future{background:#cbd5e1}.kpiLegend .gap{background:transparent;border:1px dashed #94a3b8}
+.kpiTooltip{position:fixed;z-index:5000;display:none;min-width:240px;max-width:360px;max-height:280px;overflow:auto;background:#0f172a;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 12px 35px rgba(15,23,42,.28);font-size:10px;line-height:1.45;pointer-events:none}.kpiTooltip b{display:block;font-size:11px;margin-bottom:6px}.kpiTooltipItem{padding:5px 0;border-top:1px solid rgba(255,255,255,.12)}.kpiTooltipItem:first-of-type{border-top:0}.kpiTooltipItem small{display:block;color:#cbd5e1;margin-top:1px}.kpiProgressActual,.kpiProgressFuture,.kpiProgressGap{cursor:default}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
@@ -943,17 +944,27 @@ function scheduleDateInfo(value,year){
 function kpiProgressStats(field,year,target){
   const now=new Date(); now.setHours(23,59,59,999);
   const rows=projects.map(p=>({p,info:scheduleDateInfo(p[field],year)})).filter(x=>x.info);
-  const actual=rows.filter(x=>x.info.date<=now).length;
-  const future=rows.length-actual;
+  const actualRows=rows.filter(x=>x.info.date<=now), futureRows=rows.filter(x=>x.info.date>now);
+  const actual=actualRows.length, future=futureRows.length;
   const t=Math.max(0,Number(target)||0);
   const scale=Math.max(t,rows.length,1);
   const gap=Math.max(0,t-rows.length);
-  return {actual,future,gap,total:rows.length,target:t,scale,rows};
+  return {actual,future,gap,total:rows.length,target:t,scale,rows,actualRows,futureRows};
 }
+function kpiTooltipHtml(label,type,stats){
+  const map={actual:['진행',stats.actualRows],future:['예정',stats.futureRows],gap:['목표 잔여',[]]};
+  const [name,rows]=map[type];
+  if(type==='gap')return `<b>${esc(label)} · ${name} ${stats.gap}건</b><div>아직 Project 일정이 지정되지 않은 목표 ${stats.gap}건</div>`;
+  return `<b>${esc(label)} · ${name} ${rows.length}건</b>${rows.map(x=>`<div class="kpiTooltipItem">${esc(x.p.client||'-')} · ${esc(x.p.name||'-')}<small>${esc(x.info.label||'-')}</small></div>`).join('')||'<div>해당 Project가 없습니다.</div>'}`;
+}
+function showKpiTooltip(e,html){let t=document.getElementById('kpiTooltip');if(!t){t=document.createElement('div');t.id='kpiTooltip';t.className='kpiTooltip';document.body.appendChild(t)}t.innerHTML=html;t.style.display='block';moveKpiTooltip(e)}
+function moveKpiTooltip(e){const t=document.getElementById('kpiTooltip');if(!t||t.style.display==='none')return;const pad=14,w=t.offsetWidth,h=t.offsetHeight;t.style.left=Math.min(window.innerWidth-w-8,e.clientX+pad)+'px';t.style.top=Math.min(window.innerHeight-h-8,e.clientY+pad)+'px'}
+function hideKpiTooltip(){const t=document.getElementById('kpiTooltip');if(t)t.style.display='none'}
 function kpiProgressRow(label,stats){
   const pct=n=>Math.max(0,Math.min(100,n/stats.scale*100));
   const forecastPct=stats.target?Math.round(stats.total/stats.target*100):null;
-  return `<div class="kpiProgressRow"><b>${label}</b><div class="kpiProgressTrack" title="진행 ${stats.actual} · 예정 ${stats.future} · 목표 잔여 ${stats.gap}"><span class="kpiProgressActual" style="width:${pct(stats.actual)}%">${stats.actual||''}</span><span class="kpiProgressFuture" style="width:${pct(stats.future)}%">${stats.future||''}</span><span class="kpiProgressGap" style="width:${pct(stats.gap)}%">${stats.gap||''}</span></div><div class="kpiProgressValue"><b>${stats.target?`${stats.total} / ${stats.target}`:stats.total}</b><small>${forecastPct===null?'Target not set':`${forecastPct}%`}</small></div></div>`;
+  const seg=(cls,n,type)=>`<span class="${cls}" style="width:${pct(n)}%" onmouseenter="showKpiTooltip(event,decodeURIComponent('${encodeURIComponent(kpiTooltipHtml(label,type,stats))}'))" onmousemove="moveKpiTooltip(event)" onmouseleave="hideKpiTooltip()">${n||''}</span>`;
+  return `<div class="kpiProgressRow"><b>${label}</b><div class="kpiProgressTrack">${seg('kpiProgressActual',stats.actual,'actual')}${seg('kpiProgressFuture',stats.future,'future')}${seg('kpiProgressGap',stats.gap,'gap')}</div><div class="kpiProgressValue"><b>${stats.target?`${stats.total} / ${stats.target}`:stats.total}</b><small>${forecastPct===null?'Target not set':`${forecastPct}%`}</small></div></div>`;
 }
 
 function renderDashboard(){
