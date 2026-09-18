@@ -1,69 +1,108 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
+
 /* =========================================================
    COMMON
 ========================================================= */
 
 function json(res, status, body) {
   res.status(status);
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
 
-  // Master DB data should always be fresh.
+  res.setHeader(
+    "Content-Type",
+    "application/json; charset=utf-8"
+  );
+
   res.setHeader(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate"
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
   );
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
 
-  res.end(JSON.stringify(body));
+  res.setHeader(
+    "Pragma",
+    "no-cache"
+  );
+
+  res.setHeader(
+    "Expires",
+    "0"
+  );
+
+  res.end(
+    JSON.stringify(body)
+  );
 }
+
 
 function headers(extra = {}) {
   return {
-    apikey: SUPABASE_KEY,
-    Authorization: `Bearer ${SUPABASE_KEY}`,
-    "Content-Type": "application/json",
+    apikey:
+      SUPABASE_KEY,
+
+    Authorization:
+      `Bearer ${SUPABASE_KEY}`,
+
+    "Content-Type":
+      "application/json",
+
     ...extra,
   };
 }
 
+
 async function sb(path, options = {}) {
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
+  if (
+    !SUPABASE_URL ||
+    !SUPABASE_KEY
+  ) {
     throw new Error(
       "Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY"
     );
   }
 
-  const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/${path}`,
-    {
-      ...options,
-      headers: headers(options.headers || {}),
-    }
-  );
+  const response =
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/${path}`,
+      {
+        ...options,
 
-  const text = await response.text();
+        headers:
+          headers(
+            options.headers || {}
+          ),
+      }
+    );
+
+  const text =
+    await response.text();
 
   let data = null;
 
   try {
-    data = text ? JSON.parse(text) : null;
+    data =
+      text
+        ? JSON.parse(text)
+        : null;
   } catch {
     data = text;
   }
 
   if (!response.ok) {
-    let message = `Supabase request failed (${response.status})`;
+    let message =
+      `Supabase request failed (${response.status})`;
 
-    if (typeof data === "object" && data) {
+    if (
+      typeof data === "object" &&
+      data
+    ) {
       message =
         data.message ||
         data.hint ||
         JSON.stringify(data);
     } else if (data) {
-      message = String(data);
+      message =
+        String(data);
     }
 
     throw new Error(message);
@@ -72,29 +111,36 @@ async function sb(path, options = {}) {
   return data;
 }
 
+
 /*
- * IMPORTANT
- * Supabase/PostgREST can limit a single SELECT response.
- *
- * The old master() called sb() only once for sites, so after the
- * database became large, newly added Site rows could be missing
- * from /api/v2-projects?action=master.
- *
- * This function keeps requesting pages until every row is loaded.
+ * Supabase / PostgREST 기본 반환 제한을 피하기 위한
+ * 전체 페이지 조회 함수
  */
-async function sbAll(path, pageSize = 1000) {
+async function sbAll(
+  path,
+  pageSize = 1000
+) {
   const all = [];
+
   let start = 0;
 
   while (true) {
-    const end = start + pageSize - 1;
+    const end =
+      start + pageSize - 1;
 
-    const rows = await sb(path, {
-      headers: {
-        Range: `${start}-${end}`,
-        "Range-Unit": "items",
-      },
-    });
+    const rows =
+      await sb(
+        path,
+        {
+          headers: {
+            Range:
+              `${start}-${end}`,
+
+            "Range-Unit":
+              "items",
+          },
+        }
+      );
 
     if (!Array.isArray(rows)) {
       return rows || [];
@@ -102,7 +148,9 @@ async function sbAll(path, pageSize = 1000) {
 
     all.push(...rows);
 
-    if (rows.length < pageSize) {
+    if (
+      rows.length < pageSize
+    ) {
       break;
     }
 
@@ -112,11 +160,20 @@ async function sbAll(path, pageSize = 1000) {
   return all;
 }
 
-const q = (value) =>
-  encodeURIComponent(String(value));
 
-const isoDate = () =>
-  new Date().toISOString().slice(0, 10);
+const q =
+  value =>
+    encodeURIComponent(
+      String(value)
+    );
+
+
+const isoDate =
+  () =>
+    new Date()
+      .toISOString()
+      .slice(0, 10);
+
 
 function siteName(row) {
   return (
@@ -128,51 +185,89 @@ function siteName(row) {
   );
 }
 
-function splitFormats(value) {
-  if (!value) return [];
 
-  if (Array.isArray(value)) {
+function splitFormats(value) {
+  if (!value) {
+    return [];
+  }
+
+  if (
+    Array.isArray(value)
+  ) {
     return value
       .map(String)
-      .map(v => v.trim())
+      .map(
+        value =>
+          value.trim()
+      )
       .filter(Boolean);
   }
 
   return String(value)
     .split(/[,/]/)
-    .map(v => v.trim())
+    .map(
+      value =>
+        value.trim()
+    )
     .filter(Boolean);
 }
 
-function getSiteFormats(site = {}) {
+
+function getSiteFormats(
+  site = {}
+) {
   const formats = [];
 
-  if (site.has_4dx === true) {
+  if (
+    site.has_4dx === true
+  ) {
     formats.push("4DX");
   }
 
-  if (site.has_screenx === true) {
+  if (
+    site.has_screenx === true
+  ) {
     formats.push("ScreenX");
   }
 
-  if (site.has_ultra4dx === true) {
-    formats.push("ULTRA 4DX");
+  if (
+    site.has_ultra4dx === true
+  ) {
+    formats.push(
+      "ULTRA 4DX"
+    );
   }
 
-  if (site.has_imax === true) {
+  if (
+    site.has_imax === true
+  ) {
     formats.push("IMAX");
   }
 
-  for (const format of splitFormats(site.other_formats)) {
-    if (!formats.includes(format)) {
-      formats.push(format);
+  for (
+    const format
+    of splitFormats(
+      site.other_formats
+    )
+  ) {
+    if (
+      !formats.includes(
+        format
+      )
+    ) {
+      formats.push(
+        format
+      );
     }
   }
 
   return formats;
 }
 
-function numberOrNull(value) {
+
+function numberOrNull(
+  value
+) {
   if (
     value === null ||
     value === undefined ||
@@ -181,10 +276,13 @@ function numberOrNull(value) {
     return null;
   }
 
-  const n = Number(value);
+  const number =
+    Number(value);
 
-  return Number.isFinite(n)
-    ? n
+  return Number.isFinite(
+    number
+  )
+    ? number
     : null;
 }
 
@@ -194,162 +292,194 @@ function numberOrNull(value) {
 ========================================================= */
 
 async function master() {
-  /*
-   * Use sbAll here rather than sb.
-   *
-   * This is the key fix for:
-   * - Legend Cinema only showing a couple of Sites
-   * - Major Cineplex Sites disappearing
-   * - SF Cinema Sites disappearing
-   */
-  const [clientsRaw, sitesRaw] =
+  const [
+    clientsRaw,
+    sitesRaw,
+  ] =
     await Promise.all([
       sbAll(
         "clients?select=*&order=name.asc"
       ),
+
       sbAll(
         "sites?select=*&order=id.asc"
       ),
     ]);
 
+
   const clientMap =
     new Map(
-      (clientsRaw || []).map(client => [
-        Number(client.id),
-        client.name ||
-          `Client ${client.id}`,
-      ])
+      (clientsRaw || [])
+        .map(
+          client => [
+            Number(
+              client.id
+            ),
+
+            client.name ||
+              `Client ${client.id}`,
+          ]
+        )
     );
 
+
   const clients =
-    (clientsRaw || []).map(client => ({
-      id:
-        Number(client.id),
+    (clientsRaw || [])
+      .map(
+        client => ({
+          id:
+            Number(
+              client.id
+            ),
 
-      name:
-        client.name ||
-        `Client ${client.id}`,
+          name:
+            client.name ||
+            `Client ${client.id}`,
 
-      country:
-        client.country ||
-        client.region ||
-        client.country_region ||
-        "",
+          country:
+            client.country ||
+            client.region ||
+            client.country_region ||
+            "",
 
-      type:
-        client.client_type ||
-        client.type ||
-        "Exhibitor",
+          type:
+            client.client_type ||
+            client.type ||
+            "Exhibitor",
 
-      status:
-        client.status ||
-        "Active",
+          status:
+            client.status ||
+            "Active",
 
-      note:
-        client.notes ||
-        client.note ||
-        "",
+          note:
+            client.notes ||
+            client.note ||
+            "",
 
-      cj_client_order:
-        client.cj_client_order == null
-          ? null
-          : Number(client.cj_client_order),
-    }));
+          cj_client_order:
+            client.cj_client_order ==
+            null
+              ? null
+              : Number(
+                  client.cj_client_order
+                ),
+        })
+      );
+
 
   const sites =
-    (sitesRaw || []).map(site => ({
-      id:
-        Number(site.id),
+    (sitesRaw || [])
+      .map(
+        site => ({
+          id:
+            Number(
+              site.id
+            ),
 
-      client_id:
-        site.client_id == null
-          ? null
-          : Number(site.client_id),
+          client_id:
+            site.client_id ==
+            null
+              ? null
+              : Number(
+                  site.client_id
+                ),
 
-      client:
-        clientMap.get(
-          Number(site.client_id)
-        ) ||
-        site.client_name ||
-        "",
+          client:
+            clientMap.get(
+              Number(
+                site.client_id
+              )
+            ) ||
+            site.client_name ||
+            "",
 
-      name:
-        siteName(site),
+          name:
+            siteName(
+              site
+            ),
 
-      country:
-        site.country ||
-        "",
+          country:
+            site.country ||
+            "",
 
-      city:
-        site.city ||
-        site.area ||
-        "",
+          city:
+            site.city ||
+            site.area ||
+            "",
 
-      area:
-        site.area ||
-        "",
+          area:
+            site.area ||
+            "",
 
-      address:
-        site.address ||
-        site.address_text ||
-        "",
+          address:
+            site.address ||
+            site.address_text ||
+            "",
 
-      status:
-        site.status ||
-        "Operating",
+          status:
+            site.status ||
+            "Operating",
 
-      formats:
-        getSiteFormats(site),
+          formats:
+            getSiteFormats(
+              site
+            ),
 
-      has_4dx:
-        site.has_4dx === true,
+          has_4dx:
+            site.has_4dx ===
+            true,
 
-      has_screenx:
-        site.has_screenx === true,
+          has_screenx:
+            site.has_screenx ===
+            true,
 
-      has_ultra4dx:
-        site.has_ultra4dx === true,
+          has_ultra4dx:
+            site.has_ultra4dx ===
+            true,
 
-      has_imax:
-        site.has_imax === true,
+          has_imax:
+            site.has_imax ===
+            true,
 
-      other_formats:
-        site.other_formats ||
-        "",
+          other_formats:
+            site.other_formats ||
+            "",
 
-      latitude:
-        numberOrNull(
-          site.latitude
-        ),
+          latitude:
+            numberOrNull(
+              site.latitude
+            ),
 
-      longitude:
-        numberOrNull(
-          site.longitude
-        ),
+          longitude:
+            numberOrNull(
+              site.longitude
+            ),
 
-      // Front-end compatibility
-      lat:
-        numberOrNull(
-          site.latitude
-        ),
+          // Front-end compatibility
+          lat:
+            numberOrNull(
+              site.latitude
+            ),
 
-      lng:
-        numberOrNull(
-          site.longitude
-        ),
+          lng:
+            numberOrNull(
+              site.longitude
+            ),
 
-      notes:
-        site.notes ||
-        "",
+          notes:
+            site.notes ||
+            "",
 
-      source:
-        site.source ||
-        "",
+          source:
+            site.source ||
+            "",
 
-      format_verification:
-        site.format_verification ||
-        "",
-    }));
+          format_verification:
+            site.format_verification ||
+            "",
+        })
+      );
+
 
   return {
     clients,
@@ -364,23 +494,35 @@ async function master() {
 
 async function listProjects() {
   const rows =
-    await sb(
+    await sbAll(
       "projects?select=*&order=updated_at.desc"
     );
 
+
   const history =
-    await sb(
+    await sbAll(
       "project_history?select=*&order=event_date.desc,created_at.desc"
     );
+
 
   const historyMap =
     new Map();
 
-  for (const item of history || []) {
-    const projectId =
-      Number(item.project_id);
 
-    if (!historyMap.has(projectId)) {
+  for (
+    const item
+    of history || []
+  ) {
+    const projectId =
+      Number(
+        item.project_id
+      );
+
+    if (
+      !historyMap.has(
+        projectId
+      )
+    ) {
       historyMap.set(
         projectId,
         []
@@ -392,51 +534,73 @@ async function listProjects() {
       .push(item);
   }
 
+
   const masterData =
     await master();
 
+
   const clientMap =
     new Map(
-      masterData.clients.map(client => [
-        client.id,
-        client.name,
-      ])
+      masterData.clients
+        .map(
+          client => [
+            client.id,
+            client.name,
+          ]
+        )
     );
+
 
   const siteMap =
     new Map(
-      masterData.sites.map(site => [
-        site.id,
-        site.name,
-      ])
+      masterData.sites
+        .map(
+          site => [
+            site.id,
+            site.name,
+          ]
+        )
     );
 
-  return (rows || []).map(row => ({
-    ...row,
 
-    client:
-      clientMap.get(
-        Number(row.client_id)
-      ) ||
-      row.client_name_snapshot ||
-      "Unassigned",
+  return (rows || [])
+    .map(
+      row => ({
+        ...row,
 
-    site:
-      siteMap.get(
-        Number(row.site_id)
-      ) ||
-      row.site_name_snapshot ||
-      null,
+        client:
+          clientMap.get(
+            Number(
+              row.client_id
+            )
+          ) ||
+          row.client_name_snapshot ||
+          "Unassigned",
 
-    history:
-      historyMap.get(
-        Number(row.id)
-      ) ||
-      [],
-  }));
+        site:
+          siteMap.get(
+            Number(
+              row.site_id
+            )
+          ) ||
+          row.site_name_snapshot ||
+          null,
+
+        history:
+          historyMap.get(
+            Number(
+              row.id
+            )
+          ) ||
+          [],
+      })
+    );
 }
 
-function cleanProject(project = {}) {
+
+function cleanProject(
+  project = {}
+) {
   const allowed = [
     "client_id",
     "site_id",
@@ -457,14 +621,21 @@ function cleanProject(project = {}) {
     "source_label",
   ];
 
+
   const output = {};
 
-  for (const key of allowed) {
+
+  for (
+    const key
+    of allowed
+  ) {
     if (
-      Object.prototype.hasOwnProperty.call(
-        project,
-        key
-      )
+      Object.prototype
+        .hasOwnProperty
+        .call(
+          project,
+          key
+        )
     ) {
       output[key] =
         project[key] === ""
@@ -473,40 +644,67 @@ function cleanProject(project = {}) {
     }
   }
 
-  if (output.client_id === "null") {
-    output.client_id = null;
-  }
-
-  if (output.site_id === "null") {
-    output.site_id = null;
-  }
 
   if (
-    output.client_id !== undefined &&
-    output.client_id !== null
+    output.client_id ===
+    "null"
   ) {
     output.client_id =
-      Number(output.client_id);
+      null;
   }
 
+
   if (
-    output.site_id !== undefined &&
-    output.site_id !== null
+    output.site_id ===
+    "null"
   ) {
     output.site_id =
-      Number(output.site_id);
+      null;
   }
+
+
+  if (
+    output.client_id !==
+      undefined &&
+    output.client_id !==
+      null
+  ) {
+    output.client_id =
+      Number(
+        output.client_id
+      );
+  }
+
+
+  if (
+    output.site_id !==
+      undefined &&
+    output.site_id !==
+      null
+  ) {
+    output.site_id =
+      Number(
+        output.site_id
+      );
+  }
+
 
   return output;
 }
 
-async function oneProject(id) {
+
+async function oneProject(
+  id
+) {
   const rows =
     await sb(
       `projects?id=eq.${q(id)}&select=*`
     );
 
-  return rows?.[0] || null;
+  return (
+    rows?.[0] ||
+    null
+  );
 }
 
 
@@ -520,7 +718,9 @@ async function createHistory(
 ) {
   const payload = {
     project_id:
-      Number(projectId),
+      Number(
+        projectId
+      ),
 
     event_date:
       history.event_date ||
@@ -551,11 +751,13 @@ async function createHistory(
       "Manual",
   };
 
+
   const rows =
     await sb(
       "project_history",
       {
-        method: "POST",
+        method:
+          "POST",
 
         headers: {
           Prefer:
@@ -563,11 +765,17 @@ async function createHistory(
         },
 
         body:
-          JSON.stringify(payload),
+          JSON.stringify(
+            payload
+          ),
       }
     );
 
-  return rows?.[0] || null;
+
+  return (
+    rows?.[0] ||
+    null
+  );
 }
 
 
@@ -575,47 +783,72 @@ async function createHistory(
    CLIENT PAYLOAD
 ========================================================= */
 
-function cleanClient(client = {}) {
+function cleanClient(
+  client = {}
+) {
   const output = {};
 
-  if (client.name !== undefined) {
-    output.name =
-      client.name || null;
-  }
-
-  if (client.country !== undefined) {
-    output.country =
-      client.country || null;
-  }
-
-  if (client.notes !== undefined) {
-    output.notes =
-      client.notes || null;
-  }
 
   if (
-    client.cj_client_order !== undefined
+    client.name !==
+    undefined
+  ) {
+    output.name =
+      client.name ||
+      null;
+  }
+
+
+  if (
+    client.country !==
+    undefined
+  ) {
+    output.country =
+      client.country ||
+      null;
+  }
+
+
+  if (
+    client.notes !==
+    undefined
+  ) {
+    output.notes =
+      client.notes ||
+      null;
+  }
+
+
+  if (
+    client.cj_client_order !==
+    undefined
   ) {
     const order =
-      client.cj_client_order === "" ||
-      client.cj_client_order === null
+      client.cj_client_order ===
+        "" ||
+      client.cj_client_order ===
+        null
         ? null
         : Number(
             client.cj_client_order
           );
 
+
     if (
       order !== null &&
-      ![1, 2, 3].includes(order)
+      ![1, 2, 3]
+        .includes(order)
     ) {
       throw new Error(
         "cj_client_order must be 1, 2, 3, or null"
       );
     }
 
+
     output.cj_client_order =
       order;
   }
+
 
   return output;
 }
@@ -625,107 +858,191 @@ function cleanClient(client = {}) {
    SITE PAYLOAD
 ========================================================= */
 
-function cleanSite(site = {}) {
+function cleanSite(
+  site = {}
+) {
   const output = {};
 
+
   if (
-    site.client_id !== undefined
+    site.client_id !==
+    undefined
   ) {
     output.client_id =
       site.client_id === "" ||
       site.client_id === null
         ? null
-        : Number(site.client_id);
+        : Number(
+            site.client_id
+          );
   }
 
-  if (site.name !== undefined) {
+
+  if (
+    site.name !==
+    undefined
+  ) {
     output.name =
-      site.name || null;
+      site.name ||
+      null;
   }
 
-  if (site.country !== undefined) {
+
+  if (
+    site.country !==
+    undefined
+  ) {
     output.country =
-      site.country || null;
+      site.country ||
+      null;
   }
 
-  if (site.city !== undefined) {
+
+  if (
+    site.city !==
+    undefined
+  ) {
     output.city =
-      site.city || null;
+      site.city ||
+      null;
   }
 
-  if (site.area !== undefined) {
+
+  if (
+    site.area !==
+    undefined
+  ) {
     output.area =
-      site.area || null;
+      site.area ||
+      null;
   }
 
-  if (site.address !== undefined) {
+
+  if (
+    site.address !==
+    undefined
+  ) {
     output.address =
-      site.address || null;
+      site.address ||
+      null;
   }
 
-  if (site.status !== undefined) {
+
+  if (
+    site.status !==
+    undefined
+  ) {
     output.status =
-      site.status || null;
+      site.status ||
+      null;
   }
+
 
   const latitude =
     site.latitude ??
     site.lat;
 
+
   const longitude =
     site.longitude ??
     site.lng;
 
-  if (latitude !== undefined) {
-    output.latitude =
-      numberOrNull(latitude);
-  }
-
-  if (longitude !== undefined) {
-    output.longitude =
-      numberOrNull(longitude);
-  }
-
-  if (site.has_4dx !== undefined) {
-    output.has_4dx =
-      Boolean(site.has_4dx);
-  }
 
   if (
-    site.has_screenx !== undefined
+    latitude !==
+    undefined
+  ) {
+    output.latitude =
+      numberOrNull(
+        latitude
+      );
+  }
+
+
+  if (
+    longitude !==
+    undefined
+  ) {
+    output.longitude =
+      numberOrNull(
+        longitude
+      );
+  }
+
+
+  if (
+    site.has_4dx !==
+    undefined
+  ) {
+    output.has_4dx =
+      Boolean(
+        site.has_4dx
+      );
+  }
+
+
+  if (
+    site.has_screenx !==
+    undefined
   ) {
     output.has_screenx =
-      Boolean(site.has_screenx);
+      Boolean(
+        site.has_screenx
+      );
   }
 
+
   if (
-    site.has_ultra4dx !== undefined
+    site.has_ultra4dx !==
+    undefined
   ) {
     output.has_ultra4dx =
-      Boolean(site.has_ultra4dx);
+      Boolean(
+        site.has_ultra4dx
+      );
   }
 
-  if (site.has_imax !== undefined) {
-    output.has_imax =
-      Boolean(site.has_imax);
-  }
 
   if (
-    site.other_formats !== undefined
+    site.has_imax !==
+    undefined
+  ) {
+    output.has_imax =
+      Boolean(
+        site.has_imax
+      );
+  }
+
+
+  if (
+    site.other_formats !==
+    undefined
   ) {
     output.other_formats =
-      site.other_formats || null;
+      site.other_formats ||
+      null;
   }
 
-  if (site.notes !== undefined) {
+
+  if (
+    site.notes !==
+    undefined
+  ) {
     output.notes =
-      site.notes || null;
+      site.notes ||
+      null;
   }
 
-  if (site.source !== undefined) {
+
+  if (
+    site.source !==
+    undefined
+  ) {
     output.source =
-      site.source || null;
+      site.source ||
+      null;
   }
+
 
   return output;
 }
@@ -736,21 +1053,32 @@ function cleanSite(site = {}) {
 ========================================================= */
 
 module.exports =
-async function handler(req, res) {
+async function handler(
+  req,
+  res
+) {
   try {
 
     /* =====================================================
        GET
     ===================================================== */
 
-    if (req.method === "GET") {
+    if (
+      req.method ===
+      "GET"
+    ) {
       const action =
         req.query?.action ||
         "list";
 
-      if (action === "master") {
+
+      if (
+        action ===
+        "master"
+      ) {
         const data =
           await master();
+
 
         return json(
           res,
@@ -762,9 +1090,14 @@ async function handler(req, res) {
         );
       }
 
-      if (action === "list") {
+
+      if (
+        action ===
+        "list"
+      ) {
         const projects =
           await listProjects();
+
 
         return json(
           res,
@@ -776,11 +1109,13 @@ async function handler(req, res) {
         );
       }
 
+
       return json(
         res,
         400,
         {
           ok: false,
+
           error:
             `Unknown GET action: ${action}`,
         }
@@ -792,24 +1127,33 @@ async function handler(req, res) {
        POST ONLY BELOW
     ===================================================== */
 
-    if (req.method !== "POST") {
+    if (
+      req.method !==
+      "POST"
+    ) {
       return json(
         res,
         405,
         {
           ok: false,
+
           error:
             "Method not allowed",
         }
       );
     }
 
+
     const body =
-      typeof req.body === "string"
+      typeof req.body ===
+      "string"
         ? JSON.parse(
-            req.body || "{}"
+            req.body ||
+            "{}"
           )
-        : req.body || {};
+        : req.body ||
+          {};
+
 
     const action =
       body.action;
@@ -819,7 +1163,10 @@ async function handler(req, res) {
        PROJECT CREATE
     ===================================================== */
 
-    if (action === "create") {
+    if (
+      action ===
+      "create"
+    ) {
       const payload =
         cleanProject(
           body.project ||
@@ -827,11 +1174,13 @@ async function handler(req, res) {
           {}
         );
 
+
       const rows =
         await sb(
           "projects",
           {
-            method: "POST",
+            method:
+              "POST",
 
             headers: {
               Prefer:
@@ -845,8 +1194,11 @@ async function handler(req, res) {
           }
         );
 
+
       const project =
-        rows?.[0] || null;
+        rows?.[0] ||
+        null;
+
 
       if (project) {
         await createHistory(
@@ -861,8 +1213,13 @@ async function handler(req, res) {
             source:
               "System",
           }
-        ).catch(() => null);
+        )
+          .catch(
+            () =>
+              null
+          );
       }
+
 
       return json(
         res,
@@ -879,9 +1236,15 @@ async function handler(req, res) {
        PROJECT UPDATE
     ===================================================== */
 
-    if (action === "update") {
+    if (
+      action ===
+      "update"
+    ) {
       const id =
-        Number(body.id);
+        Number(
+          body.id
+        );
+
 
       if (!id) {
         return json(
@@ -889,14 +1252,19 @@ async function handler(req, res) {
           400,
           {
             ok: false,
+
             error:
               "Project id is required",
           }
         );
       }
 
+
       const before =
-        await oneProject(id);
+        await oneProject(
+          id
+        );
+
 
       if (!before) {
         return json(
@@ -904,11 +1272,13 @@ async function handler(req, res) {
           404,
           {
             ok: false,
+
             error:
               "Project not found",
           }
         );
       }
+
 
       const payload =
         cleanProject(
@@ -917,11 +1287,13 @@ async function handler(req, res) {
           {}
         );
 
+
       const rows =
         await sb(
           `projects?id=eq.${q(id)}`,
           {
-            method: "PATCH",
+            method:
+              "PATCH",
 
             headers: {
               Prefer:
@@ -935,13 +1307,16 @@ async function handler(req, res) {
           }
         );
 
+
       return json(
         res,
         200,
         {
           ok: true,
+
           project:
-            rows?.[0] || null,
+            rows?.[0] ||
+            null,
         }
       );
     }
@@ -952,11 +1327,16 @@ async function handler(req, res) {
     ===================================================== */
 
     if (
-      action === "delete" ||
-      action === "project_delete"
+      action ===
+        "delete" ||
+      action ===
+        "project_delete"
     ) {
       const id =
-        Number(body.id);
+        Number(
+          body.id
+        );
+
 
       if (!id) {
         return json(
@@ -964,11 +1344,13 @@ async function handler(req, res) {
           400,
           {
             ok: false,
+
             error:
               "Project id is required",
           }
         );
       }
+
 
       await sb(
         `project_history?project_id=eq.${q(id)}`,
@@ -981,7 +1363,12 @@ async function handler(req, res) {
               "return=minimal",
           },
         }
-      ).catch(() => null);
+      )
+        .catch(
+          () =>
+            null
+        );
+
 
       await sb(
         `projects?id=eq.${q(id)}`,
@@ -996,12 +1383,14 @@ async function handler(req, res) {
         }
       );
 
+
       return json(
         res,
         200,
         {
           ok: true,
-          deleted_id: id,
+          deleted_id:
+            id,
         }
       );
     }
@@ -1012,13 +1401,16 @@ async function handler(req, res) {
     ===================================================== */
 
     if (
-      action === "history_create"
+      action ===
+      "history_create"
     ) {
       const projectId =
         Number(
           body.project_id ||
-          body.history?.project_id
+          body.history
+            ?.project_id
         );
+
 
       if (!projectId) {
         return json(
@@ -1026,17 +1418,21 @@ async function handler(req, res) {
           400,
           {
             ok: false,
+
             error:
               "project_id is required",
           }
         );
       }
 
+
       const history =
         await createHistory(
           projectId,
-          body.history || {}
+          body.history ||
+          {}
         );
+
 
       return json(
         res,
@@ -1054,10 +1450,14 @@ async function handler(req, res) {
     ===================================================== */
 
     if (
-      action === "history_update"
+      action ===
+      "history_update"
     ) {
       const id =
-        Number(body.id);
+        Number(
+          body.id
+        );
+
 
       if (!id) {
         return json(
@@ -1065,14 +1465,18 @@ async function handler(req, res) {
           400,
           {
             ok: false,
+
             error:
               "History id is required",
           }
         );
       }
 
+
       const source =
-        body.history || {};
+        body.history ||
+        {};
+
 
       const allowed = [
         "event_date",
@@ -1084,22 +1488,30 @@ async function handler(req, res) {
         "source",
       ];
 
+
       const payload = {};
 
+
       for (
-        const key of allowed
+        const key
+        of allowed
       ) {
         if (
           Object.prototype
             .hasOwnProperty
-            .call(source, key)
+            .call(
+              source,
+              key
+            )
         ) {
           payload[key] =
-            source[key] === ""
+            source[key] ===
+            ""
               ? null
               : source[key];
         }
       }
+
 
       const rows =
         await sb(
@@ -1120,13 +1532,16 @@ async function handler(req, res) {
           }
         );
 
+
       return json(
         res,
         200,
         {
           ok: true,
+
           history:
-            rows?.[0] || null,
+            rows?.[0] ||
+            null,
         }
       );
     }
@@ -1137,10 +1552,14 @@ async function handler(req, res) {
     ===================================================== */
 
     if (
-      action === "history_delete"
+      action ===
+      "history_delete"
     ) {
       const id =
-        Number(body.id);
+        Number(
+          body.id
+        );
+
 
       if (!id) {
         return json(
@@ -1148,11 +1567,13 @@ async function handler(req, res) {
           400,
           {
             ok: false,
+
             error:
               "History id is required",
           }
         );
       }
+
 
       await sb(
         `project_history?id=eq.${q(id)}`,
@@ -1167,12 +1588,14 @@ async function handler(req, res) {
         }
       );
 
+
       return json(
         res,
         200,
         {
           ok: true,
-          deleted_id: id,
+          deleted_id:
+            id,
         }
       );
     }
@@ -1183,7 +1606,8 @@ async function handler(req, res) {
     ===================================================== */
 
     if (
-      action === "client_create"
+      action ===
+      "client_create"
     ) {
       const payload =
         cleanClient(
@@ -1192,17 +1616,22 @@ async function handler(req, res) {
           {}
         );
 
-      if (!payload.name) {
+
+      if (
+        !payload.name
+      ) {
         return json(
           res,
           400,
           {
             ok: false,
+
             error:
               "Client name is required",
           }
         );
       }
+
 
       const rows =
         await sb(
@@ -1223,13 +1652,16 @@ async function handler(req, res) {
           }
         );
 
+
       return json(
         res,
         200,
         {
           ok: true,
+
           client:
-            rows?.[0] || null,
+            rows?.[0] ||
+            null,
         }
       );
     }
@@ -1240,10 +1672,14 @@ async function handler(req, res) {
     ===================================================== */
 
     if (
-      action === "client_update"
+      action ===
+      "client_update"
     ) {
       const id =
-        Number(body.id);
+        Number(
+          body.id
+        );
+
 
       if (!id) {
         return json(
@@ -1251,11 +1687,13 @@ async function handler(req, res) {
           400,
           {
             ok: false,
+
             error:
               "Client id is required",
           }
         );
       }
+
 
       const payload =
         cleanClient(
@@ -1263,6 +1701,7 @@ async function handler(req, res) {
           body.data ||
           {}
         );
+
 
       const rows =
         await sb(
@@ -1283,13 +1722,16 @@ async function handler(req, res) {
           }
         );
 
+
       return json(
         res,
         200,
         {
           ok: true,
+
           client:
-            rows?.[0] || null,
+            rows?.[0] ||
+            null,
         }
       );
     }
@@ -1300,8 +1742,10 @@ async function handler(req, res) {
     ===================================================== */
 
     if (
-      action === "site_create" ||
-      action === "create_site"
+      action ===
+        "site_create" ||
+      action ===
+        "create_site"
     ) {
       const payload =
         cleanSite(
@@ -1310,17 +1754,22 @@ async function handler(req, res) {
           {}
         );
 
-      if (!payload.name) {
+
+      if (
+        !payload.name
+      ) {
         return json(
           res,
           400,
           {
             ok: false,
+
             error:
               "Site name is required",
           }
         );
       }
+
 
       const rows =
         await sb(
@@ -1341,13 +1790,16 @@ async function handler(req, res) {
           }
         );
 
+
       return json(
         res,
         200,
         {
           ok: true,
+
           site:
-            rows?.[0] || null,
+            rows?.[0] ||
+            null,
         }
       );
     }
@@ -1355,14 +1807,21 @@ async function handler(req, res) {
 
     /* =====================================================
        SITE UPDATE
+       - PATCH 후 실제 DB 재조회
+       - 좌표 저장값까지 검증
     ===================================================== */
 
     if (
-      action === "site_update" ||
-      action === "update_site"
+      action ===
+        "site_update" ||
+      action ===
+        "update_site"
     ) {
       const id =
-        Number(body.id);
+        Number(
+          body.id
+        );
+
 
       if (!id) {
         return json(
@@ -1370,11 +1829,13 @@ async function handler(req, res) {
           400,
           {
             ok: false,
+
             error:
               "Site id is required",
           }
         );
       }
+
 
       const payload =
         cleanSite(
@@ -1383,32 +1844,264 @@ async function handler(req, res) {
           {}
         );
 
-      const rows =
-        await sb(
-          `sites?id=eq.${q(id)}`,
+
+      if (
+        !Object.keys(
+          payload
+        ).length
+      ) {
+        return json(
+          res,
+          400,
           {
-            method:
-              "PATCH",
+            ok: false,
 
-            headers: {
-              Prefer:
-                "return=representation",
-            },
-
-            body:
-              JSON.stringify(
-                payload
-              ),
+            error:
+              "No site fields to update",
           }
         );
+      }
 
+
+      /*
+       * STEP 1
+       * 실제 DB 행이 존재하는지 먼저 확인
+       */
+      const beforeRows =
+        await sb(
+          `sites?id=eq.${q(id)}&select=*`
+        );
+
+
+      const beforeSite =
+        Array.isArray(
+          beforeRows
+        )
+          ? beforeRows[0] ||
+            null
+          : null;
+
+
+      if (!beforeSite) {
+        return json(
+          res,
+          404,
+          {
+            ok: false,
+
+            error:
+              `Site ${id} not found`,
+          }
+        );
+      }
+
+
+      /*
+       * STEP 2
+       * Supabase PATCH
+       *
+       * PATCH 응답값에 의존하지 않고
+       * 아래 STEP 3에서 DB를 다시 읽는다.
+       */
+      await sb(
+        `sites?id=eq.${q(id)}`,
+        {
+          method:
+            "PATCH",
+
+          headers: {
+            Prefer:
+              "return=minimal",
+          },
+
+          body:
+            JSON.stringify(
+              payload
+            ),
+        }
+      );
+
+
+      /*
+       * STEP 3
+       * PATCH 직후 같은 ID를 다시 SELECT
+       */
+      const verifyRows =
+        await sb(
+          `sites?id=eq.${q(id)}&select=*`
+        );
+
+
+      const savedSite =
+        Array.isArray(
+          verifyRows
+        )
+          ? verifyRows[0] ||
+            null
+          : null;
+
+
+      if (!savedSite) {
+        return json(
+          res,
+          500,
+          {
+            ok: false,
+
+            error:
+              `Site ${id} update verification failed: row not found after PATCH`,
+          }
+        );
+      }
+
+
+      /*
+       * STEP 4
+       * latitude가 요청에 포함됐으면
+       * 실제 저장값과 비교
+       */
+      if (
+        payload.latitude !==
+        undefined
+      ) {
+        const requestedLat =
+          Number(
+            payload.latitude
+          );
+
+
+        const savedLat =
+          savedSite.latitude ===
+            null ||
+          savedSite.latitude ===
+            undefined
+            ? null
+            : Number(
+                savedSite.latitude
+              );
+
+
+        const latOK =
+          Number.isFinite(
+            requestedLat
+          ) &&
+          Number.isFinite(
+            savedLat
+          ) &&
+          Math.abs(
+            requestedLat -
+            savedLat
+          ) <
+            0.000001;
+
+
+        if (!latOK) {
+          return json(
+            res,
+            500,
+            {
+              ok: false,
+
+              error:
+                `Site ${id} latitude verification failed`,
+
+              requested: {
+                latitude:
+                  payload.latitude,
+              },
+
+              saved: {
+                latitude:
+                  savedSite.latitude ??
+                  null,
+              },
+            }
+          );
+        }
+      }
+
+
+      /*
+       * STEP 5
+       * longitude가 요청에 포함됐으면
+       * 실제 저장값과 비교
+       */
+      if (
+        payload.longitude !==
+        undefined
+      ) {
+        const requestedLng =
+          Number(
+            payload.longitude
+          );
+
+
+        const savedLng =
+          savedSite.longitude ===
+            null ||
+          savedSite.longitude ===
+            undefined
+            ? null
+            : Number(
+                savedSite.longitude
+              );
+
+
+        const lngOK =
+          Number.isFinite(
+            requestedLng
+          ) &&
+          Number.isFinite(
+            savedLng
+          ) &&
+          Math.abs(
+            requestedLng -
+            savedLng
+          ) <
+            0.000001;
+
+
+        if (!lngOK) {
+          return json(
+            res,
+            500,
+            {
+              ok: false,
+
+              error:
+                `Site ${id} longitude verification failed`,
+
+              requested: {
+                longitude:
+                  payload.longitude,
+              },
+
+              saved: {
+                longitude:
+                  savedSite.longitude ??
+                  null,
+              },
+            }
+          );
+        }
+      }
+
+
+      /*
+       * STEP 6
+       * DB에서 실제로 다시 읽은 행 반환
+       */
       return json(
         res,
         200,
         {
           ok: true,
+
+          verified:
+            true,
+
           site:
-            rows?.[0] || null,
+            savedSite,
         }
       );
     }
@@ -1419,10 +2112,14 @@ async function handler(req, res) {
     ===================================================== */
 
     if (
-      action === "site_delete"
+      action ===
+      "site_delete"
     ) {
       const id =
-        Number(body.id);
+        Number(
+          body.id
+        );
+
 
       if (!id) {
         return json(
@@ -1430,19 +2127,23 @@ async function handler(req, res) {
           400,
           {
             ok: false,
+
             error:
               "Site id is required",
           }
         );
       }
 
+
       const sites =
         await sb(
           `sites?id=eq.${q(id)}&select=*`
         );
 
+
       const site =
         sites?.[0];
+
 
       if (!site) {
         return json(
@@ -1450,22 +2151,30 @@ async function handler(req, res) {
           404,
           {
             ok: false,
+
             error:
               "Site not found",
           }
         );
       }
 
+
       const linkedProjects =
         await sb(
           `projects?site_id=eq.${q(id)}&select=id,project_name`
-        ).catch(() => []);
+        )
+          .catch(
+            () =>
+              []
+          );
+
 
       if (
         Array.isArray(
           linkedProjects
         ) &&
-        linkedProjects.length > 0
+        linkedProjects.length >
+          0
       ) {
         return json(
           res,
@@ -1482,6 +2191,7 @@ async function handler(req, res) {
         );
       }
 
+
       await sb(
         `sites?id=eq.${q(id)}`,
         {
@@ -1495,6 +2205,7 @@ async function handler(req, res) {
         }
       );
 
+
       return json(
         res,
         200,
@@ -1505,7 +2216,9 @@ async function handler(req, res) {
             id,
 
           deleted_name:
-            siteName(site),
+            siteName(
+              site
+            ),
         }
       );
     }
@@ -1520,13 +2233,17 @@ async function handler(req, res) {
       400,
       {
         ok: false,
+
         error:
           `Unknown action: ${action}`,
       }
     );
 
   } catch (error) {
-    console.error(error);
+    console.error(
+      error
+    );
+
 
     return json(
       res,
