@@ -80,6 +80,9 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 .multiFilterSearch:focus{border-color:#94a3b8}
 
 
+
+/* v6 dashboard KPI stacked progress */
+.kpiProgressRow{display:grid;grid-template-columns:110px minmax(0,1fr) 78px;gap:10px;align-items:center;padding:12px 0;border-top:1px solid #eef2f7}.kpiProgressRow:first-of-type{border-top:0}.kpiProgressTrack{height:12px;display:flex;border-radius:99px;overflow:hidden;background:transparent;border:1px solid #dbe3ec}.kpiProgressActual{height:100%;background:#2563eb}.kpiProgressFuture{height:100%;background:#cbd5e1}.kpiProgressGap{height:100%;background:transparent}.kpiProgressValue{text-align:right;font-size:11px;white-space:nowrap}.kpiProgressValue b{font-size:12px}.kpiProgressValue small{display:block;color:var(--muted);margin-top:1px}.kpiLegend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:9px;color:#64748b}.kpiLegend span{display:flex;align-items:center;gap:5px}.kpiLegend i{display:inline-block;width:10px;height:10px;border-radius:3px}.kpiLegend .actual{background:#2563eb}.kpiLegend .future{background:#cbd5e1}.kpiLegend .gap{background:transparent;border:1px dashed #94a3b8}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
@@ -923,6 +926,36 @@ function saveKpiSettings(){
 function resetKpiSettings(){localStorage.removeItem(KPI_STORAGE_KEY);renderKpiSettings();renderDashboard();const st=document.getElementById('kpiSaveStatus');if(st)st.textContent='Reset to default';}
 function targetText(actual,target){return target!==''&&target!=null?`${actual} / ${Number(target)} target`:`${actual} actual · Target not set`}
 
+function scheduleDateInfo(value,year){
+  const raw=String(value||'').trim(); if(!raw||/TBD/i.test(raw))return null;
+  let m;
+  if((m=raw.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$/))){
+    const y=+m[1],mo=+m[2],d=+m[3]; if(y!==year)return null; return {date:new Date(y,mo-1,d,23,59,59),label:raw};
+  }
+  if((m=raw.match(/^(\d{4})[./-](\d{1,2})$/))){
+    const y=+m[1],mo=+m[2]; if(y!==year)return null; return {date:new Date(y,mo,0,23,59,59),label:raw};
+  }
+  if((m=raw.match(/^(\d{4})\s*Q([1-4])$/i))){
+    const y=+m[1],q=+m[2]; if(y!==year)return null; return {date:new Date(y,q*3,0,23,59,59),label:raw};
+  }
+  return null;
+}
+function kpiProgressStats(field,year,target){
+  const now=new Date(); now.setHours(23,59,59,999);
+  const rows=projects.map(p=>({p,info:scheduleDateInfo(p[field],year)})).filter(x=>x.info);
+  const actual=rows.filter(x=>x.info.date<=now).length;
+  const future=rows.length-actual;
+  const t=Math.max(0,Number(target)||0);
+  const scale=Math.max(t,rows.length,1);
+  const gap=Math.max(0,t-rows.length);
+  return {actual,future,gap,total:rows.length,target:t,scale,rows};
+}
+function kpiProgressRow(label,stats){
+  const pct=n=>Math.max(0,Math.min(100,n/stats.scale*100));
+  const forecastPct=stats.target?Math.round(stats.total/stats.target*100):null;
+  return `<div class="kpiProgressRow"><b>${label}</b><div class="kpiProgressTrack" title="진행 ${stats.actual} · 예정 ${stats.future} · 목표 잔여 ${stats.gap}"><span class="kpiProgressActual" style="width:${pct(stats.actual)}%"></span><span class="kpiProgressFuture" style="width:${pct(stats.future)}%"></span><span class="kpiProgressGap" style="width:${pct(stats.gap)}%"></span></div><div class="kpiProgressValue"><b>${stats.target?`${stats.total} / ${stats.target}`:stats.total}</b><small>${forecastPct===null?'Target not set':`${forecastPct}%`}</small></div></div>`;
+}
+
 function renderDashboard(){
   const shell=document.querySelector('#dashboardPage .pageShell'); if(!shell)return;
   const pending=projects.filter(p=>p.status==='Pending').length;
@@ -955,10 +988,10 @@ function renderDashboard(){
           <div class="pipelineRow"><b>Opened</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,opened/projects.length*100):0}%"></i></div><strong>${opened}</strong></div>
           <div class="kpiNote">Total ${projects.length} Projects · ${clientsWithProjects} Clients with Projects</div>
         </div>
-        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>${kpiYear} Signing / Shipping / Opening</b><div class="sub">Project에 입력된 실제 일정 기준</div></div></div>
-          <div class="pipelineRow"><b>Signing</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,sign2026/projects.length*100):0}%"></i></div><strong>${sign2026}</strong></div>
-          <div class="pipelineRow"><b>Shipping</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,ship2026/projects.length*100):0}%"></i></div><strong>${ship2026}</strong></div>
-          <div class="pipelineRow"><b>Opening</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,open2026/projects.length*100):0}%"></i></div><strong>${open2026}</strong></div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>${kpiYear} Signing / Shipping / Opening</b><div class="sub">Project 일정 기준 · 파란색은 오늘까지, 회색은 향후 예정</div></div><div class="kpiLegend"><span><i class="actual"></i>진행</span><span><i class="future"></i>예정</span><span><i class="gap"></i>목표 잔여</span></div></div>
+          ${kpiProgressRow('Signing',kpiProgressStats('signing',kpiYear,kpi.signingTarget))}
+          ${kpiProgressRow('Shipping',kpiProgressStats('shipping',kpiYear,kpi.shippingTarget))}
+          ${kpiProgressRow('Opening',kpiProgressStats('opening',kpiYear,kpi.openingTarget))}
           ${(signingProjects.length||shippingProjects.length||openingProjects.length)?`<div class="kpiNote">Signing: ${signingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}<br>Shipping: ${shippingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}<br>Opening: ${openingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}</div>`:'<div class="kpiNote">${kpiYear} 일정이 입력된 Project가 없습니다.</div>'}
         </div>
         <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Upcoming Milestones</b><div class="sub">Signing / Shipping / Opening에 입력된 가까운 일정</div></div></div>
