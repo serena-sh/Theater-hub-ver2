@@ -382,6 +382,17 @@ async function nominatimSearchSite(site,expected){
   }
   return null;
 }
+function sqlLiteral(v){
+  if(v===null||v===undefined||v==='') return 'NULL';
+  return "'"+String(v).replace(/'/g,"''")+"'";
+}
+function downloadTextFile(filename,text){
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 async function geocodeMissingSites(){
   const btn=document.getElementById('geocodeMissingBtn');
   const countryFilter=(document.getElementById('countryFilter')?.value||'').trim();
@@ -389,75 +400,41 @@ async function geocodeMissingSites(){
   const supported=s=>!!geocodeExpectedCountry(s);
 
   if(!countryFilter||!clientFilter){
-    alert('안전한 저장을 위해 Country와 Exhibitor를 먼저 하나씩 선택해주세요.\n예: Thailand → Major Cineplex');
+    alert('Country와 Exhibitor를 먼저 하나씩 선택해주세요.\\n예: Thailand → Major Cineplex');
     return;
   }
 
   const targets=sites.filter(s=>!hasValidCoords(s)&&supported(s)&&s.country===countryFilter&&String(s.client)===clientFilter);
   if(!targets.length){alert('현재 선택한 Exhibitor에는 좌표가 비어 있는 지원 Site가 없습니다.');return;}
 
-  if(!confirm(`${clientFilter} · ${countryFilter}\n좌표가 없는 ${targets.length}개 Site를 조회하고,\nAPI가 실제로 저장된 행을 반환한 경우에만 성공으로 계산합니다.\n\n저장 응답의 ID/좌표까지 검증합니다.`))return;
+  if(!confirm(`${clientFilter} · ${countryFilter}\\n좌표가 없는 ${targets.length}개 Site를 검색합니다.\\n\\n이번 버전은 REST API로 저장하지 않고, 성공한 좌표를 Supabase SQL Editor에서 바로 실행할 수 있는 SQL 파일로 만듭니다.`))return;
 
-  let ok=0,searchFail=0,saveFail=0;
+  let ok=0,searchFail=0;
   const failures=[];
+  const updates=[];
   btn.disabled=true;
 
   try{
     for(let i=0;i<targets.length;i++){
       const s=targets[i],expected=geocodeExpectedCountry(s);
-      btn.textContent=`${clientFilter} ${i+1}/${targets.length} · 저장 ${ok}`;
+      btn.textContent=`${clientFilter} ${i+1}/${targets.length} · 검색 ${ok}`;
       try{
         const found=await nominatimSearchSite(s,expected);
         if(!found){
           searchFail++;
-          failures.push(`${s.name} — 좌표 검색 결과 없음`);
+          failures.push(`${s.id} · ${s.name} — 좌표 검색 결과 없음`);
           continue;
         }
-
         const lat=Number(found.row.lat),lng=Number(found.row.lon),a=found.row.address||{};
         if(!geocodeWithinExpectedBounds(lat,lng,expected)) throw new Error('국가 좌표 범위 밖 결과');
-
         const resolvedCity=s.city||a.city||a.town||a.municipality||a.county||a.state_district||a.state||'';
         const resolvedAddress=s.address||found.row.display_name||'';
-        const site={
-          client_id:s.clientId??s.client_id??null,
-          name:s.name,
-          country:expected.name,
-          city:resolvedCity,
-          address:resolvedAddress,
-          status:s.status||'Operating',
-          latitude:lat,
-          longitude:lng
-        };
-
-        // IMPORTANT: HTTP 200만으로 성공 처리하지 않는다.
-        // site_update가 실제 변경 행을 return=representation으로 반환해야 성공이다.
-        const saved=await apiV2('site_update',{id:s.id,site});
-        const row=saved?.site;
-        const savedLat=Number(row?.latitude),savedLng=Number(row?.longitude);
-        const sameId=Number(row?.id)===Number(s.id);
-        const sameCoords=Number.isFinite(savedLat)&&Number.isFinite(savedLng)&&Math.abs(savedLat-lat)<0.000001&&Math.abs(savedLng-lng)<0.000001;
-
-        if(!row||!sameId||!sameCoords){
-          throw new Error(`DB 저장 확인 실패 (API 반환 site=${row?'있음':'없음'})`);
-        }
-
-        // 검증 완료 뒤에만 화면 데이터 반영
-        s.lat=savedLat;
-        s.lng=savedLng;
-        s.latitude=savedLat;
-        s.longitude=savedLng;
-        s.country=row.country||expected.name;
-        s.city=row.city||resolvedCity;
-        s.address=row.address||resolvedAddress;
+        updates.push({id:Number(s.id),name:s.name,lat,lng,city:resolvedCity,address:resolvedAddress});
         ok++;
       }catch(e){
-        console.warn('Geocode/save failed',s.id,s.name,e);
-        saveFail++;
-        failures.push(`${s.name} — ${e?.message||'저장 실패'}`);
+        searchFail++;
+        failures.push(`${s.id} · ${s.name} — ${e?.message||'검색 실패'}`);
       }
-
-      renderMarkers();
       await new Promise(r=>setTimeout(r,1100));
     }
   }finally{
@@ -465,14 +442,21 @@ async function geocodeMissingSites(){
     btn.textContent='Geocode Missing';
   }
 
-  // 서버에서 전체 master를 다시 읽어 실제 DB 상태로 화면을 교체한다.
-  await reloadV2Data();
+  if(!updates.length){
+    alert(`좌표 검색 완료\\n성공: 0개\\n실패: ${searchFail}개\\n\\n생성할 SQL이 없습니다.`);
+    return;
+  }
 
-  const actualMapped=sites.filter(s=>String(s.client)===clientFilter&&s.country===countryFilter&&hasValidCoords(s)).length;
-  const actualTotal=sites.filter(s=>String(s.client)===clientFilter&&s.country===countryFilter).length;
-  const failText=failures.length?'\n\n실패 지점:\n'+failures.slice(0,30).join('\n')+(failures.length>30?`\n외 ${failures.length-30}개`:''):'';
+  const values=updates.map(x=>`  (${x.id}, ${x.lat.toFixed(7)}, ${x.lng.toFixed(7)}, ${sqlLiteral(x.city)}, ${sqlLiteral(x.address)})`).join(',\\n');
+  const safeClient=clientFilter.replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'').toLowerCase()||'sites';
+  const sql=`-- Theater Hub geocode SQL\\n-- ${clientFilter} / ${countryFilter}\\n-- Generated: ${new Date().toISOString()}\\n-- Geocoded: ${updates.length}, failed: ${searchFail}\\n\\nBEGIN;\\n\\nWITH geocoded(id, latitude, longitude, city, address) AS (\\nVALUES\\n${values}\\n)\\nUPDATE public.sites AS s\\nSET\\n  latitude = g.latitude,\\n  longitude = g.longitude,\\n  city = COALESCE(NULLIF(s.city, ''), g.city),\\n  address = COALESCE(NULLIF(s.address, ''), g.address),\\n  updated_at = NOW()\\nFROM geocoded AS g\\nWHERE s.id = g.id\\n  AND s.client_id = ${Number(targets[0]?.clientId??targets[0]?.client_id??0)}\\n  AND s.country = ${sqlLiteral(countryFilter)};\\n\\n-- 저장 결과 확인\\nSELECT\\n  c.name AS client,\\n  COUNT(*) AS total_sites,\\n  COUNT(*) FILTER (WHERE s.latitude IS NOT NULL AND s.longitude IS NOT NULL) AS mapped,\\n  COUNT(*) FILTER (WHERE s.latitude IS NULL OR s.longitude IS NULL) AS unmapped\\nFROM public.sites s\\nJOIN public.clients c ON c.id=s.client_id\\nWHERE s.client_id=${Number(targets[0]?.clientId??targets[0]?.client_id??0)}\\n  AND s.country=${sqlLiteral(countryFilter)}\\nGROUP BY c.name;\\n\\nCOMMIT;\\n`;
 
-  alert(`${clientFilter} 좌표 작업 완료\n실제 저장 확인: ${ok}개\n검색/저장 실패: ${searchFail+saveFail}개\n\nDB 재조회 기준: ${actualMapped}/${actualTotal} mapped${failText}`);
+  window.lastGeocodeSQL=sql;
+  try{await navigator.clipboard.writeText(sql);}catch(e){}
+  downloadTextFile(`theaterhub_${safeClient}_${countryFilter.toLowerCase()}_geocode.sql`,sql);
+
+  const failText=failures.length?'\\n\\n검색 실패 예시:\\n'+failures.slice(0,15).join('\\n')+(failures.length>15?`\\n외 ${failures.length-15}개`:''):'';
+  alert(`${clientFilter} 좌표 검색 완료\\nSQL 생성: ${updates.length}개\\n검색 실패: ${searchFail}개\\n\\nSQL 파일을 자동 다운로드했고, 가능하면 클립보드에도 복사했습니다.\\nSupabase SQL Editor에서 그대로 실행하면 됩니다.${failText}`);
 }
 window.geocodeMissingSites=geocodeMissingSites;
 
