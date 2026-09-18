@@ -53,6 +53,33 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 .clientModalBody input,.clientModalBody select,.clientModalBody textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px 11px;background:#fff;color:#0f172a;font:inherit}
 .clientModalBody textarea{min-height:92px;resize:vertical}.clientModalFoot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px 20px}.clientFormError{grid-column:1/-1;color:#b91c1c;font-size:12px;display:none}
 @media(max-width:700px){.clientModalBody{grid-template-columns:1fr}.clientModalBody .full{grid-column:auto}}
+
+/* restored searchable multi-select map filters */
+.formatMultiFilter{position:relative;min-width:128px}
+.formatFilterBtn{width:100%;text-align:left;white-space:nowrap}
+.formatFilterMenu{display:none;position:absolute;z-index:1200;top:calc(100% + 5px);left:0;min-width:175px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:7px}
+.formatMultiFilter.open .formatFilterMenu{display:grid;gap:2px}
+.formatFilterMenu label{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.formatFilterMenu label:hover{background:#f8fafc}
+.formatFilterMenu input{margin:0}
+.formatFilterActions{border-top:1px solid #eef2f7;margin-top:4px;padding-top:6px;text-align:right}
+.formatFilterActions button{border:0;background:transparent;color:#2563eb;font-size:10px;font-weight:800;padding:4px 7px}
+
+
+.mapMultiFilter{position:relative;min-width:145px}
+.multiFilterBtn{width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.multiFilterMenu{display:none;position:absolute;z-index:1200;top:calc(100% + 5px);left:0;min-width:220px;max-width:310px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:7px}
+.mapMultiFilter.open .multiFilterMenu{display:block}
+.multiFilterOptions{display:grid;gap:2px;max-height:310px;overflow:auto}
+.multiFilterOptions label{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.multiFilterOptions label:hover{background:#f8fafc}
+.multiFilterOptions input{margin:0}
+
+
+.multiFilterSearch{width:100%;box-sizing:border-box;border:1px solid #dbe2ea;border-radius:7px;padding:7px 9px;margin-bottom:6px;font-size:11px;outline:none}
+.multiFilterSearch:focus{border-color:#94a3b8}
+
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
@@ -86,7 +113,21 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
       <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Supabase Site master의 실제 좌표만 표시합니다. Marker 색상은 국가별 CJ 4DPLEX Client 도입 순서를 나타냅니다.</div></div><div class="toolbar"><button class="btn" onclick="openKmlImport()">Import KML / KMZ</button><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
       <div class="mapWorkspace">
         <div class="card mapCard">
-          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="renderMarkers()"><select id="countryFilter" class="search" onchange="onCountryFilterChange()"><option value="">All Countries</option></select><select id="clientFilter" class="search" onchange="renderMarkers()"><option value="">All Exhibitors</option></select><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div id="mapSummary" class="mapSummary"></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><button id="geocodeMissingBtn" class="mapToolBtn" onclick="geocodeMissingSites()">Geocode Missing</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
+          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="renderMarkers()"><div class="mapMultiFilter" id="countryMultiFilter">
+  <button type="button" class="search multiFilterBtn" onclick="toggleMapMultiFilter('countryMultiFilter',event)">All Countries ▾</button>
+  <div class="multiFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('country')">Clear</button></div></div>
+</div><div class="mapMultiFilter" id="clientMultiFilter">
+  <button type="button" class="search multiFilterBtn" onclick="toggleMapMultiFilter('clientMultiFilter',event)">All Exhibitors ▾</button>
+  <div class="multiFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('client')">Clear</button></div></div>
+</div><div class="formatMultiFilter" id="formatMultiFilter">
+  <button type="button" class="search formatFilterBtn" onclick="toggleFormatMenu(event)">All Formats ▾</button>
+  <div class="formatFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)">
+    <label><input type="checkbox" value="4DX" onchange="onFormatFilterChange()"> 4DX</label>
+    <label><input type="checkbox" value="SCREENX" onchange="onFormatFilterChange()"> SCREENX</label>
+    <label><input type="checkbox" value="ULTRA 4DX" onchange="onFormatFilterChange()"> ULTRA 4DX</label>
+    <div class="formatFilterActions"><button type="button" onclick="clearFormatFilters()">Clear</button></div>
+  </div>
+</div><select id="statusFilter" class="search" onchange="renderMarkers()"><option value="">All Status</option><option>Operating</option><option>Planned</option><option>Closed</option></select></div><div id="mapSummary" class="mapSummary"></div><div class="mapTools"><button id="radius5Btn" class="mapToolBtn" onclick="showRadius(5)">5 km Radius</button><button id="radius10Btn" class="mapToolBtn" onclick="showRadius(10)">10 km Radius</button><button id="measureBtn" class="mapToolBtn" onclick="startDistanceMeasure()">Straight Distance</button><button class="mapToolBtn" onclick="clearMapTools()">Clear</button><button id="geocodeMissingBtn" class="mapToolBtn" onclick="geocodeMissingSites()">Geocode Missing</button><span class="sub" style="align-self:center">Radius는 선택한 Site 기준</span></div>
           <div id="map"></div><div class="mapLegend"><b>CJ 4DPLEX Client Entry</b><div><span class="legendDot" style="background:#2563eb"></span>1st Client</div><div><span class="legendDot" style="background:#dc2626"></span>2nd Client</div><div><span class="legendDot" style="background:#16a34a"></span>3rd Client</div><div><span class="legendDot" style="background:#64748b"></span>Other / Not set</div></div><div id="mapHint" class="mapHint">지도에서 위치를 클릭하세요.</div><div id="distanceBadge" class="distanceBadge"></div>
         </div>
         <div id="mapPanel" class="card sidePanel"><div class="panelEmpty"><div><b>Site를 선택하세요</b><br><br>Marker 클릭 → 상세 확인<br><b>Edit</b> → 정보 수정<br><b>Move Pin</b> → 지도에서 위치 변경<br><b>+ Add Site</b> → 신규 Site 추가</div></div></div>
@@ -239,14 +280,56 @@ function markerIcon(site){
   return L.divIcon({className:'',html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 5px #475569"></div>`,iconSize:[15,15],iconAnchor:[8,8]});
 }
 function cjEntryLabel(site){const n=cjClientEntryOrder(site);return n?`${n}${n===1?'st':n===2?'nd':'rd'} CJ Client`:'Other / Not set'}
+function normalizeMapFormat(v){
+  const u=String(v||'').trim().toUpperCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+  if(u==='ULTRA4DX'||u==='ULTRA 4DX')return 'ULTRA 4DX';
+  if(u==='SCREEN X')return 'SCREENX';
+  return u;
+}
+function selectedFormatFilters(){
+  return [...document.querySelectorAll('#formatMultiFilter input[type="checkbox"]:checked')].map(x=>normalizeMapFormat(x.value));
+}
+function siteMatchesFormatFilters(site){
+  const wanted=selectedFormatFilters();
+  if(!wanted.length)return true;
+  const installed=(Array.isArray(site?.formats)?site.formats:[]).map(normalizeMapFormat);
+  return wanted.some(f=>installed.includes(f)); // 여러 개 선택 시 OR
+}
+function updateFormatFilterLabel(){
+  const btn=document.querySelector('#formatMultiFilter .formatFilterBtn');
+  if(!btn)return;
+  const selected=selectedFormatFilters();
+  btn.textContent=!selected.length?'All Formats ▾':selected.length===1?`${selected[0]} ▾`:`Formats (${selected.length}) ▾`;
+}
+function toggleFormatMenu(e){
+  if(e)e.stopPropagation();
+  const root=document.getElementById('formatMultiFilter');
+  root?.classList.toggle('open');
+  if(root?.classList.contains('open'))focusMultiFilterSearch(root);
+}
+function onFormatFilterChange(){updateFormatFilterLabel();renderMarkers()}
+function clearFormatFilters(){
+  document.querySelectorAll('#formatMultiFilter input[type="checkbox"]').forEach(x=>x.checked=false);
+  updateFormatFilterLabel();renderMarkers();
+}
+document.addEventListener('click',()=>document.querySelectorAll('.mapMultiFilter,.formatMultiFilter').forEach(x=>x.classList.remove('open')));
+
+function selectedMapValues(kind){
+  const root=document.getElementById(kind==='country'?'countryMultiFilter':'clientMultiFilter');
+  return root?[...root.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value):[];
+}
 function selectedMapSites(){
   const q=(document.getElementById('mapSearch')?.value||'').trim().toLowerCase();
-  const country=document.getElementById('countryFilter')?.value||'';
-  const client=document.getElementById('clientFilter')?.value||'';
+  const countries=selectedMapValues('country');
+  const clients=selectedMapValues('client');
   const status=document.getElementById('statusFilter')?.value||'';
   return sites.filter(s=>{
     const haystack=`${s.name||''} ${s.city||''} ${s.client||''}`.toLowerCase();
-    return (!q||haystack.includes(q))&&(!country||s.country===country)&&(!client||s.client===client)&&(!status||s.status===status);
+    return (!q||haystack.includes(q))
+      &&(!countries.length||countries.includes(s.country))
+      &&(!clients.length||clients.includes(s.client))
+      &&siteMatchesFormatFilters(s)
+      &&(!status||s.status===status);
   });
 }
 function isCjFormat(f){return ['SCREENX','4DX','ULTRA 4DX','ULTRA4DX'].includes(String(f||'').trim().toUpperCase())}
@@ -255,27 +338,67 @@ function renderMapSummary(scope=selectedMapSites()){
   const exhibitors=new Set(scope.map(s=>s.client).filter(Boolean)).size;
   const cjSites=scope.filter(s=>(s.formats||[]).some(isCjFormat)).length;
   const otherSites=scope.filter(s=>(s.formats||[]).some(f=>!isCjFormat(f))).length;
-  const country=document.getElementById('countryFilter')?.value||'';
-  const client=document.getElementById('clientFilter')?.value||'';
-  const label=client?`${country||'All countries'} · ${client}`:(country||'All countries');
+  const countries=selectedMapValues('country'),clients=selectedMapValues('client');
+  const countryLabel=!countries.length?'All countries':countries.length===1?countries[0]:`${countries.length} countries`;
+  const clientLabel=!clients.length?'':clients.length===1?clients[0]:`${clients.length} exhibitors`;
+  const label=clientLabel?`${countryLabel} · ${clientLabel}`:countryLabel;
   root.innerHTML=`<div class="mapSummaryScope">${esc(label)} · 현재 필터 기준</div><div class="mapSummaryItem"><span>Exhibitors</span><b>${exhibitors}</b></div><div class="mapSummaryItem"><span>Sites</span><b>${scope.length}</b></div><div class="mapSummaryItem"><span>CJ 4DPLEX Sites</span><b>${cjSites}</b></div><div class="mapSummaryItem"><span>Other Premium Sites</span><b>${otherSites}</b></div>`;
 }
+function updateMapMultiLabel(kind){
+  const root=document.getElementById(kind==='country'?'countryMultiFilter':'clientMultiFilter');if(!root)return;
+  const selected=selectedMapValues(kind),btn=root.querySelector('.multiFilterBtn');
+  const allLabel=kind==='country'?'All Countries':'All Exhibitors';
+  const manyLabel=kind==='country'?'Countries':'Exhibitors';
+  btn.textContent=!selected.length?`${allLabel} ▾`:selected.length===1?`${selected[0]} ▾`:`${manyLabel} (${selected.length}) ▾`;
+}
+function filterMultiOptions(input){
+  const menu=input.closest('.multiFilterMenu,.formatFilterMenu');
+  const q=String(input.value||'').trim().toLowerCase();
+  menu?.querySelectorAll('label').forEach(label=>{
+    label.style.display=!q||label.textContent.toLowerCase().includes(q)?'flex':'none';
+  });
+}
+function focusMultiFilterSearch(root){
+  setTimeout(()=>root?.querySelector('.multiFilterSearch')?.focus(),0);
+}
+function toggleMapMultiFilter(id,e){
+  if(e)e.stopPropagation();
+  document.querySelectorAll('.mapMultiFilter,.formatMultiFilter').forEach(x=>{if(x.id!==id)x.classList.remove('open')});
+  const root=document.getElementById(id);
+  root?.classList.toggle('open');
+  if(root?.classList.contains('open'))focusMultiFilterSearch(root);
+}
+function renderMultiOptions(rootId,values,selected,kind){
+  const root=document.getElementById(rootId);if(!root)return;
+  const box=root.querySelector('.multiFilterOptions');
+  box.innerHTML=values.map(v=>`<label><input type="checkbox" value="${esc(v)}" ${selected.includes(v)?'checked':''} onchange="onMapMultiFilterChange('${kind}')"> ${esc(v)}</label>`).join('');
+}
 function refreshMapFilters(){
-  const countryEl=document.getElementById('countryFilter'),clientEl=document.getElementById('clientFilter');if(!countryEl||!clientEl)return;
-  const previousCountry=countryEl.value,previousClient=clientEl.value;
+  const prevCountries=selectedMapValues('country'),prevClients=selectedMapValues('client');
   const countries=[...new Set(sites.map(s=>s.country).filter(Boolean))].sort();
-  countryEl.innerHTML=`<option value="">All Countries</option>${countries.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}`;
-  countryEl.value=countries.includes(previousCountry)?previousCountry:'';
-  refreshClientFilter(previousClient);
+  renderMultiOptions('countryMultiFilter',countries,prevCountries.filter(x=>countries.includes(x)),'country');
+  updateMapMultiLabel('country');
+  refreshClientFilter(prevClients);
 }
-function refreshClientFilter(preferred=''){
-  const country=document.getElementById('countryFilter')?.value||'';
-  const clientEl=document.getElementById('clientFilter');if(!clientEl)return;
-  const clients=[...new Set(sites.filter(s=>!country||s.country===country).map(s=>s.client).filter(Boolean))].sort();
-  clientEl.innerHTML=`<option value="">All Exhibitors</option>${clients.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}`;
-  clientEl.value=clients.includes(preferred)?preferred:'';
+function refreshClientFilter(preferred=selectedMapValues('client')){
+  const countries=selectedMapValues('country');
+  const clients=[...new Set(sites.filter(s=>!countries.length||countries.includes(s.country)).map(s=>s.client).filter(Boolean))].sort();
+  const keep=preferred.filter(x=>clients.includes(x));
+  renderMultiOptions('clientMultiFilter',clients,keep,'client');
+  updateMapMultiLabel('client');
 }
-function onCountryFilterChange(){refreshClientFilter();renderMarkers()}
+function onMapMultiFilterChange(kind){
+  updateMapMultiLabel(kind);
+  if(kind==='country')refreshClientFilter();
+  renderMarkers();
+}
+function clearMapMultiFilter(kind){
+  const root=document.getElementById(kind==='country'?'countryMultiFilter':'clientMultiFilter');
+  root?.querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=false);
+  updateMapMultiLabel(kind);
+  if(kind==='country')refreshClientFilter([]);
+  renderMarkers();
+}
 function renderMarkers(){
   if(!markerLayer)return;
   markerLayer.clearLayers();
@@ -395,12 +518,14 @@ function downloadTextFile(filename,text){
 }
 async function geocodeMissingSites(){
   const btn=document.getElementById('geocodeMissingBtn');
-  const countryFilter=(document.getElementById('countryFilter')?.value||'').trim();
-  const clientFilter=(document.getElementById('clientFilter')?.value||'').trim();
+  const selectedCountries=selectedMapValues('country');
+  const selectedClients=selectedMapValues('client');
+  const countryFilter=(selectedCountries[0]||'').trim();
+  const clientFilter=(selectedClients[0]||'').trim();
   const supported=s=>!!geocodeExpectedCountry(s);
 
-  if(!countryFilter||!clientFilter){
-    alert('Country와 Exhibitor를 먼저 하나씩 선택해주세요.\\n예: Thailand → Major Cineplex');
+  if(selectedCountries.length!==1||selectedClients.length!==1){
+    alert('Geocode Missing은 Country와 Exhibitor를 각각 정확히 1개씩 선택해주세요.\\n예: Thailand → Major Cineplex');
     return;
   }
 
