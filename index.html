@@ -387,33 +387,92 @@ async function geocodeMissingSites(){
   const countryFilter=(document.getElementById('countryFilter')?.value||'').trim();
   const clientFilter=(document.getElementById('clientFilter')?.value||'').trim();
   const supported=s=>!!geocodeExpectedCountry(s);
-  const targets=sites.filter(s=>!hasValidCoords(s)&&supported(s)&&(!countryFilter||s.country===countryFilter)&&(!clientFilter||String(s.client)===clientFilter));
-  if(!targets.length){alert('현재 필터 기준으로 좌표가 비어 있는 지원 Site가 없습니다.\n지원: Major / SF / Legend / MiraNew / Ayala / SM / GSC / TGV');return;}
-  const scope=[countryFilter||'All supported countries',clientFilter||'All supported exhibitors'].join(' · ');
-  if(!confirm(`${targets.length}개 Site의 이름/주소를 기준으로 좌표를 조회합니다.\n범위: ${scope}\n국가 코드 + 좌표 범위 검증을 통과한 결과만 Supabase에 저장합니다.\n\n※ 정확도를 위해 Country와 Exhibitor 필터를 먼저 선택한 뒤 실행하는 것을 권장합니다.\n(OpenStreetMap Nominatim 사용 · 대량 처리에는 시간이 걸립니다.)`))return;
-  let ok=0,fail=0; const failures=[];
+
+  if(!countryFilter||!clientFilter){
+    alert('안전한 저장을 위해 Country와 Exhibitor를 먼저 하나씩 선택해주세요.\n예: Thailand → Major Cineplex');
+    return;
+  }
+
+  const targets=sites.filter(s=>!hasValidCoords(s)&&supported(s)&&s.country===countryFilter&&String(s.client)===clientFilter);
+  if(!targets.length){alert('현재 선택한 Exhibitor에는 좌표가 비어 있는 지원 Site가 없습니다.');return;}
+
+  if(!confirm(`${clientFilter} · ${countryFilter}\n좌표가 없는 ${targets.length}개 Site를 조회하고,\nAPI가 실제로 저장된 행을 반환한 경우에만 성공으로 계산합니다.\n\n저장 응답의 ID/좌표까지 검증합니다.`))return;
+
+  let ok=0,searchFail=0,saveFail=0;
+  const failures=[];
   btn.disabled=true;
+
   try{
     for(let i=0;i<targets.length;i++){
       const s=targets[i],expected=geocodeExpectedCountry(s);
-      btn.textContent=`Geocoding ${i+1}/${targets.length}`;
+      btn.textContent=`${clientFilter} ${i+1}/${targets.length} · 저장 ${ok}`;
       try{
         const found=await nominatimSearchSite(s,expected);
-        if(!found){fail++;failures.push(`${s.client} · ${s.name} — 검색 결과 없음`);continue;}
+        if(!found){
+          searchFail++;
+          failures.push(`${s.name} — 좌표 검색 결과 없음`);
+          continue;
+        }
+
         const lat=Number(found.row.lat),lng=Number(found.row.lon),a=found.row.address||{};
-        if(!geocodeWithinExpectedBounds(lat,lng,expected))throw new Error('국가 좌표 범위 밖 결과');
-        s.lat=lat;s.lng=lng;s.country=expected.name;
+        if(!geocodeWithinExpectedBounds(lat,lng,expected)) throw new Error('국가 좌표 범위 밖 결과');
+
         const resolvedCity=s.city||a.city||a.town||a.municipality||a.county||a.state_district||a.state||'';
         const resolvedAddress=s.address||found.row.display_name||'';
-        const site={client_id:s.clientId??s.client_id??null,name:s.name,country:expected.name,city:resolvedCity,address:resolvedAddress,status:s.status||'Operating',latitude:lat,longitude:lng};
-        await apiV2('site_update',{id:s.id,site}); ok++;
-      }catch(e){console.warn('Geocode failed',s.name,e);fail++;failures.push(`${s.client} · ${s.name} — ${e?.message||'실패'}`);}
-      renderMarkers(); await new Promise(r=>setTimeout(r,1100));
+        const site={
+          client_id:s.clientId??s.client_id??null,
+          name:s.name,
+          country:expected.name,
+          city:resolvedCity,
+          address:resolvedAddress,
+          status:s.status||'Operating',
+          latitude:lat,
+          longitude:lng
+        };
+
+        // IMPORTANT: HTTP 200만으로 성공 처리하지 않는다.
+        // site_update가 실제 변경 행을 return=representation으로 반환해야 성공이다.
+        const saved=await apiV2('site_update',{id:s.id,site});
+        const row=saved?.site;
+        const savedLat=Number(row?.latitude),savedLng=Number(row?.longitude);
+        const sameId=Number(row?.id)===Number(s.id);
+        const sameCoords=Number.isFinite(savedLat)&&Number.isFinite(savedLng)&&Math.abs(savedLat-lat)<0.000001&&Math.abs(savedLng-lng)<0.000001;
+
+        if(!row||!sameId||!sameCoords){
+          throw new Error(`DB 저장 확인 실패 (API 반환 site=${row?'있음':'없음'})`);
+        }
+
+        // 검증 완료 뒤에만 화면 데이터 반영
+        s.lat=savedLat;
+        s.lng=savedLng;
+        s.latitude=savedLat;
+        s.longitude=savedLng;
+        s.country=row.country||expected.name;
+        s.city=row.city||resolvedCity;
+        s.address=row.address||resolvedAddress;
+        ok++;
+      }catch(e){
+        console.warn('Geocode/save failed',s.id,s.name,e);
+        saveFail++;
+        failures.push(`${s.name} — ${e?.message||'저장 실패'}`);
+      }
+
+      renderMarkers();
+      await new Promise(r=>setTimeout(r,1100));
     }
-  }finally{btn.disabled=false;btn.textContent='Geocode Missing';}
+  }finally{
+    btn.disabled=false;
+    btn.textContent='Geocode Missing';
+  }
+
+  // 서버에서 전체 master를 다시 읽어 실제 DB 상태로 화면을 교체한다.
   await reloadV2Data();
+
+  const actualMapped=sites.filter(s=>String(s.client)===clientFilter&&s.country===countryFilter&&hasValidCoords(s)).length;
+  const actualTotal=sites.filter(s=>String(s.client)===clientFilter&&s.country===countryFilter).length;
   const failText=failures.length?'\n\n실패 지점:\n'+failures.slice(0,30).join('\n')+(failures.length>30?`\n외 ${failures.length-30}개`:''):'';
-  alert(`좌표 저장 완료: ${ok}개 / 실패: ${fail}개${failText}`);
+
+  alert(`${clientFilter} 좌표 작업 완료\n실제 저장 확인: ${ok}개\n검색/저장 실패: ${searchFail+saveFail}개\n\nDB 재조회 기준: ${actualMapped}/${actualTotal} mapped${failText}`);
 }
 window.geocodeMissingSites=geocodeMissingSites;
 
