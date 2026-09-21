@@ -152,10 +152,12 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 
     <section id="clientsPage" class="page"><div class="pageShell"><div class="pageHead"><div><h1>Clients</h1><div class="sub">기본 목록은 실제 Project / 포맷 Site / Commercial 이력이 있는 Relevant Client만 표시합니다.</div></div><button class="btn primary" onclick="openAddClient()">+ Add Client</button></div><div class="clientsWorkspace"><div class="card clientMaster"><div class="clientSearch"><div class="clientScopeToggle"><button id="relevantClientsBtn" class="clientScopeBtn active" onclick="setClientScope('relevant')">Relevant</button><button id="allClientsBtn" class="clientScopeBtn" onclick="setClientScope('all')">All Clients</button></div><input id="clientSearch" placeholder="Search client" oninput="renderClientList()"><div id="clientScopeHint" class="clientScopeHint"></div></div><div id="clientList"></div></div><div class="card" id="clientDetail"></div></div></div></section>
     <section id="kpiPage" class="page"><div class="pageShell">
-      <div class="pageHead"><div><h1>KPI Settings</h1><div class="sub">Dashboard의 연간 Signing / Shipping / Opening 목표를 수정합니다. 현재 버전은 이 브라우저에 저장됩니다.</div></div></div>
+      <div class="pageHead"><div><h1>KPI Settings</h1><div class="sub">Dashboard의 연간 Signing / Shipping / Opening / Operational KPI를 수정합니다. Operational은 기준 숫자 + 올해 Open - Closed(수동)로 계산됩니다. 현재 버전은 이 브라우저에 저장됩니다.</div></div></div>
       <div class="card" style="max-width:760px;padding:18px">
         <div class="formGrid"><div class="field"><label>KPI Year</label><input id="kpiYear" type="number" min="2020" max="2100"></div><div class="field"><label>Signing Target</label><input id="kpiSigningTarget" type="number" min="0" placeholder="e.g. 20"></div></div>
         <div class="formGrid" style="margin-top:12px"><div class="field"><label>Shipping Target</label><input id="kpiShippingTarget" type="number" min="0" placeholder="e.g. 18"></div><div class="field"><label>Opening Target</label><input id="kpiOpeningTarget" type="number" min="0" placeholder="e.g. 15"></div></div>
+        <div class="formGrid" style="margin-top:12px"><div class="field"><label>Operational Target</label><input id="kpiOperationalTarget" type="number" min="0" placeholder="e.g. 250"></div><div class="field"><label>Operational Baseline</label><input id="kpiOperationalBaseline" type="number" min="0" placeholder="기준 숫자 e.g. 180"></div></div>
+        <div class="formGrid" style="margin-top:12px"><div class="field"><label>Closed (Manual)</label><input id="kpiOperationalClosed" type="number" min="0" placeholder="e.g. 3"></div><div class="field"><label>Operational Formula</label><input value="Baseline + Opened - Closed" disabled></div></div>
         <div class="field" style="margin-top:12px"><label>Note</label><input id="kpiNote" placeholder="e.g. 2026 annual target"></div>
         <div class="actions"><button class="btn" onclick="resetKpiSettings()">Reset</button><button class="btn primary" onclick="saveKpiSettings()">Save KPI</button></div>
         <div id="kpiSaveStatus" class="sub" style="margin-top:10px"></div>
@@ -911,16 +913,16 @@ function recentHistoryRows(){
 }
 const KPI_STORAGE_KEY='theaterHub2_kpi_settings';
 function getKpiSettings(){
-  const base={year:2026,signingTarget:'',shippingTarget:'',openingTarget:'',note:''};
+  const base={year:2026,signingTarget:'',shippingTarget:'',openingTarget:'',operationalTarget:'',operationalBaseline:'',operationalClosed:'',note:''};
   try{return {...base,...JSON.parse(localStorage.getItem(KPI_STORAGE_KEY)||'{}')}}catch(e){return base}
 }
 function renderKpiSettings(){
   const k=getKpiSettings();
-  const y=document.getElementById('kpiYear'),s=document.getElementById('kpiSigningTarget'),sh=document.getElementById('kpiShippingTarget'),o=document.getElementById('kpiOpeningTarget'),n=document.getElementById('kpiNote');
-  if(y)y.value=k.year;if(s)s.value=k.signingTarget;if(sh)sh.value=k.shippingTarget;if(o)o.value=k.openingTarget;if(n)n.value=k.note||'';
+  const y=document.getElementById('kpiYear'),s=document.getElementById('kpiSigningTarget'),sh=document.getElementById('kpiShippingTarget'),o=document.getElementById('kpiOpeningTarget'),ot=document.getElementById('kpiOperationalTarget'),ob=document.getElementById('kpiOperationalBaseline'),oc=document.getElementById('kpiOperationalClosed'),n=document.getElementById('kpiNote');
+  if(y)y.value=k.year;if(s)s.value=k.signingTarget;if(sh)sh.value=k.shippingTarget;if(o)o.value=k.openingTarget;if(ot)ot.value=k.operationalTarget;if(ob)ob.value=k.operationalBaseline;if(oc)oc.value=k.operationalClosed;if(n)n.value=k.note||'';
 }
 function saveKpiSettings(){
-  const k={year:Number(document.getElementById('kpiYear').value)||2026,signingTarget:document.getElementById('kpiSigningTarget').value,shippingTarget:document.getElementById('kpiShippingTarget').value,openingTarget:document.getElementById('kpiOpeningTarget').value,note:document.getElementById('kpiNote').value.trim()};
+  const k={year:Number(document.getElementById('kpiYear').value)||2026,signingTarget:document.getElementById('kpiSigningTarget').value,shippingTarget:document.getElementById('kpiShippingTarget').value,openingTarget:document.getElementById('kpiOpeningTarget').value,operationalTarget:document.getElementById('kpiOperationalTarget').value,operationalBaseline:document.getElementById('kpiOperationalBaseline').value,operationalClosed:document.getElementById('kpiOperationalClosed').value,note:document.getElementById('kpiNote').value.trim()};
   localStorage.setItem(KPI_STORAGE_KEY,JSON.stringify(k));
   const st=document.getElementById('kpiSaveStatus');if(st)st.textContent='Saved · Dashboard updated';
   renderDashboard();
@@ -978,6 +980,25 @@ function kpiProgressRow(label,stats){
   return `<div class="kpiProgressRow"><b>${label}</b><div class="kpiProgressTrack">${seg('kpiProgressActual',stats.actual,'actual')}${seg('kpiProgressFuture',stats.future,'future')}${seg('kpiProgressGap',stats.gap,'gap')}</div><div class="kpiProgressValue"><b>${stats.target?`${stats.total} / ${stats.target}`:stats.total}</b><small>${forecastPct===null?'Target not set':`${forecastPct}%`}</small></div></div>`;
 }
 
+function operationalKpiStats(year,target,baseline,closed){
+  const opening=kpiProgressStats('opening',year,target);
+  const base=Math.max(0,Number(baseline)||0), closedN=Math.max(0,Number(closed)||0), t=Math.max(0,Number(target)||0);
+  const current=Math.max(0,base+opening.actual-closedN);
+  const forecast=Math.max(0,current+opening.future);
+  const gap=Math.max(0,t-forecast);
+  const scale=Math.max(t,forecast,1);
+  return {base,closed:closedN,current,future:opening.future,forecast,gap,target:t,scale,actualRows:opening.actualRows,futureRows:opening.futureRows};
+}
+function operationalProgressRow(stats){
+  const pct=n=>Math.max(0,Math.min(100,n/stats.scale*100));
+  const forecastPct=stats.target?Math.round(stats.forecast/stats.target*100):null;
+  const actualTip=`<b>Operational · 현재 ${stats.current}</b><div>기준 ${stats.base} + 올해 Open ${stats.actualRows.length} - Closed ${stats.closed} = ${stats.current}</div>${stats.actualRows.map(x=>`<div class="kpiTooltipItem">${esc(x.p.client||'-')} · ${esc(x.p.name||'-')}<small>Opening ${esc(x.info.label||'-')}</small></div>`).join('')}`;
+  const futureTip=`<b>Operational · 향후 Open ${stats.future}건</b>${stats.futureRows.map(x=>`<div class="kpiTooltipItem">${esc(x.p.client||'-')} · ${esc(x.p.name||'-')}<small>Opening ${esc(x.info.label||'-')}</small></div>`).join('')||'<div>예정된 Opening이 없습니다.</div>'}`;
+  const gapTip=`<b>Operational · 목표 잔여 ${stats.gap}</b><div>현재 예정된 Opening까지 반영한 뒤 남는 목표 수량입니다.</div>`;
+  const seg=(cls,n,html)=>`<span class="${cls}" style="width:${pct(n)}%" onclick="showKpiTooltip(event,decodeURIComponent('${encodeURIComponent(html)}'))" title="클릭해서 상세 보기">${n||''}</span>`;
+  return `<div class="kpiProgressRow"><b>Operational</b><div class="kpiProgressTrack">${seg('kpiProgressActual',stats.current,actualTip)}${seg('kpiProgressFuture',stats.future,futureTip)}${seg('kpiProgressGap',stats.gap,gapTip)}</div><div class="kpiProgressValue"><b>${stats.target?`${stats.current} / ${stats.target}`:stats.current}</b><small>${forecastPct===null?`Forecast ${stats.forecast}`:`Forecast ${stats.forecast} · ${forecastPct}%`}</small></div></div>`;
+}
+
 function renderDashboard(){
   const shell=document.querySelector('#dashboardPage .pageShell'); if(!shell)return;
   const pending=projects.filter(p=>p.status==='Pending').length;
@@ -986,6 +1007,7 @@ function renderDashboard(){
   const active=pending+hold;
   const attentionProjects=projects.filter(p=>p.status!=='Opened'&&projectHasTbd(p));
   const kpi=getKpiSettings(), kpiYear=Number(kpi.year)||2026;
+  const operationalStats=operationalKpiStats(kpiYear,kpi.operationalTarget,kpi.operationalBaseline,kpi.operationalClosed);
   const sign2026=countYearField('signing',kpiYear), ship2026=countYearField('shipping',kpiYear), open2026=countYearField('opening',kpiYear);
   const signingProjects=projects.filter(p=>String(p.signing||'').includes(String(kpiYear)));
   const shippingProjects=projects.filter(p=>String(p.shipping||'').includes(String(kpiYear)));
@@ -999,6 +1021,7 @@ function renderDashboard(){
       <div class="card metric"><div class="eyebrow">${kpiYear} Signing</div><strong>${sign2026}</strong><small>${kpi.signingTarget!==''?`Target ${esc(kpi.signingTarget)} · ${Math.round(sign2026/Math.max(1,Number(kpi.signingTarget))*100)}%`:'Target not set'}</small></div>
       <div class="card metric"><div class="eyebrow">${kpiYear} Shipping</div><strong>${ship2026}</strong><small>${kpi.shippingTarget!==''?`Target ${esc(kpi.shippingTarget)} · ${Math.round(ship2026/Math.max(1,Number(kpi.shippingTarget))*100)}%`:'Target not set'}</small></div>
       <div class="card metric"><div class="eyebrow">${kpiYear} Opening</div><strong>${open2026}</strong><small>${kpi.openingTarget!==''?`Target ${esc(kpi.openingTarget)} · ${Math.round(open2026/Math.max(1,Number(kpi.openingTarget))*100)}%`:'Target not set'}</small></div>
+      <div class="card metric"><div class="eyebrow">Operational</div><strong>${operationalStats.current}</strong><small>${kpi.operationalTarget!==''?`Target ${esc(kpi.operationalTarget)} · Forecast ${operationalStats.forecast}`:`Baseline ${operationalStats.base} · Closed ${operationalStats.closed}`}</small></div>
       <div class="card metric"><div class="eyebrow">Active Projects</div><strong>${active}</strong><small>Pending ${pending} · On Hold ${hold}</small></div>
       <div class="card metric"><div class="eyebrow">Needs Attention</div><strong>${attentionProjects.length}</strong><small>TBD / missing schedule</small></div>
     </div>
@@ -1010,10 +1033,11 @@ function renderDashboard(){
           <div class="pipelineRow"><b>Opened</b><div class="pipelineBar"><i style="width:${projects.length?Math.min(100,opened/projects.length*100):0}%"></i></div><strong>${opened}</strong></div>
           <div class="kpiNote">Total ${projects.length} Projects · ${clientsWithProjects} Clients with Projects</div>
         </div>
-        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>${kpiYear} Signing / Shipping / Opening</b><div class="sub">Project 일정 기준 · 파란색은 오늘까지, 회색은 향후 예정</div></div><div class="kpiLegend"><span><i class="actual"></i>진행</span><span><i class="future"></i>예정</span><span><i class="gap"></i>목표 잔여</span></div></div>
+        <div class="card dashboardCard"><div class="dashboardTitle"><div><b>${kpiYear} Signing / Shipping / Opening / Operational</b><div class="sub">Project 일정 기준 · 파란색은 오늘까지, 회색은 향후 예정</div></div><div class="kpiLegend"><span><i class="actual"></i>진행</span><span><i class="future"></i>예정</span><span><i class="gap"></i>목표 잔여</span></div></div>
           ${kpiProgressRow('Signing',kpiProgressStats('signing',kpiYear,kpi.signingTarget))}
           ${kpiProgressRow('Shipping',kpiProgressStats('shipping',kpiYear,kpi.shippingTarget))}
           ${kpiProgressRow('Opening',kpiProgressStats('opening',kpiYear,kpi.openingTarget))}
+          ${operationalProgressRow(operationalStats)}
           ${(signingProjects.length||shippingProjects.length||openingProjects.length)?`<div class="kpiNote">Signing: ${signingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}<br>Shipping: ${shippingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}<br>Opening: ${openingProjects.slice(0,3).map(p=>esc(p.name)).join(' · ')||'-'}</div>`:'<div class="kpiNote">${kpiYear} 일정이 입력된 Project가 없습니다.</div>'}
         </div>
         <div class="card dashboardCard"><div class="dashboardTitle"><div><b>Upcoming Milestones</b><div class="sub">Signing / Shipping / Opening에 입력된 가까운 일정</div></div></div>
