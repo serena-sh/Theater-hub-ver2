@@ -86,6 +86,12 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 .kpiTooltip{position:fixed;z-index:5000;display:none;min-width:240px;max-width:360px;max-height:280px;overflow:auto;background:#0f172a;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 12px 35px rgba(15,23,42,.28);font-size:10px;line-height:1.45;pointer-events:auto}.kpiTooltip b{display:block;font-size:11px;margin-bottom:6px}.kpiTooltipItem{padding:5px 0;border-top:1px solid rgba(255,255,255,.12)}.kpiTooltipItem:first-of-type{border-top:0}.kpiTooltipItem small{display:block;color:#cbd5e1;margin-top:1px}.kpiProgressActual,.kpiProgressFuture,.kpiProgressGap{cursor:pointer}
 
 .commercialDeal{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:#fff;overflow:hidden}.commercialDeal summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.commercialDeal summary::-webkit-details-marker{display:none}.commercialDeal summary:hover{background:#f8fafc}.commercialDealTitle{font-size:12px;font-weight:850}.commercialDealMeta{font-size:9px;color:var(--muted);margin-top:4px}.commercialFormatBadge{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#eef2ff;color:#4338ca;border:1px solid #e0e7ff;font-size:9px;font-weight:800;margin-left:6px}.commercialChangeSummary{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.commercialChangeChip{font-size:9px;padding:3px 6px;border-radius:6px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}.commercialDealBody{padding:0 14px 14px;border-top:1px solid #eef2f7}.commercialCompareWrap{overflow-x:auto;overflow-y:hidden;margin-top:12px;padding-bottom:8px;max-width:100%;scrollbar-gutter:stable;overscroll-behavior-x:contain}.commercialCompareWrap::-webkit-scrollbar{height:12px}.commercialCompareWrap::-webkit-scrollbar-track{background:#f1f5f9;border-radius:999px}.commercialCompareWrap::-webkit-scrollbar-thumb{background:#94a3b8;border:3px solid #f1f5f9;border-radius:999px}.commercialCompare{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:10px}.commercialCompare th,.commercialCompare td{padding:8px 9px;border-right:1px solid #eef2f7;border-bottom:1px solid #eef2f7;vertical-align:top;text-align:left}.commercialCompare th{background:#f8fafc;font-size:9px;color:#64748b;font-weight:850;white-space:nowrap}.commercialCompare th:not(:first-child),.commercialCompare td:not(:first-child){min-width:180px;max-width:240px}.commercialCompare th:first-child,.commercialCompare td:first-child{position:sticky;left:0;z-index:1;background:#fff;font-weight:800;min-width:130px;max-width:160px}.commercialCompare th:first-child{background:#f8fafc;z-index:2}.commercialCompare .changed{background:#fff7ed;font-weight:800}.commercialCompare .latest{box-shadow:inset 0 2px 0 #64748b}.commercialRoundHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.commercialRoundHead button{font-size:8px;padding:3px 6px}.commercialDealChevron{font-size:12px;color:#64748b;transition:.15s}.commercialDeal[open] .commercialDealChevron{transform:rotate(180deg)}
+
+/* Focused map site */
+.mapFocusedMarker{position:relative;width:28px;height:28px;}
+.mapFocusedMarker .focusRing{position:absolute;inset:0;border:3px solid #0f172a;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 0 0 5px rgba(255,255,255,.9),0 4px 14px rgba(15,23,42,.35);animation:mapFocusPulse 1.45s ease-out infinite;}
+.mapFocusedMarker .focusDot{position:absolute;left:7px;top:7px;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-sizing:border-box;}
+@keyframes mapFocusPulse{0%{transform:scale(.8);opacity:1}70%{transform:scale(1.35);opacity:.25}100%{transform:scale(1.45);opacity:0}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
@@ -119,7 +125,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
       <div class="pageHead"><div><h1>Global Theater Map</h1><div class="sub">Supabase Site master의 실제 좌표만 표시합니다. Marker 색상은 국가별 CJ 4DPLEX Client 도입 순서를 나타냅니다.</div></div><div class="toolbar"><button class="btn" onclick="openKmlImport()">Import KML / KMZ</button><button class="btn blue" onclick="startAddSite()">+ Add Site</button></div></div>
       <div class="mapWorkspace">
         <div class="card mapCard">
-          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="renderMarkers()"><div class="mapMultiFilter" id="countryMultiFilter">
+          <div class="mapTopbar"><input id="mapSearch" class="search" placeholder="Search site / city / client" oninput="onMapSearchInput()"><div class="mapMultiFilter" id="countryMultiFilter">
   <button type="button" class="search multiFilterBtn" onclick="toggleMapMultiFilter('countryMultiFilter',event)">All Countries ▾</button>
   <div class="multiFilterMenu" onclick="event.stopPropagation()"><input class="multiFilterSearch" type="text" placeholder="Type to filter..." oninput="filterMultiOptions(this)"><div class="multiFilterOptions"></div><div class="formatFilterActions"><button type="button" onclick="clearMapMultiFilter('country')">Clear</button></div></div>
 </div><div class="mapMultiFilter" id="clientMultiFilter">
@@ -306,8 +312,16 @@ function markerColor(site){
   const order=cjClientEntryOrder(site);
   return order===1?'#2563eb':order===2?'#dc2626':order===3?'#16a34a':'#64748b';
 }
+function isMapSiteFocused(site){
+  const q=(document.getElementById('mapSearch')?.value||'').trim().toLowerCase();
+  const haystack=`${site?.name||''} ${site?.city||''} ${site?.client||''}`.toLowerCase();
+  return Number(site?.id)===Number(selectedSiteId) || (!!q && haystack.includes(q));
+}
 function markerIcon(site){
   const color=markerColor(site);
+  if(isMapSiteFocused(site)){
+    return L.divIcon({className:'',html:`<div class="mapFocusedMarker"><span class="focusRing"></span><span class="focusDot" style="background:${color}"></span></div>`,iconSize:[28,28],iconAnchor:[14,14]});
+  }
   return L.divIcon({className:'',html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 5px #475569"></div>`,iconSize:[15,15],iconAnchor:[8,8]});
 }
 function cjEntryLabel(site){const n=cjClientEntryOrder(site);return n?`${n}${n===1?'st':n===2?'nd':'rd'} CJ Client`:'Other / Not set'}
@@ -429,6 +443,21 @@ function clearMapMultiFilter(kind){
   updateMapMultiLabel(kind);
   if(kind==='country')refreshClientFilter([]);
   renderMarkers();
+}
+function onMapSearchInput(){
+  renderMarkers();
+  const q=(document.getElementById('mapSearch')?.value||'').trim();
+  if(!q)return;
+  const matches=selectedMapSites().filter(hasValidCoords);
+  if(matches.length===1 && map){
+    const s=matches[0];
+    selectedSiteId=s.id;
+    map.setView([Number(s.lat),Number(s.lng)],Math.max(map.getZoom(),10));
+    renderMarkers();
+  }else if(matches.length>1 && map){
+    const bounds=L.latLngBounds(matches.map(s=>[Number(s.lat),Number(s.lng)]));
+    if(bounds.isValid())map.fitBounds(bounds.pad(.18),{maxZoom:9});
+  }
 }
 function renderMarkers(){
   if(!markerLayer)return;
@@ -628,7 +657,7 @@ function formatSummaryHtml(site){
   return `<div>CJ 4DPLEX FORMAT : ${f.cj.length?f.cj.map(x=>`<strong>${esc(x)}</strong>`).join(' · '):'<span class="sub">No CJ 4DPLEX format recorded</span>'}</div><div style="margin-top:11px"><b>Other Premium Formats</b><div style="margin-top:7px">${f.other.length?f.other.map(x=>`<span class="pill">${esc(x)}</span>`).join(''):'<span class="sub">None recorded</span>'}</div></div>`;
 }
 
-function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);if(!s)return;selectedSiteId=id;if(mapMode!=='measure'){mapMode=null;document.getElementById('mapHint').style.display='none';}if(!keepCenter&&hasValidCoords(s))map.setView([Number(s.lat),Number(s.lng)],Math.max(map.getZoom(),7));const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div style="margin-top:10px">${formatSummaryHtml(s)}</div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${hasValidCoords(s)?Number(s.lat).toFixed(5)+', '+Number(s.lng).toFixed(5):'Not set'}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
+function showSiteDetail(id,keepCenter=false){const s=sites.find(x=>x.id===id);if(!s)return;selectedSiteId=id;if(mapMode!=='measure'){mapMode=null;document.getElementById('mapHint').style.display='none';}if(!keepCenter&&hasValidCoords(s))map.setView([Number(s.lat),Number(s.lng)],Math.max(map.getZoom(),10));renderMarkers();const linked=projects.filter(p=>p.siteId===id);document.getElementById('mapPanel').innerHTML=`<div class="panelHead"><div><h2>${esc(s.name)}</h2><div class="sub">${esc(s.client)} · ${esc(s.city)}, ${esc(s.country)}</div></div><span class="pill ${s.status==='Operating'?'green':'amber'}">${esc(s.status)}</span></div><div style="margin-top:10px">${formatSummaryHtml(s)}</div><div style="margin-top:13px;font-size:11px;color:#475569"><b>Address</b><br>${esc(s.address||'-')}<br><br><b>Coordinates</b><br>${hasValidCoords(s)?Number(s.lat).toFixed(5)+', '+Number(s.lng).toFixed(5):'Not set'}</div><div class="actions" style="justify-content:flex-start"><button class="btn" onclick="showSiteForm(${s.id})">Edit</button><button class="btn" onclick="moveSite(${s.id})">Move Pin</button></div><div class="siteProjects"><b>Linked Projects · ${linked.length}</b>${linked.length?linked.map(p=>`<div class="miniProject" onclick="openProjectFromMap(${p.id})" style="cursor:pointer"><b>${esc(p.name)} · ${esc(p.format)}</b><div>${esc(p.status)} · ${esc(p.stage)} · Opening ${esc(p.opening)}</div></div>`).join(''):'<div class="sub" style="margin-top:8px">No linked projects</div>'}</div>`}
 function siteClientOptions(selectedId,selectedName){
   const rows=[...clientProfiles].sort((a,b)=>(a.country||'').localeCompare(b.country||'')||(a.name||'').localeCompare(b.name||''));
   return '<option value="">Select Client</option>'+rows.map(c=>`<option value="${Number(c.id)}" ${Number(c.id)===Number(selectedId)||(!selectedId&&c.name===selectedName)?'selected':''}>${esc(c.name)}${c.country?' · '+esc(c.country):''}</option>`).join('');
@@ -874,7 +903,7 @@ function normalizeMaster(data){
     clientProfiles=data.clients.map(c=>({id:c.id,name:c.name,country:c.country||'',type:c.type||'Exhibitor',status:c.status||'Active',note:c.note||'',cjClientOrder:c.cj_client_order==null?null:Number(c.cj_client_order),contacts:[]}));
   }
   if(Array.isArray(data.sites)){
-    sites=data.sites.map(x=>{const rawFormats=Array.isArray(x.formats)?x.formats:(x.formats?String(x.formats).split(/[,/]/).map(v=>v.trim()).filter(Boolean):[]);const cjFormats=[x.has_screenx===true?'SCREENX':null,x.has_4dx===true?'4DX':null,x.has_ultra4dx===true?'ULTRA 4DX':null].filter(Boolean);const linkedClient=data.clients?.find(c=>Number(c.id)===Number(x.client_id));return{id:Number(x.id),clientId:x.client_id??null,client:x.client||x.client_name||linkedClient?.name||'',name:x.name||`Site ${x.id}`,country:x.country||'',city:x.city||'',status:x.status||'Operating',formats:[...new Set([...rawFormats,...cjFormats])],lat:(x.latitude!==null&&x.latitude!==undefined&&x.latitude!==''?Number(x.latitude):(x.lat!==null&&x.lat!==undefined&&x.lat!==''?Number(x.lat):null)),lng:(x.longitude!==null&&x.longitude!==undefined&&x.longitude!==''?Number(x.longitude):(x.lng!==null&&x.lng!==undefined&&x.lng!==''?Number(x.lng):null)),address:x.address||'',projects:[]}});
+    sites=data.sites.map(x=>{const rawFormats=Array.isArray(x.formats)?x.formats:(x.formats?String(x.formats).split(/[,/]/).map(v=>v.trim()).filter(Boolean):[]);const cjFormats=[x.has_screenx===true?'SCREENX':null,x.has_4dx===true?'4DX':null,x.has_ultra4dx===true?'ULTRA 4DX':null].filter(Boolean);const linkedClient=data.clients?.find(c=>Number(c.id)===Number(x.client_id));return{id:Number(x.id),clientId:x.client_id??null,client:x.client||x.client_name||linkedClient?.name||'',name:x.name||`Site ${x.id}`,country:x.country||'',city:x.city||'',status:x.status||'Operating',formats:[...new Set([...rawFormats,...cjFormats])],lat:(x.latitude!==null&&x.latitude!==undefined&&x.latitude!==''?Number(x.latitude):(x.lat!==null&&x.lat!==undefined&&x.lat!==''?Number(x.lat):null)),lng:(x.longitude!==null&&x.longitude!==undefined&&x.longitude!==''?Number(x.longitude):(x.lng!==null&&x.lng!==undefined&&x.lng!==''?Number(x.lng):null)),address:x.address||'',remarks:x.remarks||'',projects:[]}});
   }
 }
 async function reloadV2Data(){
@@ -1326,7 +1355,7 @@ function renderProjectList(){
 
   document.getElementById('projectList').innerHTML=Object.entries(groups).map(([client,ps])=>{
     const isOpen=q?true:openProjectClients.has(client);
-    return `<div class="clientGroup"><div class="clientGroupHead ${isOpen?'open':''}" data-client="${esc(client)}" onclick="toggleProjectClient(this)"><span class="clientGroupTitle"><span class="accordionArrow">▶</span><span>${esc(client)}</span></span><span class="clientCount">${ps.length}</span></div><div class="clientGroupBody ${isOpen?'':'hidden'}">${ps.map(p=>`<div class="projectRow ${p.id===selectedProjectId?'active':''}" onclick="selectProject(${p.id})"><div class="projectRowTop"><div><div class="projectName">${esc(p.name)}</div><div class="projectMeta">${esc(p.format)} · ${esc(p.status)} · Sign ${esc(p.signing||'TBD')} · Open ${esc(p.opening)}</div></div><span class="stage">${esc(p.stage)}</span></div></div>`).join('')}</div></div>`
+    return `<div class="clientGroup"><div class="clientGroupHead ${isOpen?'open':''}" data-client="${esc(client)}" onclick="toggleProjectClient(this)"><span class="clientGroupTitle"><span class="accordionArrow">▶</span><span>${esc(client)}</span></span><span class="clientCount">${ps.length}</span></div><div class="clientGroupBody ${isOpen?'':'hidden'}">${ps.map(p=>`<div class="projectRow ${p.id===selectedProjectId?'active':''}" onclick="selectProject(${p.id})"><div class="projectRowTop"><div><div class="projectName">${esc(p.name)}</div><div class="projectMeta">${esc(p.format)} · ${esc(p.status)} · Sign ${esc(p.signing||'TBD')} · Open ${esc(p.opening)}</div>${p.status==='Pending'?`<div class="projectMeta" style="margin-top:4px"><b>Remarks:</b> ${esc(sites.find(s=>Number(s.id)===Number(p.siteId))?.remarks||'-')}</div>`:''}</div><span class="stage">${esc(p.stage)}</span></div></div>`).join('')}</div></div>`
   }).join('')||'<div class="panelEmpty">No projects</div>'
 }
 function selectProject(id){selectedProjectId=id;selectedTab='overview';const p=projects.find(x=>x.id===id);if(p)openProjectClients.add(p.client);renderProjectList();renderProjectDetail()}
@@ -1334,7 +1363,15 @@ function renderProjectDetail(){const p=projects.find(x=>x.id===selectedProjectId
 function setProjectTab(t){selectedTab=t;renderProjectDetail()}
 function renderTabBody(){const p=projects.find(x=>x.id===selectedProjectId),el=document.getElementById('tabBody');if(selectedTab==='overview'){el.innerHTML=`<div class="overviewGrid">${info('Client',p.client)}${info('Site',sites.find(s=>s.id===p.siteId)?.name||'Not linked')}${info('Country',sites.find(s=>s.id===p.siteId)?.country||'-')}${info('Format',p.format)}${info('Auditorium',p.auditorium||'-')}${info('BM',p.bm)}${info('Stage',p.stage)}${info('Signing',p.signing||'TBD')}${info('Shipping',p.shipping)}${info('Opening',p.opening)}${info('Owner',p.owner)}<div class="info wide"><label>Next Action</label><strong>${esc(p.next)}</strong></div></div>`}else if(selectedTab==='history'){el.innerHTML=`<div class="historyTop"><div><b>Project History</b><div class="sub">자동 변경이력 + 수동 기록을 한 곳에서 관리</div></div><button class="btn primary" onclick="openHistoryModal()">+ Add History</button></div><div class="timeline">${p.history.length?p.history.map((h,i)=>`<div class="historyItem"><div class="historyCard"><div class="historyDate">${esc(h.date)} · ${esc(h.type)}</div><div class="historyTitle">${esc(h.title)}</div><div class="historyText">${h.before||h.after?`${esc(h.before||'-')} → ${esc(h.after||'-')}<br>`:''}${esc(h.note||'')}</div><div class="historyActions"><button class="tiny" onclick="editHistory(${i})">Edit</button><button class="tiny" onclick="deleteHistory(${i})">Delete</button></div></div></div>`).join(''):'<div class="placeholder" style="margin-left:14px">No history yet</div>'}</div>`}else if(selectedTab==='commercial'){const cr=commercialRecords.filter(r=>Number(r.projectId)===Number(p.id)||(p.siteId&&commercialSiteIds(r).includes(Number(p.siteId)))).sort((a,b)=>(b.date||'').localeCompare(a.date||''));el.innerHTML=`<div class="historyTop"><div><b>Commercial History · ${cr.length}</b><div class="sub">이 Project에 연결된 Commercial 기록만 표시합니다.</div></div><button class="btn primary" onclick="openProjectAddCommercial(${p.id})">+ Add Commercial</button></div>${cr.length?cr.map((r,i)=>`<div class="commercialCard"><div class="commercialCardTop"><div><b>${esc(r.round||'Round')}</b><div class="sub">${esc(r.date||'-')} · From ${esc(r.from||'-')} · ${esc(r.bm||'-')}${r.format?' · '+esc(r.format):''}</div>${commercialSitesHtml(r)}</div><div class="toolbar"><button class="tiny" onclick="editClientCommercial(${r.id})">Edit</button>${i===0?'<span class="stage">Current</span>':''}</div></div><div class="commercialTerms"><div class="commercialTerm"><label>System Fee</label><b>${esc(r.systemFee||'-')}</b></div><div class="commercialTerm"><label>Revenue Share</label><b>${esc(r.revenueShare||'-')}</b></div><div class="commercialTerm"><label>Content Fee</label><b>${esc(r.contentFee||'-')}</b></div><div class="commercialTerm"><label>Supervision Fee</label><b>${esc(r.supervisionFee||'-')}</b></div><div class="commercialTerm"><label>Maintenance Fee</label><b>${esc(r.maintenanceFee||'-')}</b></div><div class="commercialTerm"><label>Marketing Incentive</label><b>${esc(r.marketingIncentive||'-')}</b></div><div class="commercialTerm"><label>Payment</label><b>${esc(r.payment||'-')}</b></div><div class="commercialTerm"><label>Notes</label><b>${esc(r.notes||'-')}</b></div></div></div>`).join(''):'<div class="placeholder">No commercial records yet.<br><br><button class="btn primary" onclick="openProjectAddCommercial('+p.id+')">+ Add Commercial</button></div>'}`}else{el.innerHTML=`<div class="placeholder">${selectedTab[0].toUpperCase()+selectedTab.slice(1)}는 Project에 연결되는 구조로 다음 단계에서 상세 구현합니다.</div>`}}
 function info(label,value){return `<div class="info"><label>${esc(label)}</label><strong>${esc(value)}</strong></div>`}
-function jumpToSite(id){showPage('mapPage',document.querySelector('[data-page="mapPage"]'));setTimeout(()=>showSiteDetail(id),80)}
+function prepareFocusedSiteOnMap(id){
+  selectedSiteId=Number(id);
+  const search=document.getElementById('mapSearch');if(search)search.value='';
+  document.querySelectorAll('#countryMultiFilter input[type=checkbox],#clientMultiFilter input[type=checkbox],#formatMultiFilter input[type=checkbox]').forEach(x=>x.checked=false);
+  const status=document.getElementById('statusFilter');if(status)status.value='';
+  updateMapMultiLabel('country');refreshClientFilter([]);updateFormatFilterLabel();
+  renderMarkers();
+}
+function jumpToSite(id){showPage('mapPage',document.querySelector('[data-page="mapPage"]'));setTimeout(()=>{prepareFocusedSiteOnMap(id);showSiteDetail(Number(id));},80)}
 
 function openHistoryModal(){editHistoryIndex=null;document.getElementById('historyModalTitle').textContent='Add History';document.getElementById('hDate').value=new Date().toISOString().slice(0,10);['hTitle','hBefore','hAfter','hNote'].forEach(id=>document.getElementById(id).value='');document.getElementById('hType').value='Note';document.getElementById('historyModal').classList.add('open')}
 function editHistory(i){const h=projects.find(x=>x.id===selectedProjectId).history[i];editHistoryIndex=i;document.getElementById('historyModalTitle').textContent='Edit History';document.getElementById('hDate').value=h.date;document.getElementById('hType').value=h.type;document.getElementById('hTitle').value=h.title;document.getElementById('hBefore').value=h.before;document.getElementById('hAfter').value=h.after;document.getElementById('hNote').value=h.note;document.getElementById('historyModal').classList.add('open')}
@@ -1538,7 +1575,7 @@ async function saveClientCommercial(){
 }
 function openClientProject(id){selectedProjectId=id;selectedTab='overview';renderProjectList();renderProjectDetail();showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))}
 function openClientProjectCommercial(id){selectedProjectId=id;selectedTab='commercial';renderProjectList();renderProjectDetail();showPage('projectsPage',document.querySelector('[data-page=projectsPage]'))}
-function openClientSite(id){showPage('mapPage',document.querySelector('[data-page=mapPage]'));setTimeout(()=>showSiteDetail(id),80)}
+function openClientSite(id){showPage('mapPage',document.querySelector('[data-page=mapPage]'));setTimeout(()=>{prepareFocusedSiteOnMap(id);showSiteDetail(Number(id));},80)}
 
 </script>
 
