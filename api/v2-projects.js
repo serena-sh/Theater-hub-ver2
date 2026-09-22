@@ -1047,6 +1047,160 @@ function cleanSite(
   return output;
 }
 
+/* =========================================================
+   COMMERCIALS
+========================================================= */
+
+function cleanCommercial(commercial = {}) {
+  const allowed = [
+    "client_id",
+    "title",
+    "round",
+    "system_fee",
+    "revenue_share",
+    "content_fee",
+    "supervision_fee",
+    "maintenance_fee",
+    "marketing_incentive",
+    "payment_terms",
+    "notes",
+    "site_ids",
+  ];
+
+  const output = {};
+
+  for (const key of allowed) {
+    if (
+      Object.prototype.hasOwnProperty.call(
+        commercial,
+        key
+      )
+    ) {
+      output[key] =
+        commercial[key] === ""
+          ? null
+          : commercial[key];
+    }
+  }
+
+  if (
+    output.client_id !== undefined &&
+    output.client_id !== null
+  ) {
+    output.client_id =
+      Number(output.client_id);
+  }
+
+  if (output.site_ids !== undefined) {
+    if (Array.isArray(output.site_ids)) {
+      output.site_ids =
+        output.site_ids
+          .map(Number)
+          .filter(Number.isFinite);
+    } else if (
+      output.site_ids === null ||
+      output.site_ids === ""
+    ) {
+      output.site_ids = [];
+    } else {
+      output.site_ids =
+        [Number(output.site_ids)]
+          .filter(Number.isFinite);
+    }
+  }
+
+  return output;
+}
+
+
+async function listCommercials() {
+  const rows =
+    await sbAll(
+      "commercials?select=*&order=updated_at.desc,created_at.desc"
+    );
+
+  return rows || [];
+}
+
+
+async function oneCommercial(id) {
+  const rows =
+    await sb(
+      `commercials?id=eq.${q(id)}&select=*`
+    );
+
+  return rows?.[0] || null;
+}
+
+
+async function createCommercial(
+  commercial = {}
+) {
+  const payload =
+    cleanCommercial(commercial);
+
+  const rows =
+    await sb(
+      "commercials",
+      {
+        method: "POST",
+
+        headers: {
+          Prefer:
+            "return=representation",
+        },
+
+        body:
+          JSON.stringify(payload),
+      }
+    );
+
+  return rows?.[0] || null;
+}
+
+
+async function updateCommercial(
+  id,
+  commercial = {}
+) {
+  const payload =
+    cleanCommercial(commercial);
+
+  const rows =
+    await sb(
+      `commercials?id=eq.${q(id)}`,
+      {
+        method: "PATCH",
+
+        headers: {
+          Prefer:
+            "return=representation",
+        },
+
+        body:
+          JSON.stringify(payload),
+      }
+    );
+
+  return rows?.[0] || null;
+}
+
+
+async function deleteCommercial(id) {
+  await sb(
+    `commercials?id=eq.${q(id)}`,
+    {
+      method: "DELETE",
+
+      headers: {
+        Prefer:
+          "return=minimal",
+      },
+    }
+  );
+
+  return id;
+}
 
 /* =========================================================
    HANDLER
@@ -1108,7 +1262,22 @@ async function handler(
           }
         );
       }
+if (
+  action ===
+  "commercial_list"
+) {
+  const commercials =
+    await listCommercials();
 
+  return json(
+    res,
+    200,
+    {
+      ok: true,
+      commercials,
+    }
+  );
+}
 
       return json(
         res,
@@ -2222,7 +2391,138 @@ async function handler(
         }
       );
     }
+/* =====================================================
+   COMMERCIAL CREATE
+===================================================== */
 
+if (
+  action ===
+  "commercial_create"
+) {
+  const commercial =
+    await createCommercial(
+      body.commercial ||
+      body.data ||
+      {}
+    );
+
+  return json(
+    res,
+    200,
+    {
+      ok: true,
+      commercial,
+    }
+  );
+}
+
+
+/* =====================================================
+   COMMERCIAL UPDATE
+===================================================== */
+
+if (
+  action ===
+  "commercial_update"
+) {
+  const id =
+    Number(body.id);
+
+  if (!id) {
+    return json(
+      res,
+      400,
+      {
+        ok: false,
+        error:
+          "Commercial id is required",
+      }
+    );
+  }
+
+  const before =
+    await oneCommercial(id);
+
+  if (!before) {
+    return json(
+      res,
+      404,
+      {
+        ok: false,
+        error:
+          "Commercial not found",
+      }
+    );
+  }
+
+  const commercial =
+    await updateCommercial(
+      id,
+      body.commercial ||
+      body.data ||
+      {}
+    );
+
+  return json(
+    res,
+    200,
+    {
+      ok: true,
+      commercial,
+    }
+  );
+}
+
+
+/* =====================================================
+   COMMERCIAL DELETE
+===================================================== */
+
+if (
+  action ===
+  "commercial_delete"
+) {
+  const id =
+    Number(body.id);
+
+  if (!id) {
+    return json(
+      res,
+      400,
+      {
+        ok: false,
+        error:
+          "Commercial id is required",
+      }
+    );
+  }
+
+  const before =
+    await oneCommercial(id);
+
+  if (!before) {
+    return json(
+      res,
+      404,
+      {
+        ok: false,
+        error:
+          "Commercial not found",
+      }
+    );
+  }
+
+  await deleteCommercial(id);
+
+  return json(
+    res,
+    200,
+    {
+      ok: true,
+      deleted_id: id,
+    }
+  );
+}
 
     /* =====================================================
        UNKNOWN ACTION
