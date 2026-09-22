@@ -1065,6 +1065,7 @@ function cleanCommercial(commercial = {}) {
     "payment_terms",
     "notes",
     "site_ids",
+    "format",
   ];
 
   const output = {};
