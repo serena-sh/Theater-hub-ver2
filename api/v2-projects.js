@@ -1052,22 +1052,26 @@ function cleanSite(
 ========================================================= */
 
 function cleanCommercial(commercial = {}) {
-  const allowed = [
-    "client_id",
-    "client",
-    "title",
-    "round",
-    "system_fee",
-    "revenue_share",
-    "content_fee",
-    "supervision_fee",
-    "maintenance_fee",
-    "marketing_incentive",
-    "payment_terms",
-    "notes",
-    "site_ids",
-    "format",
-  ];
+const allowed = [
+  "client_id",
+  "client",
+  "title",
+  "round",
+  "offer_date",
+  "offer_from",
+  "bm",
+  "project_id",
+  "system_fee",
+  "revenue_share",
+  "content_fee",
+  "supervision_fee",
+  "maintenance_fee",
+  "marketing_incentive",
+  "payment_terms",
+  "notes",
+  "site_ids",
+  "format",
+];
 
   const output = {};
 
