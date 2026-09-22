@@ -1054,6 +1054,7 @@ function cleanSite(
 function cleanCommercial(commercial = {}) {
   const allowed = [
     "client_id",
+    "client",
     "title",
     "round",
     "system_fee",
