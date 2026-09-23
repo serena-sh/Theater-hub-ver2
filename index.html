@@ -36,6 +36,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
 /* dashboard */
 .dashboardGrid{display:grid;grid-template-columns:1.4fr .9fr;gap:12px;margin-top:12px}
 .dashboardStack{display:grid;gap:12px}.dashboardCard{padding:16px}.dashboardTitle{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.dashboardTitle b{font-size:13px}.metricRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{padding:15px}.metric .eyebrow{font-size:10px;color:var(--muted);font-weight:850;text-transform:uppercase;letter-spacing:.05em}.metric strong{display:block;font-size:24px;margin:3px 0}.metric small{color:var(--muted)}.progress{height:7px;background:#eef2f7;border-radius:99px;overflow:hidden;margin-top:10px}.progress>i{display:block;height:100%;background:#111827;border-radius:99px}.pipelineRow{display:grid;grid-template-columns:110px 1fr 58px;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #eef2f7}.pipelineRow:first-child{border-top:0}.pipelineBar{height:8px;border-radius:99px;background:#eef2f7;overflow:hidden}.pipelineBar i{display:block;height:100%;background:#2563eb}.activityItem,.attentionItem,.milestoneItem{padding:10px 0;border-top:1px solid #eef2f7}.activityItem:first-child,.attentionItem:first-child,.milestoneItem:first-child{border-top:0}.activityItem b,.attentionItem b,.milestoneItem b{font-size:11px}.activityItem small,.attentionItem small,.milestoneItem small{display:block;color:var(--muted);margin-top:3px}.attentionItem{display:flex;justify-content:space-between;gap:10px}.miniBadge{white-space:nowrap;font-size:9px;font-weight:850;border-radius:999px;padding:4px 7px;background:#fff7ed;color:#9a3412;align-self:flex-start}.dashboardActions{display:flex;gap:7px;flex-wrap:wrap}.dashboardFoot{margin-top:10px;color:var(--muted);font-size:10px}.kpiNote{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 12px;color:#64748b;font-size:10px;margin-top:10px}
+.projectMultiFilter{position:relative;min-width:0;flex:1}.projectMultiFilterBtn{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 8px;background:#fff;font-size:10px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#334155}.projectMultiFilter.open .projectMultiFilterBtn{border-color:#94a3b8}.projectMultiFilterMenu{display:none;position:absolute;z-index:1800;top:calc(100% + 5px);left:0;min-width:190px;max-width:260px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:7px}.projectMultiFilter.open .projectMultiFilterMenu{display:block}.projectMultiFilterSearch{width:100%!important;border:1px solid #dbe2ea!important;border-radius:7px!important;padding:7px 8px!important;margin-bottom:6px;font-size:10px!important}.projectMultiFilterOptions{display:grid;gap:2px;max-height:230px;overflow:auto}.projectMultiFilterOptions label{display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}.projectMultiFilterOptions label:hover{background:#f8fafc}.projectMultiFilterOptions input{width:auto!important;margin:0}.projectMultiFilterActions{border-top:1px solid #eef2f7;margin-top:5px;padding-top:5px;text-align:right}.projectMultiFilterActions button{border:0;background:transparent;color:#2563eb;font-size:9px;font-weight:800;padding:3px 5px}.projectFilterRow3{align-items:flex-start}.projectFilterRow3 .projectMultiFilterMenu{min-width:180px}
 @media(max-width:1180px){.app{grid-template-columns:190px minmax(0,1fr)}.mapWorkspace{grid-template-columns:minmax(0,1fr) 300px}.projectWorkspace{grid-template-columns:315px minmax(0,1fr)}.overviewGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,1fr)}}
 
 .commercialModalBackdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);z-index:2500;display:none;align-items:center;justify-content:center;padding:20px}.commercialModalBackdrop.open{display:flex}.commercialModal{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.25);border:1px solid var(--line)}.commercialModalHead{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.commercialModalHead h3{margin:0;font-size:16px}.commercialModalBody{padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.commercialModalBody .full{grid-column:1/-1}.commercialModalBody label{display:block;font-size:9px;font-weight:850;color:var(--muted);text-transform:uppercase;margin-bottom:5px}.commercialModalBody input,.commercialModalBody select,.commercialModalBody textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 9px;font:inherit}.commercialModalBody textarea{min-height:80px;resize:vertical}.commercialSiteSearch{position:relative;margin:6px 0}.commercialSiteSearch input{padding-left:30px!important}.commercialSiteSearch:before{content:"⌕";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#64748b;font-size:15px;pointer-events:none}.commercialSitePicker{border:1px solid var(--line);border-radius:9px;max-height:240px;overflow:auto;background:#fff}.commercialSiteOption{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-top:1px solid #eef2f7;cursor:pointer}.commercialSiteOption:first-child{border-top:0}.commercialSiteOption:hover{background:#f8fafc}.commercialSiteOption input{width:auto;margin-top:2px}.commercialSiteOption b{font-size:10px}.commercialSiteOption small{display:block;color:var(--muted);font-size:9px;margin-top:2px}.commercialSiteActions{display:flex;justify-content:space-between;align-items:center;margin:5px 0 6px}.commercialLinkedSites{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}.commercialSiteTag{font-size:9px;font-weight:750;padding:3px 6px;border-radius:999px;background:#eff6ff;color:#1d4ed8;border:1px solid #dbeafe}.commercialModalFoot{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}.commercialCard{border:1px solid var(--line);border-radius:11px;padding:12px;margin-bottom:8px}.commercialCardTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.commercialTerms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}.commercialTerm{background:#f8fafc;border-radius:8px;padding:8px}.commercialTerm label{display:block;font-size:8px;color:var(--muted);font-weight:800;text-transform:uppercase}.commercialTerm b{display:block;margin-top:3px;font-size:10px}
@@ -151,7 +152,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
       <div class="kpis"><div class="card kpi"><label>Pending</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>Opened</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>On Hold</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>Updated this month</label><strong>0</strong><span>Loading from Supabase</span></div></div>
       <div class="projectWorkspace">
         <div class="card projectListCard">
-          <div class="listTools"><input id="projectSearch" placeholder="Search project / client" oninput="renderProjectList()"><div class="row"><select id="projectStatusFilter" onchange="renderProjectList()"><option value="">All Status</option><option>Pending</option><option>Opened</option><option>On Hold</option><option>Cancelled</option></select><select id="projectSort" onchange="renderProjectList()"><option value="opening">Opening</option><option value="updated">Recently Updated</option><option value="client">Client A-Z</option></select></div><div class="row"><select id="projectSigningYearFilter" onchange="renderProjectList()"><option value="">Signing · All</option></select><select id="projectShippingYearFilter" onchange="renderProjectList()"><option value="">Shipping · All</option></select><select id="projectOpeningYearFilter" onchange="renderProjectList()"><option value="">Opening · All</option></select></div><div class="row"><select id="projectFormatFilter" onchange="renderProjectList()"><option value="">All Formats</option></select><select id="projectCountryFilter" onchange="renderProjectList()"><option value="">All Countries</option></select><select id="projectBmFilter" onchange="renderProjectList()"><option value="">All BM</option></select></div></div>
+          <div class="listTools"><input id="projectSearch" placeholder="Search project / client" oninput="renderProjectList()"><div class="row"><div id="projectStatusFilter" class="projectMultiFilter"></div><select id="projectSort" onchange="renderProjectList()"><option value="opening">Opening</option><option value="updated">Recently Updated</option><option value="client">Client A-Z</option></select></div><div class="row projectFilterRow3"><div id="projectSigningYearFilter" class="projectMultiFilter"></div><div id="projectShippingYearFilter" class="projectMultiFilter"></div><div id="projectOpeningYearFilter" class="projectMultiFilter"></div></div><div class="row projectFilterRow3"><div id="projectFormatFilter" class="projectMultiFilter"></div><div id="projectCountryFilter" class="projectMultiFilter"></div><div id="projectBmFilter" class="projectMultiFilter"></div></div></div>
           <div id="projectList"></div>
         </div>
         <div id="projectDetail" class="card detail"></div>
@@ -1318,42 +1319,65 @@ function projectDateYear(value){
 function projectCountry(p){
   return sites.find(s=>Number(s.id)===Number(p?.siteId))?.country||'';
 }
+const projectFilterState={status:new Set(),signing:new Set(),shipping:new Set(),opening:new Set(),format:new Set(),country:new Set(),bm:new Set()};
+const projectFilterConfig={
+  status:{id:'projectStatusFilter',label:'Status',values:()=>[...new Set(projects.map(p=>String(p.status||'').trim()).filter(Boolean))].sort()},
+  signing:{id:'projectSigningYearFilter',label:'Signing',values:()=>[...new Set(projects.map(p=>projectDateYear(p.signing)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))},
+  shipping:{id:'projectShippingYearFilter',label:'Shipping',values:()=>[...new Set(projects.map(p=>projectDateYear(p.shipping)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))},
+  opening:{id:'projectOpeningYearFilter',label:'Opening',values:()=>[...new Set(projects.map(p=>projectDateYear(p.opening)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))},
+  format:{id:'projectFormatFilter',label:'Format',values:()=>[...new Set(projects.map(p=>String(p.format||'').trim()).filter(Boolean))].sort()},
+  country:{id:'projectCountryFilter',label:'Country',values:()=>[...new Set(projects.map(projectCountry).filter(Boolean))].sort()},
+  bm:{id:'projectBmFilter',label:'BM',values:()=>[...new Set(projects.map(p=>String(p.bm||'').trim()).filter(Boolean))].sort()}
+};
+function projectFilterButtonText(kind){
+  const cfg=projectFilterConfig[kind],vals=[...projectFilterState[kind]];
+  if(!vals.length)return `${cfg.label} · All ▾`;
+  if(vals.length===1)return `${cfg.label} · ${vals[0]} ▾`;
+  if(vals.length===2)return `${cfg.label} · ${vals.join(', ')} ▾`;
+  return `${cfg.label} · ${vals.length} selected ▾`;
+}
 function syncProjectFilterOptions(){
-  const configs=[
-    ['projectSigningYearFilter','Signing · All',[...new Set(projects.map(p=>projectDateYear(p.signing)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))],
-    ['projectShippingYearFilter','Shipping · All',[...new Set(projects.map(p=>projectDateYear(p.shipping)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))],
-    ['projectOpeningYearFilter','Opening · All',[...new Set(projects.map(p=>projectDateYear(p.opening)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))],
-    ['projectFormatFilter','All Formats',[...new Set(projects.map(p=>String(p.format||'').trim()).filter(Boolean))].sort()],
-    ['projectCountryFilter','All Countries',[...new Set(projects.map(projectCountry).filter(Boolean))].sort()],
-    ['projectBmFilter','All BM',[...new Set(projects.map(p=>String(p.bm||'').trim()).filter(Boolean))].sort()]
-  ];
-  configs.forEach(([id,label,values])=>{
-    const el=document.getElementById(id);if(!el)return;
-    const current=el.value;
-    el.innerHTML=`<option value="">${esc(label)}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
-    if(values.includes(current))el.value=current;
+  Object.entries(projectFilterConfig).forEach(([kind,cfg])=>{
+    const host=document.getElementById(cfg.id);if(!host)return;
+    const values=cfg.values();
+    [...projectFilterState[kind]].forEach(v=>{if(!values.includes(v))projectFilterState[kind].delete(v)});
+    const wasOpen=host.classList.contains('open');
+    host.innerHTML=`<button type="button" class="projectMultiFilterBtn" onclick="toggleProjectMultiFilter('${kind}',event)">${esc(projectFilterButtonText(kind))}</button><div class="projectMultiFilterMenu" onclick="event.stopPropagation()"><input class="projectMultiFilterSearch" type="text" placeholder="Search ${esc(cfg.label)}..." oninput="filterProjectMultiOptions(this)"><div class="projectMultiFilterOptions">${values.map(v=>`<label><input type="checkbox" value="${esc(v)}" ${projectFilterState[kind].has(v)?'checked':''} onchange="onProjectMultiFilterChange('${kind}',this)"><span>${esc(v)}</span></label>`).join('')||'<div class="sub" style="padding:6px">No options</div>'}</div><div class="projectMultiFilterActions"><button type="button" onclick="clearProjectMultiFilter('${kind}')">Clear</button></div></div>`;
+    if(wasOpen)host.classList.add('open');
   });
 }
+function toggleProjectMultiFilter(kind,e){
+  e?.stopPropagation();const id=projectFilterConfig[kind]?.id,host=document.getElementById(id);if(!host)return;
+  const willOpen=!host.classList.contains('open');
+  document.querySelectorAll('.projectMultiFilter.open').forEach(x=>x.classList.remove('open'));
+  if(willOpen){host.classList.add('open');setTimeout(()=>host.querySelector('.projectMultiFilterSearch')?.focus(),0)}
+}
+function filterProjectMultiOptions(input){
+  const q=String(input.value||'').toLowerCase();
+  input.closest('.projectMultiFilterMenu')?.querySelectorAll('.projectMultiFilterOptions label').forEach(label=>{label.style.display=label.textContent.toLowerCase().includes(q)?'flex':'none'});
+}
+function onProjectMultiFilterChange(kind,checkbox){
+  const set=projectFilterState[kind];checkbox.checked?set.add(checkbox.value):set.delete(checkbox.value);
+  const host=document.getElementById(projectFilterConfig[kind].id),btn=host?.querySelector('.projectMultiFilterBtn');if(btn)btn.textContent=projectFilterButtonText(kind);
+  renderProjectList();
+}
+function clearProjectMultiFilter(kind){
+  projectFilterState[kind].clear();renderProjectList();
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.projectMultiFilter'))document.querySelectorAll('.projectMultiFilter.open').forEach(x=>x.classList.remove('open'))});
 function sortedProjects(){
   let arr=[...projects];
   const q=(document.getElementById('projectSearch')?.value||'').toLowerCase();
-  const st=document.getElementById('projectStatusFilter')?.value||'';
-  const signingYear=document.getElementById('projectSigningYearFilter')?.value||'';
-  const shippingYear=document.getElementById('projectShippingYearFilter')?.value||'';
-  const openingYear=document.getElementById('projectOpeningYearFilter')?.value||'';
-  const format=document.getElementById('projectFormatFilter')?.value||'';
-  const country=document.getElementById('projectCountryFilter')?.value||'';
-  const bm=document.getElementById('projectBmFilter')?.value||'';
   const sort=document.getElementById('projectSort')?.value||'opening';
   arr=arr.filter(p=>{
     const hitQ=!q || (`${p.client} ${p.name} ${p.format} ${projectCountry(p)} ${p.bm||''}`).toLowerCase().includes(q);
-    const hitS=!st || p.status===st;
-    const hitSigning=!signingYear || projectDateYear(p.signing)===signingYear;
-    const hitShipping=!shippingYear || projectDateYear(p.shipping)===shippingYear;
-    const hitOpening=!openingYear || projectDateYear(p.opening)===openingYear;
-    const hitFormat=!format || p.format===format;
-    const hitCountry=!country || projectCountry(p)===country;
-    const hitBm=!bm || p.bm===bm;
+    const hitS=!projectFilterState.status.size || projectFilterState.status.has(String(p.status||''));
+    const hitSigning=!projectFilterState.signing.size || projectFilterState.signing.has(projectDateYear(p.signing));
+    const hitShipping=!projectFilterState.shipping.size || projectFilterState.shipping.has(projectDateYear(p.shipping));
+    const hitOpening=!projectFilterState.opening.size || projectFilterState.opening.has(projectDateYear(p.opening));
+    const hitFormat=!projectFilterState.format.size || projectFilterState.format.has(String(p.format||''));
+    const hitCountry=!projectFilterState.country.size || projectFilterState.country.has(projectCountry(p));
+    const hitBm=!projectFilterState.bm.size || projectFilterState.bm.has(String(p.bm||''));
     return hitQ&&hitS&&hitSigning&&hitShipping&&hitOpening&&hitFormat&&hitCountry&&hitBm;
   });
   if(sort==='updated') arr.sort((a,b)=>String(b.updated||'').localeCompare(String(a.updated||'')));
