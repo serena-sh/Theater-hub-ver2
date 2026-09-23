@@ -803,13 +803,30 @@ async function deleteSite(id){
   const ok=confirm(`Site를 삭제할까요?\n\n${site.client||'-'} · ${site.name}\n${site.city||''}${site.country?' · '+site.country:''}\n\n삭제 후에는 되돌릴 수 없습니다.`);
   if(!ok)return;
   try{
-    await apiV2('site_delete',{id:Number(id)});
+    // Send both common ID keys so the backend can unambiguously identify the Site.
+    await apiV2('site_delete',{id:Number(id),site_id:Number(id)});
+
     selectedSiteId=null;
     clearMapTools();
+
+    // Reload the Supabase master before updating any map counters.
+    // reloadV2Data() also rebuilds filters, markers and the Map Summary.
     await reloadV2Data();
+
+    // Never report a successful deletion while the row still exists in Site master.
+    const stillExists=sites.some(x=>Number(x.id)===Number(id));
+    if(stillExists){
+      renderMapSummary(selectedMapSites());
+      renderMarkers();
+      throw new Error('삭제 요청 후에도 Site가 Supabase Site master에 남아 있습니다. /api/v2-projects의 site_delete 처리를 확인해주세요.');
+    }
+
+    // Force a final recalculation using the current search/filter scope.
+    refreshMapFilters();
+    renderMapSummary(selectedMapSites());
     renderMarkers();
     const panel=document.getElementById('mapPanel');
-    if(panel)panel.innerHTML='<div class="panelEmpty"><div><b>Site가 삭제되었습니다.</b><br><br>다른 Marker를 선택해주세요.</div></div>';
+    if(panel)panel.innerHTML='<div class="panelEmpty"><div><b>Site가 삭제되었습니다.</b><br><br>Map Summary와 Marker가 최신 데이터로 갱신되었습니다.</div></div>';
     alert('Site가 삭제되었습니다.');
   }catch(err){
     console.error('Delete Site failed',err);
