@@ -151,7 +151,7 @@ button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display
       <div class="kpis"><div class="card kpi"><label>Pending</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>Opened</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>On Hold</label><strong>0</strong><span>Loading from Supabase</span></div><div class="card kpi"><label>Updated this month</label><strong>0</strong><span>Loading from Supabase</span></div></div>
       <div class="projectWorkspace">
         <div class="card projectListCard">
-          <div class="listTools"><input id="projectSearch" placeholder="Search project / client" oninput="renderProjectList()"><div class="row"><select id="projectStatusFilter" onchange="renderProjectList()"><option value="">All Status</option><option>Pending</option><option>Opened</option><option>On Hold</option></select><select id="projectSort" onchange="renderProjectList()"><option value="opening">Opening</option><option value="updated">Recently Updated</option><option value="client">Client A-Z</option></select></div></div>
+          <div class="listTools"><input id="projectSearch" placeholder="Search project / client" oninput="renderProjectList()"><div class="row"><select id="projectStatusFilter" onchange="renderProjectList()"><option value="">All Status</option><option>Pending</option><option>Opened</option><option>On Hold</option><option>Cancelled</option></select><select id="projectSort" onchange="renderProjectList()"><option value="opening">Opening</option><option value="updated">Recently Updated</option><option value="client">Client A-Z</option></select></div><div class="row"><select id="projectSigningYearFilter" onchange="renderProjectList()"><option value="">Signing · All</option></select><select id="projectShippingYearFilter" onchange="renderProjectList()"><option value="">Shipping · All</option></select><select id="projectOpeningYearFilter" onchange="renderProjectList()"><option value="">Opening · All</option></select></div><div class="row"><select id="projectFormatFilter" onchange="renderProjectList()"><option value="">All Formats</option></select><select id="projectCountryFilter" onchange="renderProjectList()"><option value="">All Countries</option></select><select id="projectBmFilter" onchange="renderProjectList()"><option value="">All BM</option></select></div></div>
           <div id="projectList"></div>
         </div>
         <div id="projectDetail" class="card detail"></div>
@@ -1308,19 +1308,57 @@ function saveProjectFromModalLocal(){
   }catch(err){console.error('Project save failed',err);alert('Project 저장 중 오류가 발생했습니다: '+(err?.message||err));}
 }
 
+function projectDateYear(value){
+  const v=String(value??'').trim();
+  if(!v)return '';
+  if(/^tbd$/i.test(v))return 'TBD';
+  const m=v.match(/(?:19|20)\d{2}/);
+  return m?m[0]:'';
+}
+function projectCountry(p){
+  return sites.find(s=>Number(s.id)===Number(p?.siteId))?.country||'';
+}
+function syncProjectFilterOptions(){
+  const configs=[
+    ['projectSigningYearFilter','Signing · All',[...new Set(projects.map(p=>projectDateYear(p.signing)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))],
+    ['projectShippingYearFilter','Shipping · All',[...new Set(projects.map(p=>projectDateYear(p.shipping)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))],
+    ['projectOpeningYearFilter','Opening · All',[...new Set(projects.map(p=>projectDateYear(p.opening)).filter(Boolean))].sort((a,b)=>a==='TBD'?1:b==='TBD'?-1:a.localeCompare(b))],
+    ['projectFormatFilter','All Formats',[...new Set(projects.map(p=>String(p.format||'').trim()).filter(Boolean))].sort()],
+    ['projectCountryFilter','All Countries',[...new Set(projects.map(projectCountry).filter(Boolean))].sort()],
+    ['projectBmFilter','All BM',[...new Set(projects.map(p=>String(p.bm||'').trim()).filter(Boolean))].sort()]
+  ];
+  configs.forEach(([id,label,values])=>{
+    const el=document.getElementById(id);if(!el)return;
+    const current=el.value;
+    el.innerHTML=`<option value="">${esc(label)}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    if(values.includes(current))el.value=current;
+  });
+}
 function sortedProjects(){
   let arr=[...projects];
   const q=(document.getElementById('projectSearch')?.value||'').toLowerCase();
   const st=document.getElementById('projectStatusFilter')?.value||'';
+  const signingYear=document.getElementById('projectSigningYearFilter')?.value||'';
+  const shippingYear=document.getElementById('projectShippingYearFilter')?.value||'';
+  const openingYear=document.getElementById('projectOpeningYearFilter')?.value||'';
+  const format=document.getElementById('projectFormatFilter')?.value||'';
+  const country=document.getElementById('projectCountryFilter')?.value||'';
+  const bm=document.getElementById('projectBmFilter')?.value||'';
   const sort=document.getElementById('projectSort')?.value||'opening';
   arr=arr.filter(p=>{
-    const hitQ=!q || (`${p.client} ${p.name} ${p.format}`).toLowerCase().includes(q);
+    const hitQ=!q || (`${p.client} ${p.name} ${p.format} ${projectCountry(p)} ${p.bm||''}`).toLowerCase().includes(q);
     const hitS=!st || p.status===st;
-    return hitQ && hitS;
+    const hitSigning=!signingYear || projectDateYear(p.signing)===signingYear;
+    const hitShipping=!shippingYear || projectDateYear(p.shipping)===shippingYear;
+    const hitOpening=!openingYear || projectDateYear(p.opening)===openingYear;
+    const hitFormat=!format || p.format===format;
+    const hitCountry=!country || projectCountry(p)===country;
+    const hitBm=!bm || p.bm===bm;
+    return hitQ&&hitS&&hitSigning&&hitShipping&&hitOpening&&hitFormat&&hitCountry&&hitBm;
   });
-  if(sort==='updated') arr.sort((a,b)=>b.updated.localeCompare(a.updated));
-  else if(sort==='client') arr.sort((a,b)=>a.client.localeCompare(b.client));
-  else arr.sort((a,b)=>(a.opening==='TBD'?'9999':a.opening).localeCompare(b.opening==='TBD'?'9999':b.opening));
+  if(sort==='updated') arr.sort((a,b)=>String(b.updated||'').localeCompare(String(a.updated||'')));
+  else if(sort==='client') arr.sort((a,b)=>String(a.client||'').localeCompare(String(b.client||'')));
+  else arr.sort((a,b)=>(a.opening==='TBD'?'9999':String(a.opening||'9999')).localeCompare(b.opening==='TBD'?'9999':String(b.opening||'9999')));
   return arr;
 }
 let openProjectClients=new Set();
@@ -1359,6 +1397,7 @@ function pendingCommercialChangeHtml(p){
   return `<div class="projectMeta" style="margin-top:4px"><b>Commercial Changes:</b> ${changes.slice(0,3).map(x=>`${esc(x.label)} ${esc(x.before)} → ${esc(x.after)}`).join(' · ')}${changes.length>3?` · +${changes.length-3} more`:''}</div>`;
 }
 function renderProjectList(){
+  syncProjectFilterOptions();
   const arr=sortedProjects(),groups={};
   arr.forEach(p=>(groups[p.client]??=[]).push(p));
   const q=(document.getElementById('projectSearch')?.value||'').trim();
